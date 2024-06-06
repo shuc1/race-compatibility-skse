@@ -5,7 +5,7 @@ set_xmakever("2.8.2")
 includes("lib/commonlibsse")
 
 -- set project
-set_project("commonlibsse-template")
+set_project("race-compatibility")
 set_version("0.0.0")
 set_license("GPL-3.0")
 
@@ -22,18 +22,19 @@ add_rules("plugin.vsxmake.autoupdate")
 set_policy("package.requires_lock", true)
 
 -- set configs
-set_config("skyrim_ae", true)
+set_config("skyrim_se", true)
+set_config("skyrim_ae", false)
 
 -- targets
-target("commonlibsse-template")
+target("race-compatibility")
     -- add dependencies to target
     add_deps("commonlibsse")
 
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
-        name = "commonlibsse-template",
-        author = "qudix",
-        description = "SKSE64 plugin template using CommonLibSSE"
+        name = "race-compatibility",
+        author = "shuc",
+        description = "Plugin for race compatibility in dialogue and so on."
     })
 
     -- add src files
@@ -43,20 +44,20 @@ target("commonlibsse-template")
     set_pcxxheader("src/pch.h")
 
     -- copy build files to MODS or GAME paths (remove this if not needed)
-    after_build(function(target)
-        local copy = function(env, ext)
-            for _, env in pairs(env:split(";")) do
-                if os.exists(env) then
-                    local plugins = path.join(env, ext, "SKSE/Plugins")
-                    os.mkdir(plugins)
-                    os.trycp(target:targetfile(), plugins)
-                    os.trycp(target:symbolfile(), plugins)
-                end
-            end
-        end
-        if os.getenv("XSE_TES5_MODS_PATH") then
-            copy(os.getenv("XSE_TES5_MODS_PATH"), target:name())
-        elseif os.getenv("XSE_TES5_GAME_PATH") then
-            copy(os.getenv("XSE_TES5_GAME_PATH"), "Data")
-        end
-    end)
+    -- after_build(function(target)
+    --     local copy = function(env, ext)
+    --         for _, env in pairs(env:split(";")) do
+    --             if os.exists(env) then
+    --                 local plugins = path.join(env, ext, "SKSE/Plugins")
+    --                 os.mkdir(plugins)
+    --                 os.trycp(target:targetfile(), plugins)
+    --                 os.trycp(target:symbolfile(), plugins)
+    --             end
+    --         end
+    --     end
+    --     if os.getenv("XSE_TES5_MODS_PATH") then
+    --         copy(os.getenv("XSE_TES5_MODS_PATH"), target:name())
+    --     elseif os.getenv("XSE_TES5_GAME_PATH") then
+    --         copy(os.getenv("XSE_TES5_GAME_PATH"), "Data")
+    --     end
+    -- end)
