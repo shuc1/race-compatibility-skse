@@ -43,8 +43,6 @@ SKSEPlugin_Load(const SKSE::LoadInterface* a_skse) {
   logs::info("race-compatibility is loading...");
 
   SKSE::Init(a_skse);
-  // TODO: calc trampline size
-  SKSE::AllocTrampoline(1 << 10);
 
   logs::info("race-compatibility loaded.");
 
