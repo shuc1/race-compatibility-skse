@@ -1,0 +1,9 @@
+#pragma once
+
+namespace race_compatibility
+{
+    inline constexpr auto VERSION = "${VERSION}";
+	inline constexpr auto VERSION_BUILD = "${VERSION_BUILD}";
+	inline constexpr auto PROJECT = "${PROJECT}";
+	inline constexpr auto CONFIG_KEY = "${CONFIG_KEY}";
+}

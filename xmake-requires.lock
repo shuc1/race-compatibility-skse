@@ -26,6 +26,14 @@
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.13.0"
+        },
+        ["srell#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "63e995cbd44ad1e66009ec44e362c90783d630e2",
+                url = "https://gitee.com/tboox/xmake-repo.git"
+            },
+            version = "4.019"
         }
     }
 }

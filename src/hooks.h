@@ -1,13 +1,11 @@
 #pragma once
 
-#include "pch.h"
-#include "RE\Skyrim.h"
+namespace race_compatibility
+{
+	namespace hook
+	{
+		void Install();
+	}
 
-namespace Hooks {
-
-namespace RaceComp {
-void Install();
-}
-
-void Install();
-}  // namespace Hooks
+	void Install();
+}  // namespace hook

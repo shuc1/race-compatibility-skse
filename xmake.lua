@@ -1,12 +1,13 @@
 -- set minimum xmake version
 set_xmakever("2.8.2")
+local project_name = "race-compatibility"
 
 -- includes
 includes("lib/commonlibsse")
 
 -- set project
-set_project("race-compatibility")
-set_version("0.0.0")
+set_project(project_name)
+set_version("0.1.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set defaults
@@ -25,22 +26,38 @@ set_policy("package.requires_lock", true)
 set_config("skyrim_se", true)
 set_config("skyrim_ae", false)
 
+-- add requires
+add_requires("srell")
+
+-- set encoding
+set_encodings("utf-8")
+
 -- targets
-target("race-compatibility")
+target(project_name)
     -- add dependencies to target
     add_deps("commonlibsse")
 
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
-        name = "race-compatibility",
+        name = project_name,
         author = "shuc",
-        description = "Plugin for race compatibility in dialogue and so on."
+        description = "Plugin for race compatibility in dialogue, vampirism and so on."
     })
+    
+    -- add requires to target
+    add_packages("srell")
+
+    -- add config file
+    set_configdir("src/")
+    set_configvar("CONFIG_KEY", "RCS")
+    set_configvar("PROJECT", project_name)
+    add_configfiles("res/versions.h.in")
 
     -- add src files
     add_files("src/**.cpp")
     add_headerfiles("src/**.h")
     add_includedirs("src")
+    add_includedirs("lib/ClibUtil/include")
     set_pcxxheader("src/pch.h")
 
     -- copy build files to MODS or GAME paths (remove this if not needed)
@@ -61,3 +78,4 @@ target("race-compatibility")
     --         copy(os.getenv("XSE_TES5_GAME_PATH"), "Data")
     --     end
     -- end)
+target_end()
