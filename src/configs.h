@@ -4,11 +4,10 @@ namespace race_compatibility
 {
 	namespace ini
 	{
-		static inline std::vector<std::string> GetConfigFiles()
-		{
-			return clib_util::distribution::get_configs(R"(Data\)", "_RCS"sv);
-		}
-
-		bool ParseConfigs(const std::vector<std::string>& files);
+		// Format: RCS = RaceEditorID|VampireRaceEditorID|RaceProxyEditorIDs|VampireRaceProxyEditorIDs|HeadPartFlag
+		// Restrict: RCS = MUST|MUST|OPTIONAL|OPTIONAL|OPTIONAL
+		// RaceProxyEditorIDs: "A,B" for A or B race
+		// HeadPartFlag: B(Beasts), E(Elf), H(Human), O(Orc)
+		bool TryReadAndApplyConfigs();
 	}
 }

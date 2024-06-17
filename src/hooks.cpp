@@ -19,9 +19,9 @@ namespace race_compatibility
 					const auto npc = skyrim_cast<RE::TESNPC*>(obj->data.objectReference);
 					const auto race = skyrim_cast<RE::TESRace*>(race_form);
 					if (npc != nullptr && race != nullptr) [[likely]] {
-						namespace mc = manager::compatibility;
-						if (npc->race == race ||
-							(mc::race_map.contains(npc->race) && mc::race_map.at(npc->race).contains(race))) {
+						if (auto npc_race = npc->race; // npc_race could be nullptr, and won't affect the result
+							npc_race == race ||
+							manager::compatibility::GetIsRaceByProxies(npc_race, race)) {
 							result = 1.0;
 						}
 					}

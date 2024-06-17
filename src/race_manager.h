@@ -6,15 +6,6 @@ namespace race_compatibility
 {
 	namespace manager
 	{
-		namespace ini
-		{
-			// Format: RCS = RaceEditorID|VampireRaceEditorID|RaceProxyEditorIDs|VampireRaceProxyEditorIDs|HeadPartFlag
-			// Restrict: RCS = MUST|MUST|OPTIONAL|OPTIONAL|OPTIONAL
-			// RaceProxyEditorIDs: "A,B" for A or B race
-			// HeadPartFlag: B(Beasts), E(Elf), H(Human), O(Orc)
-			void TryParse(rcs::ini::configs_t& raw_configs);
-		}
-
 		namespace vampirism
 		{
 			// export functions to game scripting
@@ -28,6 +19,11 @@ namespace race_compatibility
 		namespace compatibility
 		{
 			inline std::map<RE::TESRace*, std::set<RE::TESRace*>> race_map{};
+
+			static inline bool GetIsRaceByProxies(RE::TESRace* npc_race, RE::TESRace* race)
+			{
+				return race_map.contains(npc_race) && race_map.at(npc_race).contains(race);
+			}
 		}
 	}
 }
