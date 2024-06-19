@@ -1,9 +1,9 @@
-#include <experimental/generator>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
 #include "configs.h"
 #include "hooks.h"
+#include "papyrus.h"
 
 namespace logs = SKSE::log;
 
@@ -18,8 +18,12 @@ static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 		{
 			logs::info("{:*^50}", "DEPENDENCIES");
 			logs::info("{:*^30}", "CONFIGS");
-			auto success{ rcs::ini::TryReadAndApplyConfigs() };
-			if (success) {
+			auto start = std::chrono::system_clock::now();
+		
+			auto should_install_hooks{ rcs::ini::TryReadAndApplyConfigs() };
+			logs::info("Summary: configs loaded in {} ms",
+				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
+			if (should_install_hooks) {
 				logs::info("{:*^30}", "HOOKS");
 				rcs::hook::Install();
 			}
@@ -36,7 +40,7 @@ static inline void InitLogging()
 	if (!path)
 		return;
 
-	*path /= "race-compatibility.log";
+	*path /= std::format("{}.log", rcs::PROJECT);
 
 	spdlog::sinks_init_list sinks{
 		std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
@@ -56,13 +60,15 @@ extern "C" __declspec(dllexport) bool SKSEAPI
 {
 	InitLogging();
 
-	logs::info("race-compatibility is loading...");
+	logs::info("Game version : {}", a_skse->RuntimeVersion().string());
 
+	logs::info("{} is loading...", rcs::PROJECT);
 	SKSE::Init(a_skse);
+	logs::info("{} loaded.", rcs::PROJECT);
 
-	logs::info("race-compatibility loaded.");
-
-	logs::info("Game version : {}", a_skse->RuntimeVersion().string().c_str());
+	logs::info("{:*^50}", "Functions");
+	const auto papyrus_interface = SKSE::GetPapyrusInterface();
+	papyrus_interface->Register(rcs::papyrus::Bind);
 
 	const auto messaging = SKSE::GetMessagingInterface();
 	messaging->RegisterListener(MessageHandler);

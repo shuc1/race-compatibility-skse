@@ -43,15 +43,15 @@ namespace race_compatibility
 		{
 			const REL::Relocation<std::uintptr_t> target_in_lookup_table{ REL::ID(21034), 0x7 };
 			stl::write_thunk_branch<GetIsRace>(target_in_lookup_table.address());
-			logs::info("Installed GameFunc__native::GetPCIsRace Hook");
+			logs::info("Installed GameFunc__native::GetPCIsRace hook");
 
 			const REL::Relocation<std::uintptr_t> target_get_is_race{ REL::ID(21691), 0x68 };
 			stl::write_thunk_call<GetIsRace>(target_get_is_race.address());
-			logs::info("Installed GameFunc__handler::GetIsRace Hook");
+			logs::info("Installed GameFunc__handler::GetIsRace hook");
 
 			const REL::Relocation<std::uintptr_t> target_get_pc_is_race{ REL::ID(21697), 0x66 };
 			stl::write_thunk_call<GetIsRace>(target_get_pc_is_race.address());
-			logs::info("Installed GameFunc__handler::GetPCIsRace Hook");
+			logs::info("Installed GameFunc__handler::GetPCIsRace hook");
 		}
 	}  // namespace race_compatibility
 

@@ -1,8 +1,24 @@
 -- set minimum xmake version
 set_xmakever("2.8.2")
+
+function to_camel(name)
+    local result = ""
+    for i,s in ipairs(name:split("-")) do
+        result = result .. s:sub(1,1):upper() .. s:sub(2)
+    end
+    return result 
+end
+
+-- project configs
 local project_name = "race-compatibility"
+local script_name = to_camel(project_name)
+set_configvar("CONFIG_KEY", "RCS")
+set_configvar("PROJECT", project_name)
+set_configvar("SCRIPT_NAME", script_name)
+
 
 -- includes
+includes("@builtin/xpack")
 includes("lib/commonlibsse")
 
 -- set project
@@ -49,8 +65,6 @@ target(project_name)
 
     -- add config file
     set_configdir("src/")
-    set_configvar("CONFIG_KEY", "RCS")
-    set_configvar("PROJECT", project_name)
     add_configfiles("res/versions.h.in")
 
     -- add src files
@@ -60,7 +74,19 @@ target(project_name)
     add_includedirs("lib/ClibUtil/include")
     set_pcxxheader("src/pch.h")
 
-    -- copy build files to MODS or GAME paths (remove this if not needed)
+    -- after_build(function (target) // compile psc files
+        
+    -- end)
+target_end()
+
+xpack(project_name)
+    set_formats("zip")
+    add_installfiles("build/**/"..project_name..".dll", {prefixdir = "skse/plugins"})
+    add_installfiles("res/rcs/**.psc",  {prefixdir = "scripts/source"})
+    add_installfiles("res/rcs/**.pex",  {prefixdir = "scripts"})
+    -- add_installfiles("res/rcs/*.ini")
+
+-- copy build files to MODS or GAME paths (remove this if not needed)
     -- after_build(function(target)
     --     local copy = function(env, ext)
     --         for _, env in pairs(env:split(";")) do
@@ -78,4 +104,3 @@ target(project_name)
     --         copy(os.getenv("XSE_TES5_GAME_PATH"), "Data")
     --     end
     -- end)
-target_end()
