@@ -38,25 +38,25 @@ namespace race_compatibility
 				                 humans_orcs_and_vampires != nullptr;
 			}
 
-			void HeadPartFormIdLists::AddRace(RE::TESRace* race, RE::TESRace* vampire_race, HeadPartFlag flag)
+			void HeadPartFormIdLists::AddRace(RE::TESRace* race, RE::TESRace* vampire_race, RaceFlag flag)
 			{
 				switch (flag) {
 				default:
-				case HeadPartFlag::kNone:
+				case RaceFlag::kNone:
 					return;
-				case HeadPartFlag::kArgonian:
+				case RaceFlag::kArgonian:
 					AddArgonian(race, vampire_race);
 					break;
-				case HeadPartFlag::kElf:
+				case RaceFlag::kElf:
 					AddElf(race, vampire_race);
 					break;
-				case HeadPartFlag::kHuman:
+				case RaceFlag::kHuman:
 					AddHuman(race, vampire_race);
 					break;
-				case HeadPartFlag::kKhajiit:
+				case RaceFlag::kKhajiit:
 					AddKhajiit(race, vampire_race);
 					break;
-				case HeadPartFlag::kOrc:
+				case RaceFlag::kOrc:
 					AddOrc(race, vampire_race);
 					break;
 				}

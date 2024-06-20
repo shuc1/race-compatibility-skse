@@ -70,25 +70,25 @@ namespace race_compatibility
 			}
 		}
 
+		enum class RaceFlag : char
+		{
+			kNone = 0,
+			kArgonian = 'A',
+			kElf = 'E',
+			kHuman = 'H',
+			kKhajiit = 'K',
+			kOrc = 'O'
+		};
+
 		namespace headpart
 		{
-			enum class HeadPartFlag : char
-			{
-				kNone = 0,
-				kArgonian = 'A',
-				kElf = 'E',
-				kHuman = 'H',
-				kKhajiit = 'K',
-				kOrc = 'O'
-			};
-
-			inline std::map<char, HeadPartFlag> head_parts_flag_map_without_none{
+			inline std::map<char, RaceFlag> head_parts_flag_map_without_none{
 #define MAKE_FLAG_MAP_PAIR(a_flag) { std::to_underlying(a_flag), a_flag }
-				MAKE_FLAG_MAP_PAIR(HeadPartFlag::kArgonian),
-				MAKE_FLAG_MAP_PAIR(HeadPartFlag::kElf),
-				MAKE_FLAG_MAP_PAIR(HeadPartFlag::kHuman),
-				MAKE_FLAG_MAP_PAIR(HeadPartFlag::kKhajiit),
-				MAKE_FLAG_MAP_PAIR(HeadPartFlag::kOrc)
+				MAKE_FLAG_MAP_PAIR(RaceFlag::kArgonian),
+				MAKE_FLAG_MAP_PAIR(RaceFlag::kElf),
+				MAKE_FLAG_MAP_PAIR(RaceFlag::kHuman),
+				MAKE_FLAG_MAP_PAIR(RaceFlag::kKhajiit),
+				MAKE_FLAG_MAP_PAIR(RaceFlag::kOrc)
 #undef MAKE_FLAG_MAP_PAIR
 			};
 
@@ -137,7 +137,7 @@ namespace race_compatibility
 				bool         is_initialized{ false };
 				std::uint8_t count{ 0 };
 
-				void AddRace(RE::TESRace* race, RE::TESRace* vampire_race, HeadPartFlag flag);
+				void AddRace(RE::TESRace* race, RE::TESRace* vampire_race, RaceFlag flag);
 				void Initialize();
 
 			private:

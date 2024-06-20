@@ -19,7 +19,7 @@ static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 			logs::info("{:*^50}", "DEPENDENCIES");
 			logs::info("{:*^30}", "CONFIGS");
 			auto start = std::chrono::system_clock::now();
-		
+
 			auto should_install_hooks{ rcs::ini::TryReadAndApplyConfigs() };
 			logs::info("Summary: configs loaded in {} ms",
 				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
@@ -62,7 +62,7 @@ extern "C" __declspec(dllexport) bool SKSEAPI
 
 	logs::info("Game version : {}", a_skse->RuntimeVersion().string());
 
-	logs::info("{} is loading...", rcs::PROJECT);
+	logs::info("{}-{}(build: {}) is loading...", rcs::PROJECT, rcs::VERSION, rcs::VERSION_BUILD);
 	SKSE::Init(a_skse);
 	logs::info("{} loaded.", rcs::PROJECT);
 

@@ -25,7 +25,7 @@ namespace race_compatibility
 				record_ptr_t                    vampire_race{};
 				std::vector<record_ptr_t>       proxy_races{};
 				std::vector<record_ptr_t>       proxy_vampire_races{};
-				manager::headpart::HeadPartFlag head_part_flag{ 0 };
+				manager::RaceFlag head_part_flag{ 0 };
 			};
 
 			// path-config data

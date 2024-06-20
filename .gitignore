@@ -9,4 +9,5 @@ vs*/
 
 # files
 *.zip
+*.pex
 versions.h

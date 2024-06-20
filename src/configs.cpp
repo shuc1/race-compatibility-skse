@@ -122,7 +122,7 @@ namespace race_compatibility
 					}
 				}
 
-				static inline manager::headpart::HeadPartFlag ParseHeadPartFlag(const std::string& raw_string)
+				static inline manager::RaceFlag ParseHeadPartFlag(const std::string& raw_string)
 				{
 					using namespace manager::headpart;
 					if (raw_string.size() == 1) {
@@ -134,7 +134,7 @@ namespace race_compatibility
 					if (!raw_string.empty()) {
 						logs::warn("\t\t\tInvalid flag: {}, head part flag invalid", raw_string);
 					}
-					return HeadPartFlag::kNone;
+					return manager::RaceFlag::kNone;
 				}
 			}
 
@@ -307,10 +307,11 @@ namespace race_compatibility
 					logs::warn("FormId lists not initilized, ignoring head part flags");
 				}
 
-				// reverse iterate for override support
+				// reverse iterate for config file override support, the last file will override the previous one
 				for (const auto& [path, entries] : parsed_configs | std::views::reverse) {
 					logs::info("\tApplying configs in {}", *path);
-					for (const auto& data : entries) {
+					// reverse iterate for config entry override support, the last entry will override the previous one
+					for (const auto& data : entries | std::views::reverse) {
 						logs::info("\t\t{}|{}",
 							utility::RecordToString(*(data.race)),
 							utility::RecordToString(*(data.vampire_race)));
@@ -380,13 +381,15 @@ namespace race_compatibility
 				should_install_hooks = false;
 			} else {
 				logs::info("Applying configs");
-				manager::headpart::HeadPartFormIdLists lists;
-				lists.Initialize();
-				ApplyManagerConfig(parsed_configs, table, lists);
-				// summary
-				manager::vampirism::Summary();
+				{
+					manager::headpart::HeadPartFormIdLists lists;
+					lists.Initialize();
+					ApplyManagerConfig(parsed_configs, table, lists);
+					// summary
+					manager::headpart::Summary(lists);
+				}
 				should_install_hooks = manager::compatibility::Summary();
-				manager::headpart::Summary(lists);
+				manager::vampirism::Summary();
 			}
 			return should_install_hooks;
 		}
