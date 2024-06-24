@@ -4,6 +4,7 @@ Plugin for race compatibility in dialogue, vampirism and so on.
 ### Requirements
 * [XMake](https://xmake.io) [2.8.6+]
 * C++23 Compiler (MSVC)
+* Papyrus Compiler
 
 ## Getting Started
 ```bat
@@ -12,6 +13,15 @@ cd race-compatibility-skse
 ```
 
 Rename the file `res/commonlib-build/xmake.lua.replace` to `xmake.lua`, then use it to replace the existing `lib/commonlibsse/xmake.lua` file.
+
+Ensure that you set path `SKYRIM_HOME=YOUR_SKYRIM_GAME_FOLDER` and arrange the game folder as follows:
+-- SKYRIM_HOME
+    |- Papyrus Compiler
+        |- PapyrusCompiler.exe
+    |- Data
+        |- Scripts
+            |- Source(this should contain the Skyrim scripts source)
+
 ### Build
 To build the project, run the following command:
 ```bat

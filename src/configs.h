@@ -45,10 +45,10 @@ namespace race_compatibility
 			}
 		}
 
-		// Format: RCS = RaceEditorID|VampireRaceEditorID|RaceProxyEditorIDs|VampireRaceProxyEditorIDs|HeadPartFlag
+		// Format: RCS = RaceForm|VampireRaceForm|RaceProxyForms|VampireRaceProxyForms|HeadPartFlag
 		// Restrict: RCS = MUST|MUST|OPTIONAL|OPTIONAL|OPTIONAL
-		// RaceProxyEditorIDs: "A,B" for A or B race
-		// HeadPartFlag: B(Beasts), E(Elf), H(Human), O(Orc)
+		// RaceProxyForms: "A,B" for A or B race
+		// HeadPartFlag: A(Argonian), E(Elf), H(Human), K(Khajiit), O(Orc)
 		bool TryReadAndApplyConfigs();
 	}
 }

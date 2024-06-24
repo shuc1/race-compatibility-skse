@@ -13,7 +13,6 @@ local se_suffix = "se"
 local ae_suffix = "ae"
 local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
--- local se_plugin_dir = se_suffix .. "/" .. plugin_dir
 local se_plugin_dir = path.join(se_suffix, plugin_dir)
 local ae_plugin_dir = path.join(ae_suffix, plugin_dir)
 
