@@ -1,6 +1,12 @@
 Scriptname CompanionsHousekeepingScript extends Quest Conditional
+{USKP 2.0.0 has several edits for adding Stage 255 blocks to all of the CRxx quests. This was necessary for the bloat bomb fix.
+ Stage 255 in each CR quest manually processes what the cleanup() functions would ordinarily do.
+ cleanup() cannot be called from within this script or it will result in endless recursion and eventually lead to Papyrus freezing up and throwing stack dumps.
+ Nevermind that it would also improperly reward the player for a quest this hackishly bad system is cycling out for no good reason anyway.}
 
 Import RaceCompatibility
+
+bool Property USKPFarkasIntroDone auto hidden Conditional ; USKP 2.0.4 - Stop Farkas from running a double intro.
 
 Faction property CompanionsFaction auto
 
@@ -304,7 +310,8 @@ Function OnInit()
 	; PlayerJoin() ; for debugging, usually commented out
 EndFunction
 
-Function SetUpCompanions()
+;USSEP 4.2.4 Bug #29333 - Let's process this here now, shall we?
+Function USSEP_RealSetupCompanions()
 ; 	Debug.Trace("C00: Waiting to set up Companions.")
 	Utility.Wait(60) ; giving other quests the chance to finish their reservations
 					 ;  (very conservative time buffer, but chargen takes a while, 
@@ -349,6 +356,15 @@ Function SetUpCompanions()
 	
 ; 	Debug.Trace("C00: Setup done; setting stage 1.")
 	SetStage(1)
+EndFunction
+
+;The original function calls on our event now instead.
+Event OnUpdate()
+	USSEP_RealSetupCompanions()
+EndEvent
+
+Function SetUpCompanions()
+	RegisterForSingleUpdate( 60 )
 EndFunction
 
 Function PlayerJoin()
@@ -437,7 +453,7 @@ Function GiveVilkasBackHisSword()
 	ObjectReference vs = VilkasSword.GetReference()
 	; make sure it's been cleared as a quest item
 	VilkasQuestSword.Clear()
-	VilkasSword.Clear()
+	;VilkasSword.Clear() - Commented out by USKP 2.0.1. The main sword alias is not optional and cannot be cleared.
 	
 	Eorlund.GetReference().RemoveItem(vs)
 
@@ -451,10 +467,12 @@ Function CycleRadiantQuests()
 	; just in case some idjit (i.e. me) unblocked a dead questgiver
 	if (Aela.GetActorReference().IsDead())
 		if (AelaCurrentQuest != None)
+			AelaCurrentQuest.SetStage(255)
 			AelaCurrentQuest.Stop()
 			AelaCurrentQuest = None
 		endif
 		if (AelaNextQuest != None)
+			AelaNextQuest.SetStage(255)
 			AelaNextQuest.Stop()
 			AelaNextQuest = None
 		endif
@@ -462,10 +480,12 @@ Function CycleRadiantQuests()
 	endif
 	if (Farkas.GetActorReference().IsDead())
 		if (FarkasCurrentQuest != None)
+			FarkasCurrentQuest.SetStage(255)
 			FarkasCurrentQuest.Stop()
 			FarkasCurrentQuest = None
 		endif
 		if (FarkasNextQuest != None)
+			FarkasNextQuest.SetStage(255)
 			FarkasNextQuest.Stop()
 			FarkasNextQuest = None
 		endif
@@ -473,10 +493,12 @@ Function CycleRadiantQuests()
 	endif
 	if (Vilkas.GetActorReference().IsDead())
 		if (VilkasCurrentQuest != None)
+			VilkasCurrentQuest.SetStage(255)
 			VilkasCurrentQuest.Stop()
 			VilkasCurrentQuest = None
 		endif
 		if (VilkasNextQuest != None)
+			VilkasNextQuest.SetStage(255)
 			VilkasNextQuest.Stop()
 			VilkasNextQuest = None
 		endif
@@ -484,10 +506,12 @@ Function CycleRadiantQuests()
 	endif
 	if (Skjor.GetActorReference().IsDead())
 		if (SkjorCurrentQuest != None)
+			SkjorCurrentQuest.SetStage(255)
 			SkjorCurrentQuest.Stop()
 			SkjorCurrentQuest = None
 		endif
 		if (SkjorNextQuest != None)
+			SkjorNextQuest.SetStage(255)
 			SkjorNextQuest.Stop()
 			SkjorNextQuest = None
 		endif
@@ -499,6 +523,7 @@ Function CycleRadiantQuests()
 	if (!RadiantAelaBlock)
 		if (AelaCurrentQuest && AelaNextQuest && !AelaCurrentQuest.IsAccepted)
 			; current quest not accepted, and we have a good next choice lined up -- swap
+			AelaCurrentQuest.SetStage(255)
 			AelaCurrentQuest.Stop()
 			AelaCurrentQuest = AelaNextQuest
 			AelaNextQuest = None
@@ -506,6 +531,7 @@ Function CycleRadiantQuests()
 		elseif (AelaCurrentQuest && AelaCurrentQuest.Premature)
 			; no better option, but we're trying to cycle out a prematurely ended quest,
 			;  so make it happen
+			AelaCurrentQuest.SetStage(255)
 			AelaCurrentQuest.Stop()
 			AelaCurrentQuest = AelaNextQuest
 			AelaNextQuest = None
@@ -522,11 +548,13 @@ Function CycleRadiantQuests()
 			AelaCurrentQuest.IsActive = True
 		elseif (AelaNextQuest && AelaNextQuest != AelaCurrentQuest)
 			; I don't even know why this is here anymore, but it is. 
+			AelaNextQuest.SetStage(255)
 			AelaNextQuest.Stop()
 			AelaNextQuest = None
 		elseif (AelaCurrentQuest && AelaCurrentQuest.GetStage() >= 200)
 			; in case something got stuck someplace, make sure this eventually
 			;  gets cycled out
+			AelaCurrentQuest.SetStage(255)
 			AelaCurrentQuest.Stop()
 			if (AelaNextQuest != None)
 				AelaCurrentQuest = AelaNextQuest
@@ -539,6 +567,7 @@ Function CycleRadiantQuests()
 		PickRadiantQuest(Aela.GetActorReference())
 	elseif (AelaCurrentQuest && AelaCurrentQuest.GetStage() >= 200)
 		; even if there's a block, cycle out done quests
+		AelaCurrentQuest.SetStage(255)
 		AelaCurrentQuest.Stop()
 		if (AelaNextQuest != None)
 			AelaCurrentQuest = AelaNextQuest
@@ -550,6 +579,7 @@ Function CycleRadiantQuests()
 	if (!RadiantFarkasBlock)
 		if (FarkasCurrentQuest && FarkasNextQuest && !FarkasCurrentQuest.IsAccepted)
 			; current quest not accepted, and we have a good next choice lined up -- swap
+			FarkasCurrentQuest.SetStage(255)
 			FarkasCurrentQuest.Stop()
 			FarkasCurrentQuest = FarkasNextQuest
 			FarkasNextQuest = None
@@ -557,6 +587,7 @@ Function CycleRadiantQuests()
 		elseif (FarkasCurrentQuest && FarkasCurrentQuest.Premature)
 			; no better option, but we're trying to cycle out a prematurely ended quest,
 			;  so make it happen
+			FarkasCurrentQuest.SetStage(255)
 			FarkasCurrentQuest.Stop()
 			FarkasCurrentQuest = FarkasNextQuest
 			FarkasNextQuest = None
@@ -573,11 +604,13 @@ Function CycleRadiantQuests()
 			FarkasCurrentQuest.IsActive = True
 		elseif (FarkasNextQuest && FarkasNextQuest != FarkasCurrentQuest)
 			; I don't even know why this is here anymore, but it is. 
+			FarkasNextQuest.SetStage(255)
 			FarkasNextQuest.Stop()
 			FarkasNextQuest = None
 		elseif (FarkasCurrentQuest && FarkasCurrentQuest.GetStage() >= 200)
 			; in case something got stuck someplace, make sure this eventually
 			;  gets cycled out
+			FarkasCurrentQuest.SetStage(255)
 			FarkasCurrentQuest.Stop()
 			if (FarkasNextQuest != None)
 				FarkasCurrentQuest = FarkasNextQuest
@@ -590,6 +623,7 @@ Function CycleRadiantQuests()
 		PickRadiantQuest(Farkas.GetActorReference())
 	elseif (FarkasCurrentQuest && FarkasCurrentQuest.GetStage() >= 200)
 		; even if there's a block, cycle out done quests
+		FarkasCurrentQuest.SetStage(255)
 		FarkasCurrentQuest.Stop()
 		if (FarkasNextQuest != None)
 			FarkasCurrentQuest = FarkasNextQuest
@@ -601,6 +635,7 @@ Function CycleRadiantQuests()
 	if (!RadiantVilkasBlock)
 		if (VilkasCurrentQuest && VilkasNextQuest && !VilkasCurrentQuest.IsAccepted)
 			; current quest not accepted, and we have a good next choice lined up -- swap
+			VilkasCurrentQuest.SetStage(255)
 			VilkasCurrentQuest.Stop()
 			VilkasCurrentQuest = VilkasNextQuest
 			VilkasNextQuest = None
@@ -608,6 +643,7 @@ Function CycleRadiantQuests()
 		elseif (VilkasCurrentQuest && VilkasCurrentQuest.Premature)
 			; no better option, but we're trying to cycle out a prematurely ended quest,
 			;  so make it happen
+			VilkasCurrentQuest.SetStage(255)
 			VilkasCurrentQuest.Stop()
 			VilkasCurrentQuest = VilkasNextQuest
 			VilkasNextQuest = None
@@ -624,11 +660,13 @@ Function CycleRadiantQuests()
 			VilkasCurrentQuest.IsActive = True
 		elseif (VilkasNextQuest && VilkasNextQuest != VilkasCurrentQuest)
 			; I don't even know why this is here anymore, but it is. 
+			VilkasNextQuest.SetStage(255)
 			VilkasNextQuest.Stop()
 			VilkasNextQuest = None
 		elseif (VilkasCurrentQuest && VilkasCurrentQuest.GetStage() >= 200)
 			; in case something got stuck someplace, make sure this eventually
 			;  gets cycled out
+			VilkasCurrentQuest.SetStage(255)
 			VilkasCurrentQuest.Stop()
 			if (VilkasNextQuest != None)
 				VilkasCurrentQuest = VilkasNextQuest
@@ -641,6 +679,7 @@ Function CycleRadiantQuests()
 		PickRadiantQuest(Vilkas.GetActorReference())
 	elseif (VilkasCurrentQuest && VilkasCurrentQuest.GetStage() >= 200)
 		; even if there's a block, cycle out done quests
+		VilkasCurrentQuest.SetStage(255)
 		VilkasCurrentQuest.Stop()
 		if (VilkasNextQuest != None)
 			VilkasCurrentQuest = VilkasNextQuest
@@ -652,6 +691,7 @@ Function CycleRadiantQuests()
 	if (!RadiantSkjorBlock)
 		if (SkjorCurrentQuest && SkjorNextQuest && !SkjorCurrentQuest.IsAccepted)
 			; current quest not accepted, and we have a good next choice lined up -- swap
+			SkjorCurrentQuest.SetStage(255)
 			SkjorCurrentQuest.Stop()
 			SkjorCurrentQuest = SkjorNextQuest
 			SkjorNextQuest = None
@@ -659,6 +699,7 @@ Function CycleRadiantQuests()
 		elseif (SkjorCurrentQuest && SkjorCurrentQuest.Premature)
 			; no better option, but we're trying to cycle out a prematurely ended quest,
 			;  so make it happen
+			SkjorCurrentQuest.SetStage(255)
 			SkjorCurrentQuest.Stop()
 			SkjorCurrentQuest = SkjorNextQuest
 			SkjorNextQuest = None
@@ -675,11 +716,13 @@ Function CycleRadiantQuests()
 			SkjorCurrentQuest.IsActive = True
 		elseif (SkjorNextQuest && SkjorNextQuest != SkjorCurrentQuest)
 			; I don't even know why this is here anymore, but it is. 
+			SkjorNextQuest.SetStage(255)
 			SkjorNextQuest.Stop()
 			SkjorNextQuest = None
 		elseif (SkjorCurrentQuest && SkjorCurrentQuest.GetStage() >= 200)
 			; in case something got stuck someplace, make sure this eventually
 			;  gets cycled out
+			SkjorCurrentQuest.SetStage(255)
 			SkjorCurrentQuest.Stop()
 			if (SkjorNextQuest != None)
 				SkjorCurrentQuest = SkjorNextQuest
@@ -692,6 +735,7 @@ Function CycleRadiantQuests()
 		PickRadiantQuest(Skjor.GetActorReference())
 	elseif (SkjorCurrentQuest && SkjorCurrentQuest.GetStage() >= 200)
 		; even if there's a block, cycle out done quests
+		SkjorCurrentQuest.SetStage(255)
 		SkjorCurrentQuest.Stop()
 		if (SkjorNextQuest != None)
 			SkjorCurrentQuest = SkjorNextQuest
@@ -705,18 +749,22 @@ Function CycleRadiantQuests()
 	; 77298: Fixing situation where next quests were flagged premature
 	;   and not cleared out before player was able to get at them.
 	if (AelaNextQuest != None && AelaNextQuest.Premature == True)
+		AelaNextQuest.SetStage(255)
 		AelaNextQuest.Stop()
 		AelaNextQuest = None
 	endif
 	if (FarkasNextQuest != None && FarkasNextQuest.Premature == True)
+		FarkasNextQuest.SetStage(255)
 		FarkasNextQuest.Stop()
 		FarkasNextQuest = None
 	endif
 	if (VilkasNextQuest != None && VilkasNextQuest.Premature == True)
+		VilkasNextQuest.SetStage(255)
 		VilkasNextQuest.Stop()
 		VilkasNextQuest = None
 	endif
 	if (SkjorNextQuest != None && SkjorNextQuest.Premature == True)
+		SkjorNextQuest.SetStage(255)
 		SkjorNextQuest.Stop()
 		SkjorNextQuest = None
 	endif
@@ -759,11 +807,13 @@ Function RegisterRadiantQuest(CompanionsRadiantQuest newRadiant)
 			AelaCurrentQuest = newRadiant
 			AelaCurrentQuest.IsActive = True
 		elseif (!AelaCurrentQuest.IsActive)
+			AelaCurrentQuest.SetStage(255)
 			AelaCurrentQuest.Stop()
 			AelaCurrentQuest = newRadiant
 			AelaCurrentQuest.IsActive = True
 		else
 			if (AelaNextQuest != None)
+				AelaNextQuest.SetStage(255)
 				AelaNextQuest.Stop()
 			endif
 			AelaNextQuest = newRadiant
@@ -773,11 +823,13 @@ Function RegisterRadiantQuest(CompanionsRadiantQuest newRadiant)
 			SkjorCurrentQuest = newRadiant
 			SkjorCurrentQuest.IsActive = True
 		elseif (!SkjorCurrentQuest.IsActive)
+			SkjorCurrentQuest.SetStage(255)
 			SkjorCurrentQuest.Stop()
 			SkjorCurrentQuest = newRadiant
 			SkjorCurrentQuest.IsActive = True
 		else
 			if (SkjorNextQuest != None)
+				SkjorNextQuest.SetStage(255)
 				SkjorNextQuest.Stop()
 			endif
 			SkjorNextQuest = newRadiant
@@ -787,11 +839,13 @@ Function RegisterRadiantQuest(CompanionsRadiantQuest newRadiant)
 			VilkasCurrentQuest = newRadiant
 			VilkasCurrentQuest.IsActive = True
 		elseif (!VilkasCurrentQuest.IsActive)
+			VilkasCurrentQuest.SetStage(255)
 			VilkasCurrentQuest.Stop()
 			VilkasCurrentQuest = newRadiant
 			VilkasCurrentQuest.IsActive = True
 		else
 			if (VilkasNextQuest != None)
+				VilkasNextQuest.SetStage(255)
 				VilkasNextQuest.Stop()
 			endif
 			VilkasNextQuest = newRadiant
@@ -801,11 +855,13 @@ Function RegisterRadiantQuest(CompanionsRadiantQuest newRadiant)
 			FarkasCurrentQuest = newRadiant
 			FarkasCurrentQuest.IsActive = True
 		elseif (!FarkasCurrentQuest.IsActive)
+			FarkasCurrentQuest.SetStage(255)
 			FarkasCurrentQuest.Stop()
 			FarkasCurrentQuest = newRadiant
 			FarkasCurrentQuest.IsActive = True
 		else
 			if (FarkasNextQuest != None)
+				FarkasNextQuest.SetStage(255)
 				FarkasNextQuest.Stop()
 			endif
 			FarkasNextQuest = newRadiant
@@ -944,10 +1000,12 @@ Function KickOffReconQuests()
 
 	; clear out her existing radiant stuff
 	if (AelaCurrentQuest)
+		AelaCurrentQuest.SetStage(255)
 		AelaCurrentQuest.Stop()
 		AelaCurrentQuest = None
 	endif
 	if (AelaNextQuest)
+		AelaNextQuest.SetStage(255)
 		AelaNextQuest.Stop()
 		AelaNextQuest = None
 	endif
@@ -1169,9 +1227,10 @@ Function CurePlayer()
     ; you can't get into the Underforge anymore, either
     TempUnderforgeAccess = false
     PlayerHasBeastBlood = false
-
-    ; Let everyone know you are no longer a werewolf
-    Game.GetPlayer().SendLycanthropyStateChanged(false)
+	
+	; Let everyone know you are no longer a werewolf
+	Game.GetPlayer().SendLycanthropyStateChanged(false) ;Official Patch 1.5.3
+	PlayerIsWerewolf.SetValueInt(0) ; Added by USKP 1.2.2 - This global was never unset.
 EndFunction
 
 

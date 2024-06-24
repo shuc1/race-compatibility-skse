@@ -7,7 +7,7 @@ namespace race_compatibility
 	namespace papyrus
 	{
 // #define BIND(a_method, ...) a_vm.RegisterFunction(#a_method##sv, script, a_method __VA_OPT__(, ) __VA_ARGS__)
-#define BIND(a_method) a_vm->RegisterFunction(#a_method##sv, rcs::SCRIPT_NAME, a_method)
+#define BIND(a_method) a_vm->RegisterFunction(#a_method##sv, rcs::PROJECT_NAME_CAMEL, a_method)
 		static inline bool Bind(RE::BSScript::Internal::VirtualMachine* a_vm)
 		{
 			if (a_vm == nullptr) {

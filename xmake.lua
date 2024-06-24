@@ -1,39 +1,38 @@
 -- set minimum xmake version
-set_xmakever("2.8.2")
-
-function to_camel(a_name)
-    local result = ""
-    for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1,1):upper() .. s:sub(2)
-    end
-    return result 
-end
-
-function to_package_name(a_name) 
-    local result = ""
-    for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1,1):upper() .. s:sub(2) .. " "
-    end
-    result = result .. "SKSE"
-    return result
-end
+set_xmakever("2.8.6")
 
 -- includes
 includes("@builtin/xpack")
 includes("lib/commonlibsse")
+includes("xmake-extra.lua")
 
 -- set project
 local project_name = "race-compatibility"
+local project_title = to_title(project_name)
 local se_suffix = "se"
 local ae_suffix = "ae"
+local required_dir = "required/"
+local plugin_dir = "skse/plugins/"
+-- local se_plugin_dir = se_suffix .. "/" .. plugin_dir
+local se_plugin_dir = path.join(se_suffix, plugin_dir)
+local ae_plugin_dir = path.join(ae_suffix, plugin_dir)
+
 set_project(project_name)
-set_version("0.5.1", {build = "%Y-%m-%d"})
+set_version("1.0.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
+-- project source
 set_configvar("CONFIG_KEY", "RCS")
-set_configvar("PROJECT", project_name)
-set_configvar("SCRIPT_NAME", to_camel(project_name))
+set_configvar("PROJECT_TITLE", project_title)
+set_configvar("PROJECT_NAME", project_name)
+set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
+set_configvar("AUTHOR", "shuc")
+-- fomod
+set_configvar("FOMOD_REQUIRED_DIR", required_dir)
+set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
+set_configvar("FOMOD_SE_PLUGIN_DIR", se_plugin_dir)
+set_configvar("FOMOD_AE_PLUGIN_DIR", ae_plugin_dir)
 
 -- set defaults
 set_languages("c++23")
@@ -53,31 +52,34 @@ add_requires("srell")
 -- set encoding
 set_encodings("utf-8")
 
--- targets
-target(project_name .. "-" .. se_suffix)
-    set_basename(project_name)
 
-    -- set configs
-    set_configvar("skyrim_ae", false)
+
+-- targets
+-- rcs se
+target(project_name .. "-" .. se_suffix)
+    -- set project build info
+    set_basename(project_name)
+    set_targetdir("$(buildir)/" .. se_suffix)
+    set_default(true)
 
     -- add dependencies to target
-    add_deps("commonlibsse")
+    add_deps("commonlibsse-" .. se_suffix)
 
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
         name = project_name,
-        author = "shuc",
+        author = get_config("AUTHOR"),
         description = "Plugin for race compatibility in dialogue, vampirism and so on."
     })
     
-    set_targetdir("$(buildir)/" .. se_suffix)
-
     -- add requires to target
     add_packages("srell")
 
     -- add config file
-    set_configdir("src/")
-    add_configfiles("res/versions.h.in")
+    set_configdir("$(projectdir)")
+    add_configfiles("res/versions.h.in", {prefixdir = "src/"})
+    add_configfiles("res/info.xml.in", {prefixdir = "res/fomod/"})
+    add_configfiles("res/ModuleConfig.xml.in", {prefixdir = "res/fomod/"})
 
     -- add src files
     add_files("src/**.cpp")
@@ -86,55 +88,93 @@ target(project_name .. "-" .. se_suffix)
         "src",
         "lib/ClibUtil/include")
     set_pcxxheader("src/pch.h")
-
-    -- after_build(function (target) // compile psc files
-        
-    -- end)
 target_end()
 
-xpack(project_name)
-    -- set_formats("7z")
-    -- set_extension(".7z")
-    -- on_package(function (package)
-    --     local outputfile = package:outputfile()
-    --     print("outputfile: " .. outputfile)
-    --     print("basename: " .. path.basename())
-    --     -- os.run("7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on", outputfile)
-    -- end)
-    set_formats("zip")
+target(project_name .. "-" .. ae_suffix)
+    -- set project build info
+    set_basename(project_name)
+    set_targetdir("$(buildir)/" .. ae_suffix)
+    set_default(true)
 
-    set_basename(to_package_name(project_name) .. "-$(version)")
-    add_installfiles("/**/" .. se_suffix .. "/" .. project_name .. ".dll", {prefixdir = "skse/plugins"})
-    add_installfiles("res/rcs/**.psc",  {prefixdir = "scripts/source"})
-    add_installfiles("res/rcs/**.pex",  {prefixdir = "scripts"})
+    -- add dependencies to target
+    add_deps("commonlibsse-" .. ae_suffix)
+
+    -- add commonlibsse plugin
+    add_rules("commonlibsse.plugin", {
+        name = project_name,
+        author = get_config("AUTHOR"),
+        description = "Plugin for race compatibility in dialogue, vampirism and so on."
+    })
+    
+    -- add requires to target
+    add_packages("srell")
+
+    -- add src files
+    add_files("src/**.cpp")
+    add_headerfiles("src/**.h")
+    add_includedirs(
+        "src",
+        "lib/ClibUtil/include")
+    set_pcxxheader("src/pch.h")
+target_end()
+
+-- xpack
+local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))
+local compiler_path = path.join(skyrim_home, "/Papyrus Compiler/PapyrusCompiler.exe")
+local skyrim_source_dir = path.join(skyrim_home, "/data/scripts/source/")
+local flag_path = path.join(skyrim_source_dir, "TESV_Papyrus_Flags.flg")
+local core_papyrus_source_dir = path.join(os.projectdir(), "res/rcs/scripts/source/")
+-- installation packs
+xpack("fomod")
+    -- compile core papyrus scripts
+    before_package(function (package)
+        os.cd(core_papyrus_source_dir)
+        os.execv(compiler_path, {
+            "./",
+            "-i=" .. skyrim_source_dir, 
+            "-o=../", 
+            "-f=" .. flag_path, 
+            "-a", "-q"})
+        os.cd("$(projectdir)")
+    end)
+
+    -- package
+    set_formats("zip")
+    set_basename(project_title .. "-$(version)")
+    -- fomod info
+    add_installfiles("res/fomod/*.xml", {prefixdir = "fomod/"})
+    add_installfiles("res/fomod/(images/*.png)", {prefixdir = "fomod/"})
+    -- se plugin file
+    add_installfiles("/**/" .. path.join(se_suffix, project_name .. ".dll"), {prefixdir = se_plugin_dir})
+    -- ae plugin file
+    add_installfiles("/**/" .. path.join(ae_suffix, project_name .. ".dll"), {prefixdir = ae_plugin_dir})
+    -- script files
+    add_installfiles("res/rcs/**.pex",  {prefixdir = required_dir .. "scripts/"})
+    add_installfiles("res/rcs/**.psc",  {prefixdir = required_dir .. "scripts/source/"})
+
     -- after_package(function (package) 
     --     os.cp(package:outputfile(), "D:/Downloads/")
     -- end)
 
-xpack("papyrus")
+xpack("vanilla-scripts-addon")
+    -- compile vanilla papyrus addon
+    before_package(function (package)
+        os.cd(path.join(os.projectdir(), "res/vanilla-scripts/scripts/source/"))
+        os.runv(compiler_path, {
+           "./",
+            "-i=" .. skyrim_source_dir .. ";" .. core_papyrus_source_dir, 
+            "-o=../", 
+            "-f=" .. flag_path, 
+            "-a", "-q"})
+        os.cd("$(projectdir)")
+    end)
+
+    -- package
     set_formats("zip")
-    set_basename(to_package_name(project_name) .. " - Vanilla Scirpts Addon-$(version)")
-    add_installfiles("res/papyrus/**.psc",  {prefixdir = "scripts/source"})
-    add_installfiles("res/papyrus/**.pex",  {prefixdir = "scripts"})
+    set_basename(project_title .. " - Vanilla Scirpts Addon-$(version)")
+    add_installfiles("res/vanilla-scripts/**.pex",  {prefixdir = "scripts"})
+    add_installfiles("res/vanilla-scripts/**.psc",  {prefixdir = "scripts/source"})
+
     -- after_package(function (package) 
     --     os.cp(package:outputfile(), "D:/Downloads/")
-    -- end)
-
--- copy build files to MODS or GAME paths (remove this if not needed)
-    -- after_build(function(target)
-    --     local copy = function(env, ext)
-    --         for _, env in pairs(env:split(";")) do
-    --             if os.exists(env) then
-    --                 local plugins = path.join(env, ext, "SKSE/Plugins")
-    --                 os.mkdir(plugins)
-    --                 os.trycp(target:targetfile(), plugins)
-    --                 os.trycp(target:symbolfile(), plugins)
-    --             end
-    --         end
-    --     end
-    --     if os.getenv("XSE_TES5_MODS_PATH") then
-    --         copy(os.getenv("XSE_TES5_MODS_PATH"), target:name())
-    --     elseif os.getenv("XSE_TES5_GAME_PATH") then
-    --         copy(os.getenv("XSE_TES5_GAME_PATH"), "Data")
-    --     end
     -- end)

@@ -2,9 +2,9 @@
 
 namespace race_compatibility
 {
-    inline constexpr auto VERSION = "${VERSION}";
+	inline constexpr auto VERSION = "${VERSION}";
 	inline constexpr auto VERSION_BUILD = "${VERSION_BUILD}";
-	inline constexpr auto PROJECT = "${PROJECT}";
-	inline constexpr auto SCRIPT_NAME = "${SCRIPT_NAME}";
+	inline constexpr auto PROJECT_NAME = "${PROJECT_NAME}";
+	inline constexpr auto PROJECT_NAME_CAMEL = "${PROJECT_NAME_CAMEL}";
 	inline constexpr auto CONFIG_KEY = "${CONFIG_KEY}";
 }

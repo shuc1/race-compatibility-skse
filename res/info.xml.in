@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<fomod>
+    <Name>${PROJECT_TITLE}</Name>
+    <Author>${AUTHOR}</Author>
+    <Version>${VERSION}</Version>
+    <Website></Website>
+</fomod>

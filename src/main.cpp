@@ -40,7 +40,7 @@ static inline void InitLogging()
 	if (!path)
 		return;
 
-	*path /= std::format("{}.log", rcs::PROJECT);
+	*path /= std::format("{}.log", rcs::PROJECT_NAME);
 
 	spdlog::sinks_init_list sinks{
 		std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
@@ -62,11 +62,11 @@ extern "C" __declspec(dllexport) bool SKSEAPI
 
 	logs::info("Game version : {}", a_skse->RuntimeVersion().string());
 
-	logs::info("{}-{}(build: {}) is loading...", rcs::PROJECT, rcs::VERSION, rcs::VERSION_BUILD);
+	logs::info("{}-{}(build: {}) is loading...", rcs::PROJECT_NAME, rcs::VERSION, rcs::VERSION_BUILD);
 	SKSE::Init(a_skse);
-	logs::info("{} loaded.", rcs::PROJECT);
+	logs::info("{} loaded.", rcs::PROJECT_NAME);
 
-	logs::info("{:*^50}", "Functions");
+	logs::info("{:*^50}", "PAPYRUS FUNCTIONS");
 	const auto papyrus_interface = SKSE::GetPapyrusInterface();
 	papyrus_interface->Register(rcs::papyrus::Bind);
 

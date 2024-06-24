@@ -1,15 +1,14 @@
 #include "hooks.h"
 #include "race_manager.h"
-//#include <cstdint>
 
 namespace race_compatibility
 {
+	// hook for race compatibility
 	namespace hook
 	{
-		class GetIsRace
+		struct GetIsRace
 		{
-		public:
-			[[nodiscard]] static bool thunk(RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+			static inline bool thunk(RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
 			{
 				result = 0.0;
 				// check if obj is an NPC and has the same race
@@ -19,7 +18,7 @@ namespace race_compatibility
 					const auto npc = skyrim_cast<RE::TESNPC*>(obj->data.objectReference);
 					const auto race = skyrim_cast<RE::TESRace*>(race_form);
 					if (npc != nullptr && race != nullptr) [[likely]] {
-						if (auto npc_race = npc->race; // npc_race could be nullptr, and won't affect the result
+						if (auto npc_race = npc->race;  // npc_race could be nullptr, and won't affect the result
 							npc_race == race ||
 							manager::compatibility::GetIsRaceByProxies(npc_race, race)) {
 							result = 1.0;
@@ -29,34 +28,47 @@ namespace race_compatibility
 
 				// Typically, the player is loaded when the 'GetIsRace' function is invoked
 				// exception: pre-printing in the console.
-				if (RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) [[unlikely]] {
+				if (RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME))
+					[[unlikely]] {
 					if (RE::PlayerCharacter::GetSingleton()->Is3DLoaded()) [[likely]] {
 						RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf", result);
 					}
 				}
+				// RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf",
+				// result);
 				return true;
 			}
-			static inline REL::Relocation<decltype(GetIsRace::thunk)> func;
+			// static inline REL::Relocation<decltype(GetIsRace::thunk)> func;
 		};
+
+#ifdef SKYRIM_SUPPORT_AE
+		struct GetPcIsRace
+		{
+			static inline bool thunk([[maybe_unused]] RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+			{
+				return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form,
+					unused, result);
+			}
+			// static inline REL::Relocation<decltype(GetPcIsRace::thunk)> func;
+		};
+#endif  // SKYRIM_SUPPORT_AE
 
 		void Install()
 		{
-			const REL::Relocation<std::uintptr_t> target_in_lookup_table{ REL::ID(21034), 0x7 };
-			stl::write_thunk_branch<GetIsRace>(target_in_lookup_table.address());
-			logs::info("Installed GameFunc__native::GetPCIsRace hook");
+			const REL::Relocation<std::uintptr_t> target_get_is_race{ RELOCATION_ID(21028, 21478), 0 };
+			stl::write_thunk_branch<GetIsRace>(target_get_is_race.address());
 
-			const REL::Relocation<std::uintptr_t> target_get_is_race{ REL::ID(21691), 0x68 };
-			stl::write_thunk_call<GetIsRace>(target_get_is_race.address());
-			logs::info("Installed GameFunc__handler::GetIsRace hook");
+#ifdef SKYRIM_SUPPORT_AE
+			const REL::Relocation<std::uintptr_t> target_get_pc_is_race{ RELOCATION_ID(0, 21484), 0 };
+			stl::write_thunk_branch<GetPcIsRace>(target_get_pc_is_race.address());
+#endif  // SKYRIM_SUPPORT_AE
 
-			const REL::Relocation<std::uintptr_t> target_get_pc_is_race{ REL::ID(21697), 0x66 };
-			stl::write_thunk_call<GetIsRace>(target_get_pc_is_race.address());
-			logs::info("Installed GameFunc__handler::GetPCIsRace hook");
+			logs::info("Installed race judgement hooks");
 		}
-	}  // namespace race_compatibility
+	}  // namespace hook
 
 	void Install()
 	{
 		hook::Install();
 	}
-}  // namespace hook
+}  // namespace race_compatibility

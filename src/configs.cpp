@@ -358,7 +358,6 @@ namespace race_compatibility
 			using namespace detail;
 			parsed_configs_t                  parsed_configs;
 			lookup::form::race_lookup_table_t table;
-			auto                              should_install_hooks{ true };
 			{
 				raw_configs_t raw_configs;
 				{
@@ -378,20 +377,19 @@ namespace race_compatibility
 
 			if (!lookup::form::LookupRaces(table)) {
 				logs::critical("Failed to get TESDataHandler, unable to lookup forms, aborting...");
-				should_install_hooks = false;
-			} else {
-				logs::info("Applying configs");
-				{
-					manager::headpart::HeadPartFormIdLists lists;
-					lists.Initialize();
-					ApplyManagerConfig(parsed_configs, table, lists);
-					// summary
-					manager::headpart::Summary(lists);
-				}
-				should_install_hooks = manager::compatibility::Summary();
-				manager::vampirism::Summary();
+				return false;
 			}
-			return should_install_hooks;
+			logs::info("Applying configs");
+			{
+				manager::headpart::HeadPartFormIdLists lists;
+				lists.Initialize();
+				ApplyManagerConfig(parsed_configs, table, lists);
+				// summary
+				manager::headpart::Summary(lists);
+			}
+			manager::vampirism::Summary();
+			// if not proxy race, then no need for the hook
+			return manager::compatibility::Summary();
 		}
 	}  // namespace ini
 }  // namespace race_compatibility
