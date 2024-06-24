@@ -52,8 +52,6 @@ add_requires("srell")
 -- set encoding
 set_encodings("utf-8")
 
-
-
 -- targets
 -- rcs se
 target(project_name .. "-" .. se_suffix)

@@ -9,10 +9,6 @@ namespace logs = SKSE::log;
 
 static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 {
-	/*using func_t = bool(RE::TESObjectREFR* a_thisObj, void* a_param1, void* a_param2, double& a_result);
-			RE::FUNCTION_DATA d;
-			d.function = RE::FUNCTION_DATA::FunctionID::kGetIsRace;
-			d.params[0] = RE::PlayerCharacter::GetSingleton();*/
 	switch (a_message->type) {
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
