@@ -74,13 +74,7 @@ namespace race_compatibility
 					}
 				}
 
-				/// <summary>
-				///
-				/// </summary>
-				/// <param name="raw_str"></param>
-				/// <param name="cache"></param>
-				/// <param name="a_record_type">must not be kMod</param>
-				/// <returns></returns>
+				/// <param name="a_record_type">must NOT be kMod</param>
 				static inline record_ptr_t GetCachedRecord(
 					const std::string&                         raw_str,
 					parse_cache_t&                             cache,
@@ -363,9 +357,9 @@ namespace race_compatibility
 				{
 					cache::key_cache_t key_cache;
 					AddDefaultVampirismRacePairs(raw_configs, key_cache);
-					auto files = clib_util::distribution::get_configs(R"(Data\)", "_RCS"sv);
+					auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
 					if (files.empty()) {
-						logs::warn("No .ini files with _RCS suffix within the Data folder");
+						logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
 					} else {
 						logs::info("Reading configs");
 						ReadAndFormatConfigs(files, raw_configs, key_cache);

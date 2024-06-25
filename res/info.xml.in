@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <fomod>
     <Name>${PROJECT_TITLE}</Name>
-    <Author>${AUTHOR}</Author>
     <Version>${VERSION}</Version>
-    <Website></Website>
+    <Website>https://www.nexusmods.com/skyrimspecialedition/mods/122592</Website>
 </fomod>

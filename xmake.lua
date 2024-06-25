@@ -23,15 +23,20 @@ set_license("GPL-3.0")
 -- set configs
 -- project source
 set_configvar("CONFIG_KEY", "RCS")
+set_configvar("CONFIG_DIR", path.join("data", plugin_dir, string.lower("RCS")))
 set_configvar("PROJECT_TITLE", project_title)
 set_configvar("PROJECT_NAME", project_name)
 set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
-set_configvar("AUTHOR", "shuc")
 -- fomod
 set_configvar("FOMOD_REQUIRED_DIR", required_dir)
 set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
 set_configvar("FOMOD_SE_PLUGIN_DIR", se_plugin_dir)
 set_configvar("FOMOD_AE_PLUGIN_DIR", ae_plugin_dir)
+
+-- add config file
+set_configdir("$(projectdir)")
+add_configfiles("res/versions.h.in", {prefixdir = "src/"})
+add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
 
 -- set defaults
 set_languages("c++23")
@@ -65,18 +70,11 @@ target(project_name .. "-" .. se_suffix)
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
         name = project_name,
-        author = get_config("AUTHOR"),
         description = "Plugin for race compatibility in dialogue, vampirism and so on."
     })
     
     -- add requires to target
     add_packages("srell")
-
-    -- add config file
-    set_configdir("$(projectdir)")
-    add_configfiles("res/versions.h.in", {prefixdir = "src/"})
-    add_configfiles("res/info.xml.in", {prefixdir = "res/fomod/"})
-    add_configfiles("res/ModuleConfig.xml.in", {prefixdir = "res/fomod/"})
 
     -- add src files
     add_files("src/**.cpp")

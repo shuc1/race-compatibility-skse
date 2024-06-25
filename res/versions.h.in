@@ -7,4 +7,5 @@ namespace race_compatibility
 	inline constexpr auto PROJECT_NAME = "${PROJECT_NAME}";
 	inline constexpr auto PROJECT_NAME_CAMEL = "${PROJECT_NAME_CAMEL}";
 	inline constexpr auto CONFIG_KEY = "${CONFIG_KEY}";
+	inline constexpr auto CONFIG_DIR = R"(${CONFIG_DIR})";
 }
