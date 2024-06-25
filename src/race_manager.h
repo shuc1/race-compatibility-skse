@@ -10,8 +10,11 @@ namespace race_compatibility
 			// export functions to game scripting
 			// there wouldn't be frequent calls to get original race of vampire race or vice versa
 			inline std::vector<std::pair<RE::TESRace*, RE::TESRace*>> vampirism_race_pairs{};
+			using VM = RE::BSScript::Internal::VirtualMachine;
+			using StackID = RE::VMStackID;
 
-			[[nodiscard]] static inline RE::TESRace* GetRaceByVampireRace(RE::TESRace* vampire_race)
+#define STATIC_ARGS [[maybe_unused]] VM *a_vm, [[maybe_unused]] StackID a_stackID, RE::StaticFunctionTag *
+			[[nodiscard]] static inline RE::TESRace* GetRaceByVampireRace(STATIC_ARGS, const RE::TESRace* vampire_race)
 			{
 				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
 					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.second == vampire_race; });
@@ -22,7 +25,7 @@ namespace race_compatibility
 				}
 			}
 
-			[[nodiscard]] static inline RE::TESRace* GetVampireRaceByRace(RE::TESRace* race)
+			[[nodiscard]] static inline RE::TESRace* GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* race)
 			{
 				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
 					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.first == race; });
@@ -32,6 +35,7 @@ namespace race_compatibility
 					return it->second;
 				}
 			}
+#undef STATIC_ARGS
 
 			static inline void EmplaceVampirismRacePair(RE::TESRace* race, RE::TESRace* vampire_race)
 			{
