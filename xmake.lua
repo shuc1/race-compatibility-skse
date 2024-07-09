@@ -63,6 +63,7 @@ target(project_name .. "-" .. se_suffix)
     set_basename(project_name)
     set_targetdir("$(buildir)/" .. se_suffix)
     set_default(true)
+    add_undefines("SKYRIM_SUPPORT_AE")
 
     -- add dependencies to target
     add_deps("commonlibsse-" .. se_suffix)
@@ -97,7 +98,6 @@ target(project_name .. "-" .. ae_suffix)
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
         name = project_name,
-        author = get_config("AUTHOR"),
         description = "Plugin for race compatibility in dialogue, vampirism and so on."
     })
     

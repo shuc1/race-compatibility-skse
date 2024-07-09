@@ -32,6 +32,7 @@ end
 
 -- define targets
 target("commonlibsse-se")
+    add_undefines("SKYRIM_SUPPORT_AE")
     -- set target kind
     set_kind("static")
 
