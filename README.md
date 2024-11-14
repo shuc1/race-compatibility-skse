@@ -12,8 +12,6 @@ git clone --recurse-submodules https://github.com/shuc1/race-compatibility-skse.
 cd race-compatibility-skse
 ```
 
-Rename the file `res/commonlib-build/xmake.lua.replace` to `xmake.lua`, then use it to replace the existing `lib/commonlibsse/xmake.lua` file.
-
 Ensure that you set path `SKYRIM_HOME=YOUR_SKYRIM_GAME_FOLDER` and arrange the game folder as follows:
 -- SKYRIM_HOME
     |- Papyrus Compiler

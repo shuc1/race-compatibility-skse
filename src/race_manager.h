@@ -18,22 +18,14 @@ namespace race_compatibility
 			{
 				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
 					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.second == vampire_race; });
-				if (it == vampirism_race_pairs.end()) {
-					return nullptr;
-				} else {
-					return it->first;
-				}
+				return (it == vampirism_race_pairs.end()) ? nullptr : it->first;
 			}
 
 			[[nodiscard]] static inline RE::TESRace* GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* race)
 			{
 				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
 					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.first == race; });
-				if (it == vampirism_race_pairs.end()) {
-					return nullptr;
-				} else {
-					return it->second;
-				}
+				return (it == vampirism_race_pairs.end()) ? nullptr : it->second;
 			}
 #undef STATIC_ARGS
 
@@ -96,8 +88,9 @@ namespace race_compatibility
 #undef MAKE_FLAG_MAP_PAIR
 			};
 
-			struct HeadPartFormIdLists
+			class HeadPartFormIdLists
 			{
+			public:
 				// for normal races
 				// argonian
 				RE::BGSListForm* argonian{ nullptr };
@@ -137,9 +130,8 @@ namespace race_compatibility
 				RE::BGSListForm* all_races_minus_beast{ nullptr };
 				// non-beast, non-elf races and vampires
 				RE::BGSListForm* humans_orcs_and_vampires{ nullptr };
-
-				bool         is_initialized{ false };
-				std::uint8_t count{ 0 };
+				bool             is_initialized{ false };
+				std::uint8_t     count{ 0 };
 
 				void AddRace(RE::TESRace* race, RE::TESRace* vampire_race, RaceFlag flag);
 				void Initialize();

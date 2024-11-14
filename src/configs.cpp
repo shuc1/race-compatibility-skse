@@ -1,4 +1,5 @@
 #include "configs.h"
+#include <memory>
 
 namespace race_compatibility
 {
@@ -156,24 +157,32 @@ namespace race_compatibility
 				raw_configs.emplace_back(
 					std::make_shared<std::string>("Default"),
 					entries_t{
-						{ rcs_key, std::make_shared<std::string>("ArgonianRace|ArgonianRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("BretonRace|BretonRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("DarkElfRace|DarkElfRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("HighElfRace|HighElfRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("ImperialRace|ImperialRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("KhajiitRace|KhajiitRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("NordRace|NordRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("OrcRace|OrcRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("RedguardRace|RedguardRaceVampire") },
-						{ rcs_key, std::make_shared<std::string>("WoodElfRace|WoodElfRaceVampire") } });
+#define DEFAULT_ENTRY_PAIR(value) { rcs_key, value }
+						DEFAULT_ENTRY_PAIR("ArgonianRace|VampireRace"),
+						DEFAULT_ENTRY_PAIR("ArgonianRace|ArgonianRaceVampire"),
+						DEFAULT_ENTRY_PAIR("BretonRace|BretonRaceVampire"),
+						DEFAULT_ENTRY_PAIR("DarkElfRace|DarkElfRaceVampire"),
+						DEFAULT_ENTRY_PAIR("HighElfRace|HighElfRaceVampire"),
+						DEFAULT_ENTRY_PAIR("ImperialRace|ImperialRaceVampire"),
+						DEFAULT_ENTRY_PAIR("KhajiitRace|KhajiitRaceVampire"),
+						DEFAULT_ENTRY_PAIR("NordRace|NordRaceVampire"),
+						DEFAULT_ENTRY_PAIR("OrcRace|OrcRaceVampire"),
+						DEFAULT_ENTRY_PAIR("RedguardRace|RedguardRaceVampire"),
+						DEFAULT_ENTRY_PAIR("WoodElfRace|WoodElfRaceVampire"),
+
+					});
+#undef DEFAULT_ENTRY_PAIR
 			}
 
-			static inline void ReadAndFormatConfigs(
-				const std::vector<std::string>& files,
-				raw_configs_t&                  raw_configs,
-				cache::key_cache_t&             key_cache)
+			static inline raw_configs_t ReadAndFormatConfigs(
+				const std::vector<std::string>& files)
 			{
+				raw_configs_t      raw_configs;
+				cache::key_cache_t key_cache;
 				raw_configs.reserve(files.size() + 1);
+
+				AddDefaultVampirismRacePairs(raw_configs, key_cache);
+
 				for (const auto& path : files) {
 					logs::info("\tINI : {}", path);
 
@@ -186,71 +195,54 @@ namespace race_compatibility
 						continue;
 					}
 
+					// strip "Data\\"
+					auto stripped_path = std::make_shared<std::string>(path.substr(5));
 					if (auto values = ini.GetSection(""); values != nullptr && !values->empty()) {
-						using ini_value_t = std::multimap<CSimpleIniA::Entry,
-							// only the formatting requires entry ref, hence it's unique
-							// however, the sanitized_entry can be utilized in both old_format_map and entries
-							// therefore it should be shared
-							std::pair<std::unique_ptr<std::string>, std::shared_ptr<std::string>>,
-							CSimpleIniA::Entry::LoadOrder>;
-						ini_value_t old_format_map{};
-
-						auto& [_, entries] = raw_configs.emplace_back(
-							// strip "Data\\"
-							std::make_shared<std::string>(path.substr(5)), 0);
+						auto& entries = raw_configs.emplace_back(stripped_path, 0).second;
 						entries.reserve(values->size());
 
 						// sanitize and format entries
 						for (auto&& [key, entry] : *values) {
-							auto santinized_entry = std::make_shared<std::string>(detail::utility::Sanitize(entry));
-							entries.emplace_back(cache::GetCachedEntryKey(key.pItem, key_cache), santinized_entry);
+							auto& santinized_entry = entries.emplace_back(
+																cache::GetCachedEntryKey(key.pItem, key_cache),
+																detail::utility::Sanitize(entry))
+							                             .second;
 
-							if (*santinized_entry != entry) {
-								old_format_map.emplace(key,
-									// here the shared_ptr of santinized_entry is copied
-									std::make_pair(std::make_unique<std::string>(entry), santinized_entry));
-							}
-						}
-
-						// formatting config files
-						if (!old_format_map.empty()) {
-							logs::info("\tsanitizing {} entries", old_format_map.size());
-
-							for (auto&& [key, entry] : old_format_map) {
-								auto&& [original, sanitized] = entry;
-								ini.DeleteValue("", key.pItem, original->c_str());
-								ini.SetValue("", key.pItem, sanitized->c_str(), key.pComment, false);
+							// formatting old configs when need
+							if (entry != santinized_entry) {
+								ini.DeleteValue("", key.pItem, entry);
+								ini.SetValue("", key.pItem, santinized_entry.c_str(), key.pComment, false);
 							}
 						}
 					}
 				}
+				return raw_configs;
 			}
 
-			static inline void ParseConfigData(
+			static inline parsed_configs_t ParseConfigData(
 				const raw_configs_t&               raw_configs,
-				parsed_configs_t&                  parsed_configs,
 				lookup::form::race_lookup_table_t& table)
 			{
-				record_cache_t record_cache;
-				auto           cache = std::make_pair(std::ref(record_cache), std::ref(table));
-
+				record_cache_t   record_cache;
+				parsed_configs_t parsed_configs;
+				auto             cache = std::make_pair(std::ref(record_cache), std::ref(table));
 				// reserve space for parsed_configs according to size of raw_configs
 				parsed_configs.reserve(raw_configs.size());
 				for (const auto& [path, entries] : raw_configs) {
 					logs::info("\tParsing configs in {}", *path);
 					// initialize config data in one file
-					auto& [_, config_entries] = parsed_configs.emplace_back(path, 0);
+					auto& config_entries = parsed_configs.emplace_back(path, 0).second;
 					config_entries.reserve(entries.size());
 
 					for (const auto& [key, value] : entries) {
-						logs::info("\t\t{}={}", *key, *value);
+						logs::info("\t\t{}={}", *key, value);
 						if (*key != rcs::CONFIG_KEY) {
 							logs::warn("\t\t\tKey illegal");
 							continue;
 						}
 
 						// get raw sections through splitting by '|'
-						auto       raw_sections = clib_util::string::split(*value, "|");
+						auto       raw_sections = clib_util::string::split(value, "|");
 						const auto section_size = raw_sections.size();
 						if (section_size < SECTION_MIN_SIZE ||
 							section_size > SECTION_MAX_SIZE) {
@@ -261,7 +253,7 @@ namespace race_compatibility
 						// padding empty sections
 						if (section_size < SECTION_MAX_SIZE) {
 							raw_sections.reserve(SECTION_MAX_SIZE);
-							for (auto i = 0; i < SECTION_MAX_SIZE - section_size; ++i) {
+							for (size_t i = 0; i < SECTION_MAX_SIZE - section_size; ++i) {
 								raw_sections.emplace_back(""sv);
 							}
 						}
@@ -288,6 +280,7 @@ namespace race_compatibility
 						data.head_part_flag = parse::ParseHeadPartFlag(raw_sections[4]);
 					}
 				}
+				return parsed_configs;
 			}
 
 			static inline void ApplyManagerConfig(
@@ -353,20 +346,16 @@ namespace race_compatibility
 			parsed_configs_t                  parsed_configs;
 			lookup::form::race_lookup_table_t table;
 			{
-				raw_configs_t raw_configs;
-				{
-					cache::key_cache_t key_cache;
-					AddDefaultVampirismRacePairs(raw_configs, key_cache);
-					auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
-					if (files.empty()) {
-						logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
-					} else {
-						logs::info("Reading configs");
-						ReadAndFormatConfigs(files, raw_configs, key_cache);
-					}
+				auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
+				if (files.empty()) {
+					logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
+				} else {
+					logs::info("Reading configs");
 				}
+				auto raw_configs = ReadAndFormatConfigs(files);
+
 				logs::info("Parsing configs");
-				ParseConfigData(raw_configs, parsed_configs, table);
+				parsed_configs = ParseConfigData(raw_configs, table);
 			}
 
 			if (!lookup::form::LookupRaces(table)) {
@@ -382,7 +371,7 @@ namespace race_compatibility
 				manager::headpart::Summary(lists);
 			}
 			manager::vampirism::Summary();
-			// if not proxy race, then no need for the hook
+			// if no proxy race, then no need for the hook
 			return manager::compatibility::Summary();
 		}
 	}  // namespace ini

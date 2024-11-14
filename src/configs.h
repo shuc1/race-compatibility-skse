@@ -13,7 +13,7 @@ namespace race_compatibility
 
 			using path_t = std::shared_ptr<std::string>;
 			// key(RCS)-value(raw entries)
-			using entries_t = std::vector<std::pair<std::shared_ptr<std::string>, std::shared_ptr<std::string>>>;
+			using entries_t = std::vector<std::pair<std::shared_ptr<std::string>, std::string>>;
 			using raw_configs_t = std::vector<std::pair<path_t, entries_t>>;
 
 			using record_ptr_t = std::shared_ptr<record_t>;
@@ -21,11 +21,11 @@ namespace race_compatibility
 
 			struct ConfigData
 			{
-				record_ptr_t                    race{};
-				record_ptr_t                    vampire_race{};
-				std::vector<record_ptr_t>       proxy_races{};
-				std::vector<record_ptr_t>       proxy_vampire_races{};
-				manager::RaceFlag head_part_flag{ 0 };
+				record_ptr_t              race{};
+				record_ptr_t              vampire_race{};
+				std::vector<record_ptr_t> proxy_races{};
+				std::vector<record_ptr_t> proxy_vampire_races{};
+				manager::RaceFlag         head_part_flag{ 0 };
 			};
 
 			// path-config data

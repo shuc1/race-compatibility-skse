@@ -6,10 +6,10 @@
         ["cmake#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "04f52571a2ed0a8d1a0beb139e5eda5a6214d52e",
+                commit = "f145085609fcacdd48b6b4d593662c57d59732b7",
                 url = "https://gitee.com/tboox/xmake-repo.git"
             },
-            version = "3.28.3-msvc11"
+            version = "3.29.5-msvc4"
         },
         ["rsm-binary-io#31fecfc4"] = {
             repo = {
@@ -22,10 +22,10 @@
         ["spdlog#9c36f0a9"] = {
             repo = {
                 branch = "master",
-                commit = "306434589536cf0ee99eaa19a20868b75810d687",
+                commit = "f145085609fcacdd48b6b4d593662c57d59732b7",
                 url = "https://gitee.com/tboox/xmake-repo.git"
             },
-            version = "v1.14.1"
+            version = "v1.15.0"
         },
         ["srell#31fecfc4"] = {
             repo = {

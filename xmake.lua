@@ -3,8 +3,8 @@ set_xmakever("2.8.6")
 
 -- includes
 includes("@builtin/xpack")
-includes("lib/commonlibsse")
 includes("xmake-extra.lua")
+includes("res/build/commonlib")
 
 -- set project
 local project_name = "race-compatibility"
@@ -35,8 +35,11 @@ set_configvar("FOMOD_AE_PLUGIN_DIR", ae_plugin_dir)
 
 -- add config file
 set_configdir("$(projectdir)")
-add_configfiles("res/versions.h.in", {prefixdir = "src/"})
-add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
+-- add_configfiles("res/versions.h.in", {prefixdir = "src/"})
+-- add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
+
+-- set config
+set_config("commonlib_dir", "lib/commonlibsse")
 
 -- set defaults
 set_languages("c++23")
@@ -57,6 +60,14 @@ add_requires("srell")
 set_encodings("utf-8")
 
 -- targets
+-- gen config files
+target("config-files")
+    set_kind("phony")
+    add_configfiles("res/versions.h.in", {prefixdir = "src/"})
+    add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
+target_end()
+
+
 -- rcs se
 target(project_name .. "-" .. se_suffix)
     -- set project build info
@@ -66,6 +77,7 @@ target(project_name .. "-" .. se_suffix)
     add_undefines("SKYRIM_SUPPORT_AE")
 
     -- add dependencies to target
+    add_deps("config-files")
     add_deps("commonlibsse-" .. se_suffix)
 
     -- add commonlibsse plugin
@@ -93,6 +105,7 @@ target(project_name .. "-" .. ae_suffix)
     set_default(true)
 
     -- add dependencies to target
+    add_deps("config-files")
     add_deps("commonlibsse-" .. ae_suffix)
 
     -- add commonlibsse plugin
