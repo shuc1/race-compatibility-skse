@@ -9,3 +9,6 @@ vs*/
 
 # files
 *.zip
+*.pex
+**/fomod/*.xml
+versions.h
