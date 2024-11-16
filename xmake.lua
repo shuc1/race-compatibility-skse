@@ -5,6 +5,7 @@ set_xmakever("2.8.6")
 includes("@builtin/xpack")
 includes("xmake-extra.lua")
 includes("res/build/commonlib")
+includes("lib/commonlibsse")
 
 -- set project
 local project_name = "race-compatibility"
@@ -60,16 +61,12 @@ add_requires("srell")
 set_encodings("utf-8")
 
 -- targets
--- gen config files
-target("config-files")
-    set_kind("phony")
-    add_configfiles("res/versions.h.in", {prefixdir = "src/"})
-    add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
-target_end()
-
+-- add config files
+add_configfiles("res/versions.h.in", {prefixdir = "include/"})
+add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
 
 -- rcs se
-target(project_name .. "-" .. se_suffix)
+target(project_name .. "-" .. se_suffix, function()
     -- set project build info
     set_basename(project_name)
     set_targetdir("$(buildir)/" .. se_suffix)
@@ -77,7 +74,6 @@ target(project_name .. "-" .. se_suffix)
     add_undefines("SKYRIM_SUPPORT_AE")
 
     -- add dependencies to target
-    add_deps("config-files")
     add_deps("commonlibsse-" .. se_suffix)
 
     -- add commonlibsse plugin
@@ -91,21 +87,20 @@ target(project_name .. "-" .. se_suffix)
 
     -- add src files
     add_files("src/**.cpp")
-    add_headerfiles("src/**.h")
+    add_headerfiles("include/**.h")
     add_includedirs(
-        "src",
-        "lib/ClibUtil/include")
-    set_pcxxheader("src/pch.h")
-target_end()
+        "include/",
+        "lib/ClibUtil/include/")
+    set_pcxxheader("include/pch.h")
+end)
 
-target(project_name .. "-" .. ae_suffix)
+target(project_name .. "-" .. ae_suffix, function()
     -- set project build info
     set_basename(project_name)
     set_targetdir("$(buildir)/" .. ae_suffix)
     set_default(true)
 
     -- add dependencies to target
-    add_deps("config-files")
     add_deps("commonlibsse-" .. ae_suffix)
 
     -- add commonlibsse plugin
@@ -119,12 +114,12 @@ target(project_name .. "-" .. ae_suffix)
 
     -- add src files
     add_files("src/**.cpp")
-    add_headerfiles("src/**.h")
+    add_headerfiles("include/**.h")
     add_includedirs(
-        "src",
-        "lib/ClibUtil/include")
-    set_pcxxheader("src/pch.h")
-target_end()
+        "include/",
+        "lib/ClibUtil/include/")
+    set_pcxxheader("include/pch.h")
+end)
 
 -- xpack
 local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))
@@ -160,10 +155,6 @@ xpack("fomod")
     add_installfiles("res/rcs/**.pex",  {prefixdir = required_dir .. "scripts/"})
     add_installfiles("res/rcs/**.psc",  {prefixdir = required_dir .. "scripts/source/"})
 
-    -- after_package(function (package) 
-    --     os.cp(package:outputfile(), "D:/Downloads/")
-    -- end)
-
 xpack("vanilla-scripts-addon")
     -- compile vanilla papyrus addon
     before_package(function (package)
@@ -182,7 +173,3 @@ xpack("vanilla-scripts-addon")
     set_basename(project_title .. " - Vanilla Scirpts Addon-$(version)")
     add_installfiles("res/vanilla-scripts/**.pex",  {prefixdir = "scripts"})
     add_installfiles("res/vanilla-scripts/**.psc",  {prefixdir = "scripts/source"})
-
-    -- after_package(function (package) 
-    --     os.cp(package:outputfile(), "D:/Downloads/")
-    -- end)

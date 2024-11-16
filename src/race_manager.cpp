@@ -1,4 +1,5 @@
 #include "race_manager.h"
+#include "forms.h"
 
 namespace race_compatibility
 {
@@ -6,7 +7,6 @@ namespace race_compatibility
 	{
 		namespace headpart
 		{
-
 			void HeadPartFormIdLists::Initialize()
 			{
 				is_initialized = false;

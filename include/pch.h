@@ -48,14 +48,15 @@
 #include <ClibUtil/distribution.hpp>
 #include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/string.hpp>
+
+using clib_util::distribution::formid_pair;
+using clib_util::distribution::record;
  
 #include <srell.hpp>
 
 namespace logs = SKSE::log;
 using namespace std::literals;
 
-#include "defs.h"
-#include "forms.h"
 #include "versions.h"
 
 namespace rcs = race_compatibility;

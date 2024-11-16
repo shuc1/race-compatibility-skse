@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "forms.h"
 #include <memory>
 
 namespace race_compatibility
@@ -7,6 +8,35 @@ namespace race_compatibility
 	{
 		namespace detail
 		{
+			constexpr auto SECTION_MIN_SIZE = 2;
+			constexpr auto SECTION_MAX_SIZE = 5;
+
+			//// TODO very ugly, should be refactored
+
+			// <rcs key, raw string>
+			using raw_entries_t = std::vector<std::pair<std::string_view, std::string>>;
+			// <path, entry>
+			using raw_configs_t = std::vector<std::pair<std::string, raw_entries_t>>;
+
+			using record_ptr_t = std::shared_ptr<record>;
+			using record_cache_t = std::map<std::string, record_ptr_t>;
+
+			struct ConfigEntry
+			{
+				record_ptr_t              race{};
+				record_ptr_t              vampire_race{};
+				std::vector<record_ptr_t> proxy_races{};
+				std::vector<record_ptr_t> proxy_vampire_races{};
+				manager::RaceFlag         head_part_flag{ 0 };
+			};
+
+			// path-config data
+			using parsed_entry_t = std::vector<ConfigEntry>;
+			// <path, config data>
+			// TODO there is at least twice string copy for "path", reduce it
+			using parsed_config_t = std::pair<std::string, parsed_entry_t>;
+			using parsed_configs_t = std::vector<parsed_config_t>;
+
 			namespace utility
 			{
 				static inline std::string Sanitize(const std::string& a_value)
@@ -31,26 +61,17 @@ namespace race_compatibility
 					return new_value;
 				}
 
-				static inline std::string RecordToString(const record_t& record)
+				static inline std::string RecordToString(const record& r)
 				{
 					return std::visit([](auto&& arg) -> std::string {
 						using T = std::decay_t<decltype(arg)>;
-						if constexpr (std::is_same_v<T, form_mod_pair_t>) {
-							return std::format("0x{:X}~{}", arg.first, arg.second.value_or(""));
+						if constexpr (std::is_same_v<T, formid_pair>) {
+							return std::format("0x{:X}~{}", arg.first.value(), arg.second.value_or(""));
 						} else if constexpr (std::is_same_v<T, std::string>) {
 							return arg;
 						}
 					},
-						record);
-				}
-
-				static inline record_t ConvertClibRecord(clib_util::distribution::record&& record)
-				{
-					if (const auto form_id = std::get_if<clib_util::distribution::formid_pair>(&record); form_id != nullptr) {
-						return form_mod_pair_t{ form_id->first.value(), form_id->second };
-					} else {
-						return std::get<std::string>(record);
-					}
+						r);
 				}
 
 				static inline std::pair<bool, clib_util::distribution::record_type> IsRawStringValidRecord(const std::string& raw_str)
@@ -65,15 +86,7 @@ namespace race_compatibility
 
 			namespace cache
 			{
-				static inline std::shared_ptr<std::string> GetCachedEntryKey(const std::string& key, key_cache_t& key_cache)
-				{
-					if (key_cache.contains(key)) {
-						return key_cache.at(key);
-					} else {
-						auto [it, _] = key_cache.emplace(key, std::make_shared<std::string>(key));
-						return it->second;
-					}
-				}
+				using parse_cache_t = std::pair<record_cache_t&, lookup::form::race_lookup_table_t&>;
 
 				/// <param name="a_record_type">must NOT be kMod</param>
 				static inline record_ptr_t GetCachedRecord(
@@ -85,12 +98,12 @@ namespace race_compatibility
 
 					if (!record_cache.contains(raw_str)) {
 						using namespace clib_util::distribution;
-						auto&& record = utility::ConvertClibRecord(
-							get_record(a_record_type == record_type::kNone ? get_record_type(raw_str) : a_record_type, raw_str));
+						auto&& r = get_record(a_record_type == record_type::kNone ? get_record_type(raw_str) : a_record_type, raw_str);
 
 						// must success, ignore the bool returnval
-						auto [it, _] = record_cache.emplace(raw_str,
-							std::make_shared<record_t>(record));
+						const auto it = record_cache.emplace(raw_str,
+														std::make_shared<record>(r))
+						                    .first;
 						table.emplace(it->second, nullptr);
 					}
 					return record_cache.at(raw_str);
@@ -100,7 +113,7 @@ namespace race_compatibility
 			namespace parse
 			{
 				static inline void ParseProxyRaces(const std::string& raw_string,
-					decltype(ConfigData::proxy_races)& races, cache::parse_cache_t& cache)
+					decltype(ConfigEntry::proxy_races)& races, cache::parse_cache_t& cache)
 				{
 					using namespace clib_util::distribution;
 					auto form_strings = split_entry(raw_string, ",");
@@ -135,9 +148,12 @@ namespace race_compatibility
 
 			namespace apply
 			{
+				// will be used locally, so string_view is fine
+				using visited_map_t = std::map<RE::TESRace*, std::string_view>;
+
 				static inline std::set<RE::TESRace*> MakeProxyRaces(
-					const decltype(ConfigData::proxy_races)& proxy_races,
-					const lookup::form::race_lookup_table_t& table)
+					const decltype(ConfigEntry::proxy_races)& proxy_races,
+					const lookup::form::race_lookup_table_t&  table)
 				{
 					std::set<RE::TESRace*> result;
 					for (const auto& proxy_race_ptr : proxy_races) {
@@ -149,15 +165,12 @@ namespace race_compatibility
 				}
 			}
 
-			static inline void AddDefaultVampirismRacePairs(
-				raw_configs_t&      raw_configs,
-				cache::key_cache_t& key_cache)
+			static inline void AddDefaultVampirismRacePairs(raw_configs_t& raw_configs)
 			{
-				auto&& rcs_key = cache::GetCachedEntryKey(rcs::CONFIG_KEY, key_cache);
 				raw_configs.emplace_back(
-					std::make_shared<std::string>("Default"),
-					entries_t{
-#define DEFAULT_ENTRY_PAIR(value) { rcs_key, value }
+					"Default"sv,
+					raw_entries_t{
+#define DEFAULT_ENTRY_PAIR(value) { rcs::CONFIG_KEY, value }
 						DEFAULT_ENTRY_PAIR("ArgonianRace|VampireRace"),
 						DEFAULT_ENTRY_PAIR("ArgonianRace|ArgonianRaceVampire"),
 						DEFAULT_ENTRY_PAIR("BretonRace|BretonRaceVampire"),
@@ -169,7 +182,6 @@ namespace race_compatibility
 						DEFAULT_ENTRY_PAIR("OrcRace|OrcRaceVampire"),
 						DEFAULT_ENTRY_PAIR("RedguardRace|RedguardRaceVampire"),
 						DEFAULT_ENTRY_PAIR("WoodElfRace|WoodElfRaceVampire"),
-
 					});
 #undef DEFAULT_ENTRY_PAIR
 			}
@@ -177,11 +189,10 @@ namespace race_compatibility
 			static inline raw_configs_t ReadAndFormatConfigs(
 				const std::vector<std::string>& files)
 			{
-				raw_configs_t      raw_configs;
-				cache::key_cache_t key_cache;
+				raw_configs_t raw_configs;
 				raw_configs.reserve(files.size() + 1);
 
-				AddDefaultVampirismRacePairs(raw_configs, key_cache);
+				AddDefaultVampirismRacePairs(raw_configs);
 
 				for (const auto& path : files) {
 					logs::info("\tINI : {}", path);
@@ -196,18 +207,20 @@ namespace race_compatibility
 					}
 
 					// strip "Data\\"
-					auto stripped_path = std::make_shared<std::string>(path.substr(5));
 					if (auto values = ini.GetSection(""); values != nullptr && !values->empty()) {
-						auto& entries = raw_configs.emplace_back(stripped_path, 0).second;
+						auto& entries = raw_configs.emplace_back(path.substr(5), 0).second;
 						entries.reserve(values->size());
 
 						// sanitize and format entries
 						for (auto&& [key, entry] : *values) {
+							if (auto key_str = key.pItem; key_str != rcs::CONFIG_KEY) {
+								logs::warn("\t\t\tKey illegal: {}", key_str);
+								continue;
+							}
 							auto& santinized_entry = entries.emplace_back(
-																cache::GetCachedEntryKey(key.pItem, key_cache),
+																rcs::CONFIG_KEY,
 																detail::utility::Sanitize(entry))
 							                             .second;
-
 							// formatting old configs when need
 							if (entry != santinized_entry) {
 								ini.DeleteValue("", key.pItem, entry);
@@ -229,17 +242,19 @@ namespace race_compatibility
 				// reserve space for parsed_configs according to size of raw_configs
 				parsed_configs.reserve(raw_configs.size());
 				for (const auto& [path, entries] : raw_configs) {
-					logs::info("\tParsing configs in {}", *path);
+					logs::info("\tParsing configs in {}", path);
 					// initialize config data in one file
 					auto& config_entries = parsed_configs.emplace_back(path, 0).second;
 					config_entries.reserve(entries.size());
 
 					for (const auto& [key, value] : entries) {
-						logs::info("\t\t{}={}", *key, value);
-						if (*key != rcs::CONFIG_KEY) {
-							logs::warn("\t\t\tKey illegal");
-							continue;
-						}
+						logs::info("\t\t{}={}", key, value);
+						//// according to the principle of high cohension
+						//// this will be a good practice, but will consume more time and space
+						//if (key != rcs::CONFIG_KEY) {
+						//	logs::warn("\t\t\tKey illegal");
+						//	continue;
+						//}
 
 						// get raw sections through splitting by '|'
 						auto       raw_sections = clib_util::string::split(value, "|");
@@ -288,7 +303,7 @@ namespace race_compatibility
 				const lookup::form::race_lookup_table_t& table,
 				manager::headpart::HeadPartFormIdLists&  lists)
 			{
-				apply::uasage_map_t usage_map;
+				apply::visited_map_t visited;
 
 				if (!(lists.is_initialized)) {
 					logs::warn("FormId lists not initilized, ignoring head part flags");
@@ -296,7 +311,7 @@ namespace race_compatibility
 
 				// reverse iterate for config file override support, the last file will override the previous one
 				for (const auto& [path, entries] : parsed_configs | std::views::reverse) {
-					logs::info("\tApplying configs in {}", *path);
+					logs::info("\tApplying configs in {}", path);
 					// reverse iterate for config entry override support, the last entry will override the previous one
 					for (const auto& data : entries | std::views::reverse) {
 						logs::info("\t\t{}|{}",
@@ -313,11 +328,11 @@ namespace race_compatibility
 						} else if (race == vampire_race) {
 							logs::warn("\t\t\tRace and vampire race must not be the same");
 							continue;
-						} else if (usage_map.contains(race)) {
-							logs::warn("\t\t\tRace overrided by configs in {}", *(usage_map.at(race)));
+						} else if (visited.contains(race)) {
+							logs::warn("\t\t\tRace overrided by configs in {}", visited.at(race));
 							continue;
-						} else if (usage_map.contains(vampire_race)) {
-							logs::warn("\t\t\tVampire race overrided by configs in {}", *(usage_map.at(vampire_race)));
+						} else if (visited.contains(vampire_race)) {
+							logs::warn("\t\t\tVampire race overrided by configs in {}", visited.at(vampire_race));
 							continue;
 						}
 
@@ -332,8 +347,8 @@ namespace race_compatibility
 						}
 
 						// mark race and vampire race as used
-						usage_map.emplace(race, path);
-						usage_map.emplace(vampire_race, path);
+						visited.emplace(race, path);
+						visited.emplace(vampire_race, path);
 					}
 				}
 			}
@@ -348,6 +363,7 @@ namespace race_compatibility
 			{
 				auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
 				if (files.empty()) {
+					// there will be default configs, so no need to return false
 					logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
 				} else {
 					logs::info("Reading configs");
