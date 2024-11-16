@@ -4,7 +4,7 @@ set_xmakever("2.8.6")
 -- includes
 includes("@builtin/xpack")
 includes("xmake-extra.lua")
-includes("res/build/commonlib")
+includes("res/xmake/commonlib")
 includes("lib/commonlibsse")
 
 -- set project
