@@ -1,19 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
     <moduleName>${PROJECT_TITLE}</moduleName>
     <requiredInstallFiles>
-        <folder source="${FOMOD_REQUIRED_DIR}" destination="" />
+        <folder source="${FOMOD_REQUIRED_DIR}" destination="./" />
     </requiredInstallFiles>
     <installSteps order="Explicit">
         <installStep name="Main">
             <optionalFileGroups order="Explicit">
                 <group name="DLL" type="SelectExactlyOne">
                     <plugins order="Explicit">
-                        <plugin name="SSE v1.6.629+ (&quot;Anniversary Edition&quot;)">
-                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.629 or higher.</description>
+                        <plugin name="SSE v1.6.318+ (&quot;Anniversary Edition&quot;)">
+                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.318 or higher.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
-                                <folder source="${FOMOD_AE_PLUGIN_DIR}" destination="${FOMOD_PLUGIN_DIR}" priority="0" />
+                                <folder source="${FOMOD_AE_PLUGIN_DIR}"
+                                    destination="${FOMOD_PLUGIN_DIR}" priority="0" />
                             </files>
                             <typeDescriptor>
                                 <dependencyType>
@@ -39,7 +41,8 @@
                             <description>Select this if you are using Skyrim Special Edition v1.5.97.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
-                                <folder source="${FOMOD_SE_PLUGIN_DIR}" destination="${FOMOD_PLUGIN_DIR}" priority="0" />
+                                <folder source="${FOMOD_SE_PLUGIN_DIR}"
+                                    destination="${FOMOD_PLUGIN_DIR}" priority="0" />
                             </files>
                             <typeDescriptor>
                                 <dependencyType>

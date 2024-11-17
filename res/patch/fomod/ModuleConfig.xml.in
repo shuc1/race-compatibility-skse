@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+    <moduleName>${PROJECT_TITLE} - Patch Hub</moduleName>
+    <installSteps order="Explicit">
+
+        <installStep name="Vanilla">
+            <optionalFileGroups order="Explicit">
+                <group name="RaceCompatibility" type="SelectAny">
+                    <plugins order="Explicit">
+                        <plugin name="RaceCompatibility dummy plugin">
+                            <description>
+Select this if you have mods require RaceCompatibility.
+
+1. Please disable the original RaceCompatibility mod after installation
+2. Make sure you've set up RCS config files and ACTIVATED the dummy plugin.
+
+The best way to use RCS is to clean up the custom race plugins before disabling RaceCompatibility entirely.
+                            </description>
+                            <image path="fomod/images/patches.png" />
+                            <files>
+                                <folder source="patch/race-compatibility"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional" />
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Vampire">
+            <optionalFileGroups order="Explicit">
+                <group name="Scion" type="SelectAny">
+                    <plugins order="Explicit">
+                        <plugin name="Scion compatibility scripts">
+                            <description>Select this if you are using Scion</description>
+                            <image path="fomod/images/scion.png" />
+                            <files>
+                                <folder source="patch/vampire/scion"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency file="Scion.esp" state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <!-- <installStep name="Werewolf" /> -->
+
+    </installSteps>
+</config>

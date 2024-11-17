@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<fomod>
+    <Name>${PROJECT_TITLE} - Patch Hub</Name>
+    <Version>${VERSION}</Version>
+    <Website>https://www.nexusmods.com/skyrimspecialedition/mods/122592</Website>
+</fomod>
