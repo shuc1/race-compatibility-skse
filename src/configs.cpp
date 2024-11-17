@@ -165,34 +165,32 @@ namespace race_compatibility
 				}
 			}
 
-			static inline void AddDefaultVampirismRacePairs(raw_configs_t& raw_configs)
+			static inline raw_configs_t GetVanillaGameRawConfigs()
 			{
-				raw_configs.emplace_back(
-					"Default"sv,
-					raw_entries_t{
-#define DEFAULT_ENTRY_PAIR(value) { rcs::CONFIG_KEY, value }
-						DEFAULT_ENTRY_PAIR("ArgonianRace|VampireRace"),
-						DEFAULT_ENTRY_PAIR("ArgonianRace|ArgonianRaceVampire"),
-						DEFAULT_ENTRY_PAIR("BretonRace|BretonRaceVampire"),
-						DEFAULT_ENTRY_PAIR("DarkElfRace|DarkElfRaceVampire"),
-						DEFAULT_ENTRY_PAIR("HighElfRace|HighElfRaceVampire"),
-						DEFAULT_ENTRY_PAIR("ImperialRace|ImperialRaceVampire"),
-						DEFAULT_ENTRY_PAIR("KhajiitRace|KhajiitRaceVampire"),
-						DEFAULT_ENTRY_PAIR("NordRace|NordRaceVampire"),
-						DEFAULT_ENTRY_PAIR("OrcRace|OrcRaceVampire"),
-						DEFAULT_ENTRY_PAIR("RedguardRace|RedguardRaceVampire"),
-						DEFAULT_ENTRY_PAIR("WoodElfRace|WoodElfRaceVampire"),
-					});
-#undef DEFAULT_ENTRY_PAIR
+				return raw_configs_t{
+					{ "Default",
+						raw_entries_t{
+#define RCS_DEFAULT_ENTRY_PAIR(value) { rcs::CONFIG_KEY, value }
+							RCS_DEFAULT_ENTRY_PAIR("ArgonianRace|ArgonianRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("BretonRace|BretonRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("DarkElfRace|DarkElfRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("HighElfRace|HighElfRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("ImperialRace|ImperialRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("KhajiitRace|KhajiitRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("NordRace|NordRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("OrcRace|OrcRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("RedguardRace|RedguardRaceVampire"),
+							RCS_DEFAULT_ENTRY_PAIR("WoodElfRace|WoodElfRaceVampire"),
+#undef RCS_DEFAULT_ENTRY_PAIR
+						} }
+				};
 			}
 
-			static inline raw_configs_t ReadAndFormatConfigs(
-				const std::vector<std::string>& files)
+			static inline void ReadAndFormatConfigs(
+				const std::vector<std::string>& files,
+				raw_configs_t&                  raw_configs)
 			{
-				raw_configs_t raw_configs;
 				raw_configs.reserve(files.size() + 1);
-
-				AddDefaultVampirismRacePairs(raw_configs);
 
 				for (const auto& path : files) {
 					logs::info("\tINI : {}", path);
@@ -229,7 +227,6 @@ namespace race_compatibility
 						}
 					}
 				}
-				return raw_configs;
 			}
 
 			static inline parsed_configs_t ParseConfigData(
@@ -361,14 +358,21 @@ namespace race_compatibility
 			parsed_configs_t                  parsed_configs;
 			lookup::form::race_lookup_table_t table;
 			{
-				auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
-				if (files.empty()) {
-					// there will be default configs, so no need to return false
-					logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
+				auto raw_configs = GetVanillaGameRawConfigs();
+
+				// TODO check if there is a better way to handle the case of no configs (add an empty stub dir)
+				if (!std::filesystem::exists(rcs::CONFIG_DIR)) {
+					logs::warn("No {} folder found", rcs::CONFIG_DIR);
 				} else {
-					logs::info("Reading configs");
+					auto files = clib_util::distribution::get_configs(rcs::CONFIG_DIR, "_RCS"sv);
+					if (files.empty()) {
+						// there will be default configs, so no need to return false
+						logs::warn("No .ini files with _RCS suffix within the {} folder", rcs::CONFIG_DIR);
+					} else {
+						logs::info("Reading configs");
+					}
+					ReadAndFormatConfigs(files, raw_configs);
 				}
-				auto raw_configs = ReadAndFormatConfigs(files);
 
 				logs::info("Parsing configs");
 				parsed_configs = ParseConfigData(raw_configs, table);

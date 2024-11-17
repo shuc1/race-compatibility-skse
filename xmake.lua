@@ -3,8 +3,8 @@ set_xmakever("2.8.6")
 
 -- includes
 includes("@builtin/xpack")
-includes("xmake-extra.lua")
-includes("res/xmake/commonlib")
+includes("xmake-rules.lua")
+includes("res/xmake/commonlibsse")
 includes("lib/commonlibsse")
 
 -- set project
@@ -18,7 +18,7 @@ local se_plugin_dir = path.join(se_suffix, plugin_dir)
 local ae_plugin_dir = path.join(ae_suffix, plugin_dir)
 
 set_project(project_name)
-set_version("1.0.0", {build = "%Y-%m-%d"})
+set_version("1.0.3", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -28,16 +28,11 @@ set_configvar("CONFIG_DIR", path.join("data", plugin_dir, string.lower("RCS")))
 set_configvar("PROJECT_TITLE", project_title)
 set_configvar("PROJECT_NAME", project_name)
 set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
--- fomod
-set_configvar("FOMOD_REQUIRED_DIR", required_dir)
-set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
-set_configvar("FOMOD_SE_PLUGIN_DIR", se_plugin_dir)
-set_configvar("FOMOD_AE_PLUGIN_DIR", ae_plugin_dir)
 
 -- add config file
 set_configdir("$(projectdir)")
--- add_configfiles("res/versions.h.in", {prefixdir = "src/"})
--- add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
+-- add config files
+add_configfiles("res/versions.h.in", {prefixdir = "include/"})
 
 -- set config
 set_config("commonlib_dir", "lib/commonlibsse")
@@ -61,10 +56,6 @@ add_requires("srell")
 set_encodings("utf-8")
 
 -- targets
--- add config files
-add_configfiles("res/versions.h.in", {prefixdir = "include/"})
-add_configfiles("res/*.xml.in", {prefixdir = "res/fomod/"})
-
 -- rcs se
 target(project_name .. "-" .. se_suffix, function()
     -- set project build info
@@ -121,55 +112,50 @@ target(project_name .. "-" .. ae_suffix, function()
     set_pcxxheader("include/pch.h")
 end)
 
--- xpack
-local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))
-local compiler_path = path.join(skyrim_home, "/Papyrus Compiler/PapyrusCompiler.exe")
-local skyrim_source_dir = path.join(skyrim_home, "/data/scripts/source/")
-local flag_path = path.join(skyrim_source_dir, "TESV_Papyrus_Flags.flg")
-local core_papyrus_source_dir = path.join(os.projectdir(), "res/rcs/scripts/source/")
--- installation packs
-xpack("fomod")
-    -- compile core papyrus scripts
-    before_package(function (package)
-        os.cd(core_papyrus_source_dir)
-        os.execv(compiler_path, {
-            "./",
-            "-i=" .. skyrim_source_dir, 
-            "-o=../", 
-            "-f=" .. flag_path, 
-            "-a", "-q"})
-        os.cd("$(projectdir)")
-    end)
+-- papyrus
+target("papyrus.main", function()
+    set_kind("object")
+    add_rules("papyrus")
+    add_files("res/rcs/**.psc")
+end)
 
+target("papyrus.patch", function()
+    set_kind("object")
+    add_rules("papyrus")
+    add_files("res/patch/**.psc")
+    add_includedirs("res/rcs/scripts/source/")
+end)
+
+
+-- xpack
+-- fomod
+set_configvar("FOMOD_REQUIRED_DIR", required_dir)
+set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
+set_configvar("FOMOD_SE_PLUGIN_DIR", se_plugin_dir)
+set_configvar("FOMOD_AE_PLUGIN_DIR", ae_plugin_dir)
+add_configfiles("res/(**.xml.in)", {prefixdir = "res/"})
+
+-- installation packs
+xpack("main")
     -- package
     set_formats("zip")
     set_basename(project_title .. "-$(version)")
     -- fomod info
-    add_installfiles("res/fomod/*.xml", {prefixdir = "fomod/"})
-    add_installfiles("res/fomod/(images/*.png)", {prefixdir = "fomod/"})
+    add_installfiles("res/rcs/(fomod/**)|*.in")
     -- se plugin file
     add_installfiles("/**/" .. path.join(se_suffix, project_name .. ".dll"), {prefixdir = se_plugin_dir})
     -- ae plugin file
     add_installfiles("/**/" .. path.join(ae_suffix, project_name .. ".dll"), {prefixdir = ae_plugin_dir})
     -- script files
-    add_installfiles("res/rcs/**.pex",  {prefixdir = required_dir .. "scripts/"})
-    add_installfiles("res/rcs/**.psc",  {prefixdir = required_dir .. "scripts/source/"})
+    add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 
-xpack("vanilla-scripts-addon")
-    -- compile vanilla papyrus addon
-    before_package(function (package)
-        os.cd(path.join(os.projectdir(), "res/vanilla-scripts/scripts/source/"))
-        os.runv(compiler_path, {
-           "./",
-            "-i=" .. skyrim_source_dir .. ";" .. core_papyrus_source_dir, 
-            "-o=../", 
-            "-f=" .. flag_path, 
-            "-a", "-q"})
-        os.cd("$(projectdir)")
-    end)
 
+xpack("patch")
     -- package
+    set_version("1.0.3", {build = "%Y-%m-%d"})
     set_formats("zip")
-    set_basename(project_title .. " - Vanilla Scirpts Addon-$(version)")
-    add_installfiles("res/vanilla-scripts/**.pex",  {prefixdir = "scripts"})
-    add_installfiles("res/vanilla-scripts/**.psc",  {prefixdir = "scripts/source"})
+    set_basename(project_title .. " - Patch Hub-$(version)")
+    -- fomod info
+    add_installfiles("res/patch/(fomod/**)|*.in")
+    -- add all files
+    add_installfiles("res/patch/(patch/**)")

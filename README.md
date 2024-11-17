@@ -28,7 +28,7 @@ xmake build
 
 > ***Note:*** *This will generate a `build/windows/` directory in the **project's root directory** with the build output.*
 ### Build Fomod (Optional)
-To build fomod and scripts addon, run the following command after build:
+To build core fomod and patch fomod, run the following command after build:
 ```bat
 xmake pack
 ```

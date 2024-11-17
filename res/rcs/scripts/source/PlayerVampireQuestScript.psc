@@ -450,7 +450,7 @@ Function VampireCure(Actor Player)
 	;Player.RemoveSpell(VampireCloak)
 	Player.RemoveSpell(VampireInvisibilityPC)	
 	
-	;Change player's race, defaults to Nord
+	;Change player's race, do nothing if curedRace is None
 	Race curedRace = GetRaceByVampireRace(Player.GetRace())
 	if (curedRace != None)
 		Player.SetRace(curedRace)
