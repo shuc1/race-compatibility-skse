@@ -4,3 +4,6 @@
 [submodule "lib/ClibUtil"]
 	path = lib/ClibUtil
 	url = https://github.com/powerof3/CLibUtil.git
+[submodule "lib/skyui"]
+	path = lib/skyui
+	url = https://github.com/schlangster/skyui.git

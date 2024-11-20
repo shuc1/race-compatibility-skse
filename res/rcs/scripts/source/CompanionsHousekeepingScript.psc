@@ -4,8 +4,6 @@ Scriptname CompanionsHousekeepingScript extends Quest Conditional
  cleanup() cannot be called from within this script or it will result in endless recursion and eventually lead to Papyrus freezing up and throwing stack dumps.
  Nevermind that it would also improperly reward the player for a quest this hackishly bad system is cycling out for no good reason anyway.}
 
-Import RaceCompatibility
-
 bool Property USKPFarkasIntroDone auto hidden Conditional ; USKP 2.0.4 - Stop Farkas from running a double intro.
 
 Faction property CompanionsFaction auto
@@ -433,10 +431,11 @@ Function SetPlayerOriginalRace()
 	; get player's race so we have it permanently for werewolf switch back
 	PlayerOriginalRace = Game.GetPlayer().GetRace()
 ; 	Debug.Trace("CSQ: Storing player's race as " + PlayerOriginalRace)
-	Race originalRace = GetRaceByVampireRace(PlayerOriginalRace)
-	if (originalRace != None)
-		PlayerOriginalRace = originalRace
-	endif
+	; RCS, cure vampirism
+	Race OriginalRace = RaceCompatibility.GetRaceByVampireRace(PlayerOriginalRace)
+	If (OriginalRace != None)
+		PlayerOriginalRace = OriginalRace
+	EndIf
 EndFunction
 
 Function OpenSkyforge()

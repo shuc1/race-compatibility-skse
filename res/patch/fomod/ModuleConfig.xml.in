@@ -4,10 +4,11 @@
     <moduleName>${PROJECT_TITLE} - Patch Hub</moduleName>
     <installSteps order="Explicit">
 
-        <installStep name="Vanilla">
+        <installStep name="Plugin">
             <optionalFileGroups order="Explicit">
-                <group name="RaceCompatibility" type="SelectAny">
+                <group name="" type="SelectAny">
                     <plugins order="Explicit">
+
                         <plugin name="RaceCompatibility dummy plugin">
                             <description>
 Select this if you have mods require RaceCompatibility.
@@ -15,17 +16,45 @@ Select this if you have mods require RaceCompatibility.
 1. Please disable the original RaceCompatibility mod after installation
 2. Make sure you've set up RCS config files and ACTIVATED the dummy plugin.
 
-The best way to use RCS is to clean up the custom race plugins before disabling RaceCompatibility entirely.
-                            </description>
-                            <image path="fomod/images/patches.png" />
+The best way to use RCS is to clean up the custom race plugins before disabling RaceCompatibility entirely.</description>
+                            <image path="fomod/images/patch.png" />
                             <files>
-                                <folder source="patch/race-compatibility"
+                                <folder source="plugin/race-compatibility"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="RaceCompatibility.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Vanilla ring/amulet armor addon fix">
+                            <description>
+Select this if you need to patch vanilla ring/amulet armor addons.
+
+Some armor addons don't use DefaultRace as the Race; instead, they use ArgonianRace and add other playable races in Additional Races.
+For custom races whose armor race is typically set to DefaultRace, this will cause the ring/amulet to not occupy the equipment slot properly, allowing multiple rings/amulets to be worn at the same time.</description>
+                            <image path="fomod/images/patch.png" />
+                            <files>
+                                <folder source="plugin/armor-addon-fix"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
                                 <type name="Optional" />
                             </typeDescriptor>
                         </plugin>
+
                     </plugins>
                 </group>
             </optionalFileGroups>
@@ -33,13 +62,42 @@ The best way to use RCS is to clean up the custom race plugins before disabling 
 
         <installStep name="Vampire">
             <optionalFileGroups order="Explicit">
-                <group name="Scion" type="SelectAny">
+                <group name="" type="SelectAny">
                     <plugins order="Explicit">
-                        <plugin name="Scion compatibility scripts">
+                        <plugin name="USSEP">
+                            <description>Select this if you are using Unofficial Skyrim Special Edition Patch - USSEP</description>
+                            <image path="fomod/images/ussep.png" />
+                            <files>
+                                <folder source="vampire/ussep"
+                                    destination="./" priority="-1" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="unofficial skyrim special edition patch.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+
+                <group name="Vampire Overhaul" type="SelectAny">
+                    <plugins order="Explicit">
+
+                        <plugin name="Scion v2.2.2">
                             <description>Select this if you are using Scion</description>
                             <image path="fomod/images/scion.png" />
                             <files>
-                                <folder source="patch/vampire/scion"
+                                <folder source="vampire/scion"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -56,12 +114,93 @@ The best way to use RCS is to clean up the custom race plugins before disabling 
                                 </dependencyType>
                             </typeDescriptor>
                         </plugin>
+
+                        <plugin name="Sacrilege v2.1.0">
+                            <description>Select this if you are using Sacrilege - Minimalistic Vampires of Skyrim</description>
+                            <image path="fomod/images/sacrilege.png" />
+                            <files>
+                                <folder source="vampire/sacrilege"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Sacrilege - Minimalistic Vampires of Skyrim.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Sacrosanct v6.0.0">
+                            <description>Select this if you are using Sacrosanct - Vampires of Skyrim</description>
+                            <image path="fomod/images/sacrosanct.png" />
+                            <files>
+                                <folder source="vampire/sacrosanct"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Sacrosanct - Vampires of Skyrim.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Werewolf">
+
+            <optionalFileGroups order="Explicit">
+                <group name="Werewolf Overhaul" type="SelectAny">
+                    <plugins order="Explicit">
+                        <plugin name="Nightmare Night v2.2.0.0">
+                            <description>Select this if you are using Nightmare Night - Werebeasts Unleashed - Werewolf Overhaul</description>
+                            <image path="fomod/images/nightmare-night.png" />
+                            <files>
+                                <folder source="werewolf/nightmare-night"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="NightmareNight.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
                     </plugins>
                 </group>
             </optionalFileGroups>
         </installStep>
-
-        <!-- <installStep name="Werewolf" /> -->
 
     </installSteps>
 </config>
