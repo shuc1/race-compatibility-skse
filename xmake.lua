@@ -18,7 +18,7 @@ local se_plugin_dir = path.join(se_suffix, plugin_dir)
 local ae_plugin_dir = path.join(ae_suffix, plugin_dir)
 
 set_project(project_name)
-set_version("1.0.3", {build = "%Y-%m-%d"})
+set_version("1.0.4", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -58,20 +58,16 @@ set_encodings("utf-8")
 -- targets
 -- rcs se
 target(project_name .. "-" .. se_suffix, function()
+    add_undefines("SKYRIM_SUPPORT_AE")
     -- set project build info
     set_basename(project_name)
     set_targetdir("$(buildir)/" .. se_suffix)
     set_default(true)
-    add_undefines("SKYRIM_SUPPORT_AE")
+    set_arch("x64")
+    set_kind("shared")
 
     -- add dependencies to target
     add_deps("commonlibsse-" .. se_suffix)
-
-    -- add commonlibsse plugin
-    add_rules("commonlibsse.plugin", {
-        name = project_name,
-        description = "Plugin for race compatibility in dialogue, vampirism and so on."
-    })
     
     -- add requires to target
     add_packages("srell")
@@ -86,19 +82,16 @@ target(project_name .. "-" .. se_suffix, function()
 end)
 
 target(project_name .. "-" .. ae_suffix, function()
+    add_defines("SKYRIM_SUPPORT_AE=1")
     -- set project build info
     set_basename(project_name)
     set_targetdir("$(buildir)/" .. ae_suffix)
     set_default(true)
+    set_arch("x64")
+    set_kind("shared")
 
     -- add dependencies to target
     add_deps("commonlibsse-" .. ae_suffix)
-
-    -- add commonlibsse plugin
-    add_rules("commonlibsse.plugin", {
-        name = project_name,
-        description = "Plugin for race compatibility in dialogue, vampirism and so on."
-    })
     
     -- add requires to target
     add_packages("srell")
@@ -123,7 +116,11 @@ target("papyrus.patch", function()
     set_kind("object")
     add_rules("papyrus")
     add_files("res/patch/**.psc")
-    add_includedirs("res/rcs/scripts/source/")
+    add_includedirs(
+        "res/rcs/scripts/source/",
+        "lib/skyui/dist/Data/Scripts/Source/",
+        "res/papyrus/include/nightmare-night",
+        "res/papyrus/include/sacrosanct")
 end)
 
 
@@ -152,10 +149,7 @@ xpack("main")
 
 xpack("patch")
     -- package
-    set_version("1.0.3", {build = "%Y-%m-%d"})
     set_formats("zip")
     set_basename(project_title .. " - Patch Hub-$(version)")
-    -- fomod info
-    add_installfiles("res/patch/(fomod/**)|*.in")
-    -- add all files
-    add_installfiles("res/patch/(patch/**)")
+    -- add fomod info and all files
+    add_installfiles("res/patch/(**)|*.in")

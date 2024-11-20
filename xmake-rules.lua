@@ -23,7 +23,8 @@ rule("papyrus", function()
         local papyrus_compiler = path.join(skyrim_home, "/Papyrus Compiler/PapyrusCompiler.exe")
         local tesv_includes = path.join(skyrim_home, "/data/scripts/source/")
         local flags = path.join(tesv_includes, "TESV_Papyrus_Flags.flg")
-        assert(os.exists(papyrus_compiler), "PapyrusCompiler.exe not found in " .. skyrim_home)
+        assert(os.exists(skyrim_home), "SKYRIM_HOME not found in environment")
+        assert(os.exists(papyrus_compiler), "PapyrusCompiler.exe not found in " .. papyrus_compiler)
         assert(os.exists(tesv_includes), "Skyrim source directory not found in " .. tesv_includes)
         assert(os.exists(flags), "TESV_Papyrus_Flags.flg not found in " .. flags)
 
@@ -32,6 +33,7 @@ rule("papyrus", function()
         for _, i in ipairs(target:get("includedirs")) do
             includes = includes .. ";" .. i
         end
+        -- batchcmds:show_progress(opt.progress, "${color.build.object}includes %s", includes)
 
         -- collect source files by directory
         local batchdirs = {}
@@ -50,7 +52,7 @@ rule("papyrus", function()
             -- batchcmds:mkdir(output)
             batchcmds:vrunv(papyrus_compiler, {
                 path.absolute(dir),
-                "-i=" .. includes .. ";" .. dir,
+                "-i=" .. dir .. ";" .. includes,
                 "-o=" .. output,
                 "-f=" .. flags,
                 "-a"

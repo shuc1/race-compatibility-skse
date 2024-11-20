@@ -12,28 +12,34 @@ git clone --recurse-submodules https://github.com/shuc1/race-compatibility-skse.
 cd race-compatibility-skse
 ```
 
-Ensure that you set path `SKYRIM_HOME=YOUR_SKYRIM_GAME_FOLDER` and arrange the game folder as follows:
--- SKYRIM_HOME
-    |- Papyrus Compiler
-        |- PapyrusCompiler.exe
-    |- Data
-        |- Scripts
-            |- Source(this should contain the Skyrim scripts source)
+Ensure that you set path `SKYRIM_HOME=YOUR_SKYRIM_GAME_FOLDER` and arrange the `%SKYRIM_HOME%` folder as follows (SKSE must has been installed):
+```
+└─SKYRIM_HOME
+    ├─Papyrus Compiler
+    │   ├─PapyrusCompiler.exe
+    │   └─...
+    └─Data
+        └─Scripts
+            └─Source
+                ├─TESV_Papyrus_Flags.flg
+                ├─abForswornBriarheartScript.psc
+                └─...
+```
 
 ### Build
 To build the project, run the following command:
 ```bat
-xmake build
+xmake
 ```
 
-> ***Note:*** *This will generate a `build/windows/` directory in the **project's root directory** with the build output.*
+> ***Note:*** *This will generate a `build/` directory in the **project's root directory** with the build output.*
 ### Build Fomod (Optional)
 To build core fomod and patch fomod, run the following command after build:
 ```bat
 xmake pack
 ```
 
-> ***Note:*** *Two zip files for the RCS fomod and vanilla scripts addon will be generated in the `build/xpack` directory.*
+> ***Note:*** *Two zip files for the main fomod and patch hub fomod will be generated in the `build/xpack` directory.*
 ### Project Generation (Optional)
 If you want to generate a Visual Studio project, run the following command:
 ```bat

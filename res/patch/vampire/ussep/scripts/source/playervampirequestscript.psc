@@ -10,9 +10,6 @@ Int Property VampireStatus Auto Conditional
 
 Message Property VampireFeedMessage Auto
 Message Property VampireStageProgressionMessage Auto
-
-; region [property unused]
-; keep for compatibility with vanilla quest script records
 Race Property ArgonianRace  Auto  
 Race Property ArgonianRaceVampire  Auto  
 Race Property BretonRace  Auto  
@@ -33,8 +30,6 @@ Race Property RedguardRace  Auto
 Race Property RedguardRaceVampire  Auto  
 Race Property WoodElfRace  Auto  
 Race Property WoodElfRaceVampire  Auto  
-; end region
-
 Race Property CureRace Auto
 Static Property XMarker Auto
 
@@ -57,10 +52,17 @@ Event OnUpdateGameTime()
 	FeedTimer = GameDaysPassed.Value - LastFeedTime
 ; 	debug.trace(self + "Feed Timer is:" + FeedTimer + "days")
 	
+	;Block added by USKP 1.3.1 to handle the player being in combat when the stage timer expires.
+	;Modified by UDGP 1.2.1 for Vamp Lord additions
+	Actor Player = Game.GetPlayer()
+	If !Game.IsMovementControlsEnabled() || !Game.IsFightingControlsEnabled() || Player.GetCombatState() != 0 || player.HasMagicEffect(DLC1VampireChangeEffect) == true || player.HasMagicEffect(DLC1VampireChangeFXEffect) == true
+		UnregisterForUpdateGameTime()
+		RegisterForUpdateGameTime(0.25) ;every 15 in-game minutes
+		Return
+	EndIf
 	
 	;Vampire progression should not happen if player is in combat or controls are locked or the player can't fast travel 
 	; DLC01 - also skip progression if player is currently vampire lord
-	actor player = Game.GetPlayer()
 	If  Game.IsMovementControlsEnabled() && Game.IsFightingControlsEnabled() && player.GetCombatState() == 0 && player.HasMagicEffect(DLC1VampireChangeEffect) == false && player.HasMagicEffect(DLC1VampireChangeFXEffect) == false
 		;If player hasn't fed, progress Vampirism
 		If (FeedTimer >= 3) && (VampireStatus == 3)
@@ -69,19 +71,19 @@ Event OnUpdateGameTime()
 			;VampireStageProgressionMessage.Show()
 			VampireStage4Message.Show()
 			VampireStatus = 4
-			VampireProgression(Game.GetPlayer(), 4)
+			VampireProgression(Player, 4)
 			;/ REMOVING HATE ON LEVEL 4 VAMPIRE
 			;All NPCs  hate the evil Vampire
-			Game.GetPlayer().AddtoFaction(VampirePCFaction)
-			Game.GetPlayer().SetAttackActorOnSight()
+			Player.AddtoFaction(VampirePCFaction)
+			Player.SetAttackActorOnSight()
 
 			int cfIndex = 0
-; 			Debug.Trace("VAMPIRE update: DLC1CrimeFactions = " + DLC1CrimeFactions)
-; 			Debug.Trace("VAMPIRE update: CrimeFactions before = " + CrimeFactions)
+			;Debug.Trace("VAMPIRE update: DLC1CrimeFactions = " + DLC1CrimeFactions)
+			;Debug.Trace("VAMPIRE update: CrimeFactions before = " + CrimeFactions)
 			CrimeFactions = DLC1CrimeFactions
-; 			Debug.Trace("VAMPIRE update: CrimeFactions after = " + CrimeFactions)
+			;Debug.Trace("VAMPIRE update: CrimeFactions after = " + CrimeFactions)
    			while (cfIndex < CrimeFactions.GetSize())
-;          		Debug.Trace("VAMPIRE update: Setting enemy flag on " + CrimeFactions.GetAt(cfIndex))
+         		;Debug.Trace("VAMPIRE update: Setting enemy flag on " + CrimeFactions.GetAt(cfIndex))
         		(CrimeFactions.GetAt(cfIndex) as Faction).SetPlayerEnemy()
         		cfIndex += 1
     		endwhile
@@ -93,13 +95,13 @@ Event OnUpdateGameTime()
 			VampireFeedReady.SetValue(2)
 			VampireStageProgressionMessage.Show()
 			VampireStatus = 3
-			VampireProgression(Game.GetPlayer(), 3)	
+			VampireProgression(Player, 3)	
 		ElseIf FeedTimer >= 1 && (VampireStatus == 1)
 			;add Stage 2 Vampire buffs and spells
 			VampireFeedReady.SetValue(1)
 			VampireStageProgressionMessage.Show()
 			VampireStatus = 2
-			VampireProgression(Game.GetPlayer(), 2)	
+			VampireProgression(Player, 2)	
 		EndIf
 	Endif
 	
@@ -130,7 +132,7 @@ Function VampireChange(Actor Target)
 	imageSpaceModifier.removeCrossFade()
 	VampireChangeFX.stop(Target)
 
-	;Change player's race to vampire
+	;Change player's race
 	Race PlayerRace = Target.GetActorBase().GetRace()
 	Race PlayerVampireRace = RaceCompatibility.GetVampireRaceByRace(PlayerRace)
 	If (PlayerVampireRace != None)
@@ -189,6 +191,10 @@ Function VampireChange(Actor Target)
 	Target.RemoveSpell(TrapDiseasePorphyricHemophelia)
 	Target.RemoveSpell(TrapDiseaseAtaxia)
 
+	;USSEP 4.2.7 - Bug #32361: Calling on the Cure Disease spell removes ALL diseases no matter their origin, which is what the Werewolf system is doing and it works perfectly even with DLC or mod added disease sources.
+	;We're leaving the preceeding list of calls intact on the off chance there's something daft going on in the engine that Cure Disease isn't accounting for.
+	VampireCureDisease.Cast(Target)
+
 	;Make player Vampire Stage 1
 	VampireStatus = 1
 	VampireProgression(Game.GetPlayer(), 1)
@@ -209,8 +215,7 @@ Function VampireChange(Actor Target)
 	EndIf
 	
 	;Let everyone know the player is now a vampire
-	Target.SendVampirismStateChanged(true)
-
+	Target.SendVampirismStateChanged(true) ;Official Patch 1.5.3
 EndFunction
 
 Function VampireFeed()
@@ -237,12 +242,12 @@ Function VampireFeed()
 	Game.GetPlayer().SetAttackActorOnSight(False)
 
 	int cfIndex = 0
-; 	Debug.Trace("VAMPIRE feed: DLC1CrimeFactions = " + DLC1CrimeFactions)
-; 	Debug.Trace("VAMPIRE feed: CrimeFactions before = " + CrimeFactions)
+	;Debug.Trace("VAMPIRE feed: DLC1CrimeFactions = " + DLC1CrimeFactions)
+	;Debug.Trace("VAMPIRE feed: CrimeFactions before = " + CrimeFactions)
 	CrimeFactions = DLC1CrimeFactions
-; 	Debug.Trace("VAMPIRE feed: CrimeFactions after = " + CrimeFactions)
+	;Debug.Trace("VAMPIRE feed: CrimeFactions after = " + CrimeFactions)
 	while (cfIndex < CrimeFactions.GetSize())
-; 		Debug.Trace("VAMPIRE: Removing enemy flag from " + CrimeFactions.GetAt(cfIndex))
+		;Debug.Trace("VAMPIRE: Removing enemy flag from " + CrimeFactions.GetAt(cfIndex))
 		(CrimeFactions.GetAt(cfIndex) as Faction).SetPlayerEnemy(false)
 		cfIndex += 1
 	endwhile
@@ -447,8 +452,8 @@ Function VampireCure(Actor Player)
 	Player.RemoveSpell(VampireCharm)
 	;Player.RemoveSpell(VampireCloak)
 	Player.RemoveSpell(VampireInvisibilityPC)	
-	
-	;Change player's race, do nothing if CureRace is None
+
+	;Change player's race
 	Race CuredRace = RaceCompatibility.GetRaceByVampireRace(Player.GetRace())
 	If (CuredRace != None)
 		Player.SetRace(CuredRace)
@@ -482,8 +487,7 @@ Function VampireCure(Actor Player)
 	Player.RemoveSpell(VampireHuntersSight)
 	
 	;Let everyone know the player is no longer a vampire
-	Player.SendVampirismStateChanged(false)
-	
+	player.SendVampirismStateChanged(false) ;Official Patch 1.5.3
 EndFunction
 
 Spell Property AbVampire01 Auto

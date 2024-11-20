@@ -1,7 +1,5 @@
 ScriptName PlayerVampireQuestScript extends Quest Conditional
 
-Import RaceCompatibility
-
 ;Variable to track if the player is a vampire
 ;0 = Not a Vampire
 ;1 = Vampire
@@ -131,12 +129,12 @@ Function VampireChange(Actor Target)
 	VampireChangeFX.stop(Target)
 
 	;Change player's race, defaults to Nord Vampire
-	Race targetRace = Target.GetActorBase().GetRace()
-	Race targetVampireRace = GetVampireRaceByRace(targetRace)
-	if(targetVampireRace != None)
-		CureRace = targetRace
-		Target.SetRace(targetVampireRace)
-	endif
+	Race PlayerRace = Target.GetActorBase().GetRace()
+	Race PlayerVampireRace = RaceCompatibility.GetVampireRaceByRace(PlayerRace)
+	If (PlayerVampireRace != None)
+		CureRace = PlayerRace
+		Target.SetRace(PlayerVampireRace)
+	EndIf
 	; if (Target.GetActorBase().GetRace() == ArgonianRace)
 	; 	CureRace = ArgonianRace
 	; 	Target.SetRace(ArgonianRaceVampire)
@@ -489,10 +487,10 @@ Function VampireCure(Actor Player)
 	Player.RemoveSpell(VampireInvisibilityPC)	
 	
 	;Change player's race
-	Race curedRace = GetRaceByVampireRace(Player.GetRace())
-	if (curedRace != None)
-		Player.SetRace(curedRace)
-	endif
+	Race CuredRace = RaceCompatibility.GetRaceByVampireRace(Player.GetRace())
+	If (CuredRace != None)
+		Player.SetRace(CuredRace)
+	EndIf
 	; if (Player.GetRace() == ArgonianRaceVampire)
 	; 	Player.SetRace(ArgonianRace)
 	; elseif (Player.GetRace() == BretonRaceVampire)

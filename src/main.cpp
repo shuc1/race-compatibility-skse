@@ -51,6 +51,39 @@ static inline void InitLogging()
 	spdlog::set_pattern("[%^%L%$] %v");
 }
 
+#ifdef SKYRIM_SUPPORT_AE
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+	SKSE::PluginVersionData v;
+	v.PluginVersion({ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 });
+	v.PluginName(rcs::PROJECT_NAME);
+	v.AuthorName("shuc");
+	v.UsesAddressLibrary();
+	v.UsesUpdatedStructs();
+	v.CompatibleVersions({ SKSE::RUNTIME_LATEST });
+	return v;
+}();
+#else
+extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+{
+	a_info->infoVersion = SKSE::PluginInfo::kVersion;
+	a_info->name = rcs::PROJECT_NAME.data();
+	a_info->version = REL::Version{ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 }.pack();
+
+	if (a_skse->IsEditor()) {
+		SKSE::log::critical("Loaded in editor, marking as incompatible");
+		return false;
+	}
+
+	const auto ver = a_skse->RuntimeVersion();
+	if (ver < SKSE::RUNTIME_1_5_39) {
+		SKSE::log::critical("Unsupported runtime version {}", ver.string());
+		return false;
+	}
+
+	return true;
+}
+#endif
+
 extern "C" __declspec(dllexport) bool SKSEAPI
 	SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
