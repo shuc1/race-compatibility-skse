@@ -20,7 +20,7 @@ namespace race_compatibility
 					if (npc != nullptr && race != nullptr) [[likely]] {
 						if (auto npc_race = npc->race;  // npc_race could be nullptr, and won't affect the result
 							npc_race == race ||
-							manager::compatibility::GetIsRaceByProxies(npc_race, race)) {
+							manager::compatibility::GetIsRaceEqual(npc_race, race)) {
 							result = 1.0;
 						}
 					}

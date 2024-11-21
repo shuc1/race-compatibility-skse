@@ -205,8 +205,8 @@ Function VampireChange(Actor Target)
     Race PlayerVampireRace = RaceCompatibility.GetVampireRaceByRace(PlayerRace)
     If PlayerVampireRace != None
       ; Default racial spell for custom races
-      RacialSpell = SQL_Racial.GetAt(0) as Spell
       Target.SetRace(PlayerVampireRace)
+      RacialSpell = SQL_Racial.GetAt(0) as Spell
       Target.AddSpell(RacialSpell, False)
     Else
       SQL_Mechanics_Message_RaceBroken.Show(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)

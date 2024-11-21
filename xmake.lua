@@ -18,7 +18,7 @@ local se_plugin_dir = path.join(se_suffix, plugin_dir)
 local ae_plugin_dir = path.join(ae_suffix, plugin_dir)
 
 set_project(project_name)
-set_version("1.0.4", {build = "%Y-%m-%d"})
+set_version("1.0.5", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -120,7 +120,8 @@ target("papyrus.patch", function()
         "res/rcs/scripts/source/",
         "lib/skyui/dist/Data/Scripts/Source/",
         "res/papyrus/include/nightmare-night",
-        "res/papyrus/include/sacrosanct")
+        "res/papyrus/include/sacrosanct",
+        "res/papyrus/include/growl")
 end)
 
 
