@@ -10,24 +10,6 @@ namespace race_compatibility
 			// export functions to game scripting
 			// there wouldn't be frequent calls to get original race of vampire race or vice versa
 			inline std::vector<std::pair<RE::TESRace*, RE::TESRace*>> vampirism_race_pairs{};
-			using VM = RE::BSScript::Internal::VirtualMachine;
-			using StackID = RE::VMStackID;
-
-#define STATIC_ARGS [[maybe_unused]] VM *a_vm, [[maybe_unused]] StackID a_stackID, RE::StaticFunctionTag *
-			[[nodiscard]] static inline RE::TESRace* GetRaceByVampireRace(STATIC_ARGS, const RE::TESRace* vampire_race)
-			{
-				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
-					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.second == vampire_race; });
-				return (it == vampirism_race_pairs.end()) ? nullptr : it->first;
-			}
-
-			[[nodiscard]] static inline RE::TESRace* GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* race)
-			{
-				auto it = std::find_if(vampirism_race_pairs.begin(), vampirism_race_pairs.end(),
-					[&](std::pair<RE::TESRace*, RE::TESRace*>& pair) { return pair.first == race; });
-				return (it == vampirism_race_pairs.end()) ? nullptr : it->second;
-			}
-#undef STATIC_ARGS
 
 			static inline void EmplaceVampirismRacePair(RE::TESRace* race, RE::TESRace* vampire_race)
 			{
@@ -44,9 +26,10 @@ namespace race_compatibility
 		{
 			inline std::map<RE::TESRace*, std::set<RE::TESRace*>> race_map{};
 
-			[[nodiscard]] static inline bool GetIsRaceByProxies(RE::TESRace* npc_race, RE::TESRace* race)
+			[[nodiscard]] static inline bool GetIsRaceEqual(RE::TESRace* npc_race, RE::TESRace* race)
 			{
-				return race_map.contains(npc_race) && race_map.at(npc_race).contains(race);
+				return (npc_race == race) ||
+				       (race_map.contains(npc_race) && race_map.at(npc_race).contains(race));
 			}
 
 			static inline void EmplaceProxyRaces(
@@ -78,8 +61,10 @@ namespace race_compatibility
 
 		namespace headpart
 		{
-			inline std::map<char, RaceFlag> head_parts_flag_map_without_none{
-#define MAKE_FLAG_MAP_PAIR(a_flag) { std::to_underlying(a_flag), a_flag }
+			inline std::map<RE::TESRace*, RaceFlag> race_headpart_map{};
+
+			inline const std::set<char> valid_flags{
+#define MAKE_FLAG_MAP_PAIR(a_flag) std::to_underlying(a_flag)
 				MAKE_FLAG_MAP_PAIR(RaceFlag::kArgonian),
 				MAKE_FLAG_MAP_PAIR(RaceFlag::kElf),
 				MAKE_FLAG_MAP_PAIR(RaceFlag::kHuman),
@@ -147,7 +132,8 @@ namespace race_compatibility
 
 			static inline void Summary(const HeadPartFormIdLists& lists)
 			{
-				logs::info("Summary({}): attempted to add {} race pair(s) to head part lists", NAME_OF(headpart), lists.count);
+				logs::info("Summary({}): attempted to add {} race pair(s) to head part lists, {} flag(s) applied",
+					NAME_OF(headpart), lists.count, race_headpart_map.size());
 			}
 		}
 #undef NAME_OF

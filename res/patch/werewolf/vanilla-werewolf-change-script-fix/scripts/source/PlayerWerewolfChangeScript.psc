@@ -83,8 +83,6 @@ EndFunction
 
 Function PrepShift()
 ;     Debug.Trace("WEREWOLF: Prepping shift...")
-    Actor player = Game.GetPlayer()
-
     ; RaceCompatibility: in case player changed race before shift
     (CompanionsTrackingQuest as CompanionsHousekeepingScript).SetPlayerOriginalRace()
 

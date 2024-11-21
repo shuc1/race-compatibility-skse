@@ -29,10 +29,11 @@ rule("papyrus", function()
         assert(os.exists(flags), "TESV_Papyrus_Flags.flg not found in " .. flags)
 
         -- includes
-        local includes = tesv_includes
+        local includes = ""
         for _, i in ipairs(target:get("includedirs")) do
-            includes = includes .. ";" .. i
+            includes = includes .. i .. ";"
         end
+        includes = includes .. tesv_includes
         -- batchcmds:show_progress(opt.progress, "${color.build.object}includes %s", includes)
 
         -- collect source files by directory

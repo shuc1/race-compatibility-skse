@@ -135,8 +135,8 @@ namespace race_compatibility
 					using namespace manager::headpart;
 					if (raw_string.size() == 1) {
 						auto flag = raw_string[0];
-						if (head_parts_flag_map_without_none.count(flag) > 0) {
-							return head_parts_flag_map_without_none[flag];
+						if (valid_flags.count(flag) > 0) {
+							return manager::RaceFlag(flag);
 						}
 					}
 					if (!raw_string.empty()) {
@@ -341,6 +341,11 @@ namespace race_compatibility
 						// headparts
 						if (lists.is_initialized) {
 							lists.AddRace(race, vampire_race, data.head_part_flag);
+						}
+						if (data.head_part_flag != manager::RaceFlag::kNone) {
+							// add to headpart flag map
+							manager::headpart::race_headpart_map.emplace(race, data.head_part_flag);
+							manager::headpart::race_headpart_map.emplace(vampire_race, data.head_part_flag);
 						}
 
 						// mark race and vampire race as used
