@@ -1,10 +1,11 @@
-#include "configs.h"
-#include "forms.h"
-#include <memory>
+#include "Configs.h"
+#include "Forms.h"
+#include "RaceManager.h"
+#include <memory.h>
 
-namespace race_compatibility
+namespace rcs
 {
-	namespace ini
+	namespace config
 	{
 		namespace detail
 		{
@@ -86,7 +87,7 @@ namespace race_compatibility
 
 			namespace cache
 			{
-				using parse_cache_t = std::pair<record_cache_t&, lookup::form::race_lookup_table_t&>;
+				using parse_cache_t = std::pair<record_cache_t&, form::race_lookup_table_t&>;
 
 				/// <param name="a_record_type">must NOT be kMod</param>
 				static inline record_ptr_t GetCachedRecord(
@@ -153,7 +154,7 @@ namespace race_compatibility
 
 				static inline std::set<RE::TESRace*> MakeProxyRaces(
 					const decltype(ConfigEntry::proxy_races)& proxy_races,
-					const lookup::form::race_lookup_table_t&  table)
+					const form::race_lookup_table_t&          table)
 				{
 					std::set<RE::TESRace*> result;
 					for (const auto& proxy_race_ptr : proxy_races) {
@@ -230,8 +231,8 @@ namespace race_compatibility
 			}
 
 			static inline parsed_configs_t ParseConfigData(
-				const raw_configs_t&               raw_configs,
-				lookup::form::race_lookup_table_t& table)
+				const raw_configs_t&       raw_configs,
+				form::race_lookup_table_t& table)
 			{
 				record_cache_t   record_cache;
 				parsed_configs_t parsed_configs;
@@ -296,9 +297,9 @@ namespace race_compatibility
 			}
 
 			static inline void ApplyManagerConfig(
-				const parsed_configs_t&                  parsed_configs,
-				const lookup::form::race_lookup_table_t& table,
-				manager::headpart::HeadPartFormIdLists&  lists)
+				const parsed_configs_t&                 parsed_configs,
+				const form::race_lookup_table_t&        table,
+				manager::headpart::HeadPartFormIdLists& lists)
 			{
 				apply::visited_map_t visited;
 
@@ -360,8 +361,8 @@ namespace race_compatibility
 		bool TryReadAndApplyConfigs()
 		{
 			using namespace detail;
-			parsed_configs_t                  parsed_configs;
-			lookup::form::race_lookup_table_t table;
+			parsed_configs_t          parsed_configs;
+			form::race_lookup_table_t table;
 			{
 				auto raw_configs = GetVanillaGameRawConfigs();
 
@@ -383,7 +384,7 @@ namespace race_compatibility
 				parsed_configs = ParseConfigData(raw_configs, table);
 			}
 
-			if (!lookup::form::LookupRaces(table)) {
+			if (!form::LookupRaces(table)) {
 				logs::critical("Failed to get TESDataHandler, unable to lookup forms, aborting...");
 				return false;
 			}
@@ -399,5 +400,5 @@ namespace race_compatibility
 			// if no proxy race, then no need for the hook
 			return manager::compatibility::Summary();
 		}
-	}  // namespace ini
-}  // namespace race_compatibility
+	}  // namespace config
+}  // namespace rcs

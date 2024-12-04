@@ -1,7 +1,7 @@
-#include "hooks.h"
-#include "race_manager.h"
+#include "Hooks.h"
+#include "RaceManager.h"
 
-namespace race_compatibility
+namespace rcs
 {
 	// hook for race compatibility
 	namespace hook
@@ -12,6 +12,7 @@ namespace race_compatibility
 			{
 				result = 0.0;
 				// check if obj is an NPC and has the same race
+				// TODO: remove FormType check and try this command on a non-npc thing
 				if (obj != nullptr && race_form != nullptr &&
 					obj->data.objectReference->formType == RE::FormType::NPC &&
 					race_form->formType == RE::FormType::Race) {
@@ -26,16 +27,10 @@ namespace race_compatibility
 					}
 				}
 
-				// Typically, the player is loaded when the 'GetIsRace' function is invoked
-				// exception: pre-printing in the console.
-				if (RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME))
-					[[unlikely]] {
-					if (RE::PlayerCharacter::GetSingleton()->Is3DLoaded()) [[likely]] {
-						RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf", result);
-					}
+				if (RE::GetStaticTLSData()->consoleMode) {
+					// RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf", result);
+					RE::ConsoleLog::GetSingleton()->Print("GetIsRace >> %0.2lf", result);
 				}
-				// RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf",
-				// result);
 				return true;
 			}
 			// static inline REL::Relocation<decltype(GetIsRace::thunk)> func;
@@ -71,4 +66,4 @@ namespace race_compatibility
 	{
 		hook::Install();
 	}
-}  // namespace race_compatibility
+}  // namespace rcs

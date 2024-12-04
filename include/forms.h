@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lookup
+namespace rcs
 {
 	namespace form
 	{
@@ -30,4 +30,4 @@ namespace lookup
 			return RE::TESForm::LookupByEditorID<RE::BGSListForm>(editor_id);
 		}
 	}  // namespace form
-}  // namespace lookup
+}  // namespace rcs

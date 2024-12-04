@@ -1,9 +1,9 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-#include "configs.h"
-#include "hooks.h"
-#include "papyrus.h"
+#include "Configs.h"
+#include "Hooks.h"
+#include "Papyrus.h"
 
 namespace logs = SKSE::log;
 
@@ -16,7 +16,7 @@ static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 			logs::info("{:*^30}", "CONFIGS");
 			auto start = std::chrono::system_clock::now();
 
-			auto should_install_hooks{ rcs::ini::TryReadAndApplyConfigs() };
+			auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
 			logs::info("Summary: configs loaded in {} ms",
 				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
 			if (should_install_hooks) {

@@ -17,4 +17,7 @@ Bool Function GetIsRaceByProxy(Race akActorRace, Race akRace) global native
 ; an example:
 ; RCS = akRace|akRaceVampire|||H
 ; GetHeadPartFlagByRace(akRace) -> 72 (0x48, for 'H')
+; TODO: refactor
 Int Function GetHeadPartFlagByRace(Race akRace) global native
+
+; TODO: add removeProxy, addProxy functions

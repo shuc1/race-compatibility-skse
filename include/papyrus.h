@@ -1,8 +1,8 @@
 #pragma once
 
-#include "race_manager.h"
+#include "RaceManager.h"
 
-namespace race_compatibility
+namespace rcs
 {
 	namespace papyrus
 	{

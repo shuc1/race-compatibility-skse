@@ -1,6 +1,6 @@
 #pragma once
 
-namespace race_compatibility
+namespace rcs
 {
 	inline constexpr auto VERSION = "${VERSION}"sv;
 	inline constexpr auto VERSION_MAJOR = ${ VERSION_MAJOR };

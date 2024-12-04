@@ -1,23 +1,50 @@
 function to_camel(a_name)
     local result = ""
     for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1,1):upper() .. s:sub(2)
+        result = result .. s:sub(1, 1):upper() .. s:sub(2)
     end
-    return result 
+    return result
 end
 
 function to_title(a_name)
     local result = ""
     for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1,1):upper() .. s:sub(2) .. " "
+        result = result .. s:sub(1, 1):upper() .. s:sub(2) .. " "
     end
     result = result .. "SKSE"
     return result
 end
 
+function get_papyrus_source_subdirs(dir)
+    local subdirs = {}
+    for _, file in ipairs(os.files(path.join(dir, "**.psc"))) do
+        local dir = path.directory(file)
+        if subdirs[dir] == nil then
+            subdirs[dir] = true
+        end
+    end
+    return subdirs
+end
+
+rule("race-compatibility", function()
+    on_load(function(target)
+        target:set("default", true)
+        target:set("arch", "x64")
+        target:set("kind", "shared")
+        target:set("basename", "race-compatibility")
+        
+        target:add("packages", "srell")
+        target:add("files", "src/**.cpp")
+        target:add("headerfiles", "include/**.h")
+        target:add("includedirs", "include/")
+        target:add("includedirs", "lib/CLibUtil/include")
+        target:set("pcxxheader", "include/pch.h")
+    end)
+end)
+
 rule("papyrus", function()
     set_extensions(".psc")
-    on_buildcmd_files(function (target, batchcmds, sourcebatch, opt)
+    on_buildcmd_files(function(target, batchcmds, sourcebatch, opt)
         -- envs
         local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))
         local papyrus_compiler = path.join(skyrim_home, "/Papyrus Compiler/PapyrusCompiler.exe")

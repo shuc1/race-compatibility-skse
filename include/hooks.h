@@ -1,6 +1,6 @@
 #pragma once
 
-namespace race_compatibility
+namespace rcs
 {
 	namespace hook
 	{

@@ -74,8 +74,30 @@ For custom races whose armor race is typically set to DefaultRace, this will cau
 
         <installStep name="Vampire">
             <optionalFileGroups order="Explicit">
-                <group name="" type="SelectAny">
+                <group name="Vampire Lord Transform" type="SelectAny">
                     <plugins order="Explicit">
+                        <plugin name="Dawnguard Vampire Lord Transform Script Fix">
+                            <description>
+Select this if you want to replace the Dawnguard script DLC1VampireTransformVisual.psc.
+
+The only function of this patch is to store the player's race every time they change to vampire lord, in case players have changed their races after the first transformation.
+
+If you are not going to do that, or if you have other mods that rewrite the same script, you probably DON'T need this.</description>
+                            <image path="fomod/images/patch.png" />
+                            <files>
+                                <folder source="vampire/dawnguard-vampire-lord-transform-fix"
+                                    destination="./" priority="-1" />
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional" />
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+
+                <group name="Vampire Overhaul" type="SelectAny">
+                    <plugins order="Explicit">
+
                         <plugin name="USSEP">
                             <description>Select this if you are using Unofficial Skyrim Special Edition Patch - USSEP</description>
                             <image path="fomod/images/ussep.jpg" />
@@ -99,11 +121,6 @@ For custom races whose armor race is typically set to DefaultRace, this will cau
                                 </dependencyType>
                             </typeDescriptor>
                         </plugin>
-                    </plugins>
-                </group>
-
-                <group name="Vampire Overhaul" type="SelectAny">
-                    <plugins order="Explicit">
 
                         <plugin name="Better Vampires v9.0">
                             <description>Select this if you are using Better Vampires</description>
@@ -217,7 +234,7 @@ Select this if you want to replace the vanilla script PlayerWerewolfChangeScript
 
 The only function of this patch is to add a check before changing to werewolf, in case players have changed their races after joining the Companions. 
 
-If you are not going to do that, or if you have other mods that rewrite the same script, you probably don't need this.</description>
+If you are not going to do that, or if you have other mods that rewrite the same script, you probably DON'T need this.</description>
                             <image path="fomod/images/patch.png" />
                             <files>
                                 <folder source="werewolf/vanilla-werewolf-change-script-fix"

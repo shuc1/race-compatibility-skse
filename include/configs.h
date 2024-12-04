@@ -1,10 +1,8 @@
 #pragma once
 
-#include "race_manager.h"
-
-namespace race_compatibility
+namespace rcs
 {
-	namespace ini
+	namespace config
 	{
 		// Format: RCS = RaceForm|VampireRaceForm|RaceProxyForms|VampireRaceProxyForms|HeadPartFlag
 		// Restrict: RCS = MUST|MUST|OPTIONAL|OPTIONAL|OPTIONAL

@@ -59,8 +59,6 @@ using namespace std::literals;
 
 #include "versions.h"
 
-namespace rcs = race_compatibility;
-
 namespace stl
 {
 	using namespace SKSE::stl;
