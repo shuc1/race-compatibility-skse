@@ -14,7 +14,7 @@ namespace rcs
 				// check if obj is an NPC and has the same race
 				if (obj && race_form) {
 					// const auto npc = skyrim_cast<RE::TESNPC*>(obj->data.objectReference);
-					const auto npc = obj->As<RE::TESNPC>();
+					const auto npc = obj->data.objectReference->As<RE::TESNPC>();
 					const auto race = race_form->As<RE::TESRace>();
 					if (npc && race) [[likely]] {
 						if (const auto npc_race = npc->race;
