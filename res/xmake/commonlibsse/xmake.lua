@@ -1,3 +1,4 @@
+-- v2024-11-15
 -- set minimum xmake version
 set_xmakever("2.8.2")
 

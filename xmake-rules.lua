@@ -33,11 +33,11 @@ rule("race-compatibility", function()
         target:set("kind", "shared")
         target:set("basename", "race-compatibility")
         
-        target:add("packages", "srell")
+        target:add("packages", "glaze")
+
         target:add("files", "src/**.cpp")
         target:add("headerfiles", "include/**.h")
         target:add("includedirs", "include/")
-        target:add("includedirs", "lib/CLibUtil/include")
         target:set("pcxxheader", "include/pch.h")
     end)
 end)

@@ -6,18 +6,14 @@ Race Function GetRaceByVampireRace(Race akRace) global native
 ; return: if akRace is managed by RCS as a normal race, return the correspond vampire race; else return None
 Race Function GetVampireRaceByRace(Race akRace) global native
 
-; return: if akActorRace equals akRace, OR proxies for akActorRace contains akRace, return true, else false
-; a true returnval case:
-; RCS = akActorRace|akActorRaceVampire|akRace|akRaceVampire
-; GetIsRaceByProxy(akActorRace, akRace) -> True
-Bool Function GetIsRaceByProxy(Race akActorRace, Race akRace) global native
+; return: if akSourceRace equals akTargetRace, OR proxies for akSourceRace contains akTargetRace, return true, else false
+Bool Function GetIsRaceByProxy(Race akSourceRace, Race akTargetRace) global native
 
-; return: return head part flag as 'A', 'E', 'H', 'K' or 'O' (char as int)
-; A: 65, E: 69, H: 72, K: 75, O: 79
-; an example:
-; RCS = akRace|akRaceVampire|||H
-; GetHeadPartFlagByRace(akRace) -> 72 (0x48, for 'H')
-; TODO: refactor
-Int Function GetHeadPartFlagByRace(Race akRace) global native
-
-; TODO: add removeProxy, addProxy functions
+; return: return head part type id(from 0 ot 12)
+; None: 0, Argonian: 1,
+; Elf: 2, Dark Elf: 3, High Elf: 4, Wood Elf: 5
+; Human: 6, Breton: 7, Imperial: 8, Nord: 9, Redguard: 10
+; Khajiit: 11, Orc: 12
+; CAUTION: Human means general human type
+; CAUTION: If head part of a race is Breton type, it does NOT mean it's Human type!
+Int Function GetHeadPartTypeByRace(Race akRace) global native

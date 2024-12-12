@@ -13,7 +13,7 @@ local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("1.0.5", {build = "%Y-%m-%d"})
+set_version("2.0.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -42,7 +42,7 @@ add_rules("plugin.vsxmake.autoupdate")
 set_policy("package.requires_lock", true)
 
 -- add requires
-add_requires("srell")
+add_requires("glaze")
 
 -- set encoding
 set_encodings("utf-8")
@@ -69,6 +69,7 @@ end)
 -- papyrus
 target("papyrus.main", function()
     set_kind("object")
+    set_default(true)
     add_rules("papyrus")
     add_files("res/rcs/**.psc")
 end)
@@ -81,6 +82,7 @@ for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
     target_full_name = "papyrus.patch." .. target_name
     target(target_full_name, function()
         set_kind("object")
+        set_default(false)
         add_rules("papyrus")
         add_files(subdir .. "/**.psc")
         add_includedirs(

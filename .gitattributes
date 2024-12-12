@@ -1,1 +1,4 @@
-*.psc linguist-vendored
+res/rcs/scripts/source/CompanionsHousekeepingScript.psc linguist-vendored
+res/rcs/scripts/source/PlayerVampireQuestScript.psc linguist-vendored
+res/patch/* linguist-vendored
+res/papyrus/* linguist-vendored

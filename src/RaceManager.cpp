@@ -3,138 +3,267 @@
 
 namespace rcs::manager
 {
+	void RaceManager::EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race)
+	{
+		vampirismPairs.emplace_back(std::make_pair(race, vampire_race));
+	}
+
+	void RaceManager::EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies)
+	{
+		if (proxies.size()) {
+			raceProxies.emplace(race, proxies);
+		}
+	}
+
+	void RaceManager::EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies)
+	{
+		if (proxies.size()) {
+			armorRaceProxies.emplace(race, proxies);
+		}
+	}
+
+	void RaceManager::EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type)
+	{
+		headPartMap.emplace(race, type);
+		headPartMap.emplace(vampire_race, type);
+	}
+
+	auto RaceManager::GetVampireRaceByRace(const RE::TESRace* race) const
+		-> const RE::TESRace*
+	{
+		auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+			[&](auto& pair) { return pair.first == race; });
+		return (it == vampirismPairs.end()) ? nullptr : it->second;
+	}
+
+	auto RaceManager::GetRaceByVampireRace(const RE::TESRace* vampire_race) const
+		-> const RE::TESRace*
+	{
+		auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+			[&](auto& pair) { return pair.second == vampire_race; });
+		return (it == vampirismPairs.end()) ? nullptr : it->first;
+	}
+
+	auto RaceManager::GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) const
+		-> bool
+	{
+		if (source_race == target_race) {
+			return true;
+		}
+		auto it = raceProxies.find(source_race);
+		return it != raceProxies.end() && it->second.contains(target_race);
+	}
+
+	auto RaceManager::GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) const
+		-> const RE::TESRace*
+	{
+		if (const auto it = armorRaceProxies.find(race);
+			it != armorRaceProxies.end()) {
+			auto& slots = armor_addon->bipedModelData.bipedObjectSlots;
+			for (const auto& proxy : it->second) {
+				if (slots.any(proxy.slotMask)) {
+					return proxy.race;
+				}
+			}
+		}
+		return race->armorParentRace;
+	}
+
+	auto RaceManager::GetHeadPartType(const RE::TESRace* race) const
+		-> const HeadPartType
+	{
+		const auto it = headPartMap.find(race);
+		return it != headPartMap.end() ? it->second : HeadPartType::kNone;
+	}
+
+	void RaceManager::Summary()
+	{
+		logs::info("{:*^30}", "SUMMARY");
+		logs::info("Added {} vampirism race pairs"sv, vampirismPairs.size());
+		logs::info("Proxied {} race(s)"sv, raceProxies.size());
+		logs::info("Proxied {} armor race(s)"sv, armorRaceProxies.size());
+		logs::info("Added {} races to head part lists"sv, headPartMap.size());
+	}
+
 	namespace headpart
 	{
-		void HeadPartFormIdLists::Initialize()
+		HeadPartFormIdListAdder::HeadPartFormIdListAdder(bool& is_initialized)
 		{
 			is_initialized = false;
+#define LookupFormIdLists(a_editor_id) RE::TESForm::LookupByEditorID<RE::BGSListForm>(a_editor_id)
+			argonian = LookupFormIdLists("HeadPartsArgonian"sv);
+			elves = LookupFormIdLists("HeadPartsElves"sv);
+			high_elf = LookupFormIdLists("HeadPartsHighElf"sv);
+			wood_elf = LookupFormIdLists("HeadPartsWoodElf"sv);
+			dark_elf = LookupFormIdLists("HeadPartsDarkElf"sv);
+			human = LookupFormIdLists("HeadPartsHuman"sv);
+			breton = LookupFormIdLists("HeadPartsBreton"sv);
+			imperial = LookupFormIdLists("HeadPartsImperial"sv);
+			nord = LookupFormIdLists("HeadPartsNord"sv);
+			redguard = LookupFormIdLists("HeadPartsRedguard"sv);
+			khajiit = LookupFormIdLists("HeadPartsKhajiit"sv);
+			orc = LookupFormIdLists("HeadPartsOrc"sv);
+			all_races_minus_beast_vampires = LookupFormIdLists("HeadPartsAllRacesMinusBeastVampires"sv);
 
-			argonian = form::LookupFormIdLists("HeadPartsArgonian");
-			elves = form::LookupFormIdLists("HeadPartsElves");
-			human = form::LookupFormIdLists("HeadPartsHuman");
-			khajiit = form::LookupFormIdLists("HeadPartsKhajiit");
-			orc = form::LookupFormIdLists("HeadPartsOrc");
-			all_races_minus_beast_vampires = form::LookupFormIdLists("HeadPartsAllRacesMinusBeastVampires");
+			argonian_vampire = LookupFormIdLists("HeadPartsArgonianVampire"sv);
+			humanoid_vampire = LookupFormIdLists("HeadPartsHumanoidVampire"sv);
+			human_vampires = LookupFormIdLists("HeadPartsHumanVampires"sv);
+			khajiit_vampire = LookupFormIdLists("HeadPartsKhajiitVampire"sv);
 
-			argonian_vampire = form::LookupFormIdLists("HeadPartsArgonianVampire");
-			humanoid_vampire = form::LookupFormIdLists("HeadPartsHumanoidVampire");
-			human_vampires = form::LookupFormIdLists("HeadPartsHumanVampires");
-			khajiit_vampire = form::LookupFormIdLists("HeadPartsKhajiitVampire");
+			argonian_and_vampire = LookupFormIdLists("HeadPartsArgonianandVampire"sv);
+			elves_and_vampires = LookupFormIdLists("HeadPartsElvesandVampires"sv);
+			dark_elf_and_vampire = LookupFormIdLists("HeadPartsDarkElfandVampire"sv);
+			high_elf_and_vampire = LookupFormIdLists("HeadPartsHighElfandVampire"sv);
+			wood_elf_and_vampire = LookupFormIdLists("HeadPartsWoodElfandVampire"sv);
+			humans_and_vampires = LookupFormIdLists("HeadPartsHumansandVampires"sv);
+			breton_and_vampire = LookupFormIdLists("HeadPartsBretonandVampire"sv);
+			imperial_and_vampire = LookupFormIdLists("HeadPartsImperialandVampire"sv);
+			nord_and_vampire = LookupFormIdLists("HeadPartsNordandVampire"sv);
+			redguard_and_vampire = LookupFormIdLists("HeadPartsRedguardandVampire"sv);
+			khajiit_and_vampire = LookupFormIdLists("HeadPartsKhajiitandVampire"sv);
+			orc_and_vampire = LookupFormIdLists("HeadPartsOrcandVampire"sv);
+			all_races_minus_beast = LookupFormIdLists("HeadPartsAllRacesMinusBeast"sv);
+			humans_orcs_and_vampires = LookupFormIdLists("HeadPartsHumansOrcsandVampires"sv);
+#undef LookupFormIdLists
 
-			argonian_and_vampire = form::LookupFormIdLists("HeadPartsArgonianandVampire");
-			elves_and_vampires = form::LookupFormIdLists("HeadPartsElvesandVampires");
-			humans_and_vampires = form::LookupFormIdLists("HeadPartsHumansandVampires");
-			khajiit_and_vampire = form::LookupFormIdLists("HeadPartsKhajiitandVampire");
-			orc_and_vampire = form::LookupFormIdLists("HeadPartsOrcandVampire");
-			all_races_minus_beast = form::LookupFormIdLists("HeadPartsAllRacesMinusBeast");
-			humans_orcs_and_vampires = form::LookupFormIdLists("HeadPartsHumansOrcsandVampires");
-
-			is_initialized = argonian != nullptr && elves != nullptr && human != nullptr && khajiit != nullptr &&
-			                 orc != nullptr && all_races_minus_beast_vampires != nullptr && argonian_vampire != nullptr && humanoid_vampire != nullptr &&
-			                 human_vampires != nullptr && khajiit_vampire != nullptr && argonian_and_vampire != nullptr && elves_and_vampires != nullptr &&
-			                 humans_and_vampires != nullptr && khajiit_and_vampire != nullptr && orc_and_vampire != nullptr && all_races_minus_beast != nullptr &&
-			                 humans_orcs_and_vampires != nullptr;
+			is_initialized = argonian && elves && dark_elf && high_elf && wood_elf &&
+			                 human && breton && imperial && nord && redguard &&
+			                 khajiit && orc && all_races_minus_beast_vampires &&
+			                 argonian_vampire &&
+			                 humanoid_vampire && dark_elf_and_vampire && high_elf_and_vampire && wood_elf_and_vampire &&
+			                 human_vampires && breton_and_vampire && imperial_and_vampire && nord_and_vampire && redguard_and_vampire &&
+			                 khajiit_vampire && argonian_and_vampire && elves_and_vampires &&
+			                 humans_and_vampires && khajiit_and_vampire && orc_and_vampire && all_races_minus_beast &&
+			                 humans_orcs_and_vampires;
 		}
 
-		void HeadPartFormIdLists::AddRace(RE::TESRace* race, RE::TESRace* vampire_race, RaceFlag flag)
+		auto HeadPartFormIdListAdder::GetHeadPartType(std::string_view head_part_str) -> Type
 		{
-			switch (flag) {
-			default:
-			case RaceFlag::kNone:
-				return;
-			case RaceFlag::kArgonian:
-				AddArgonian(race, vampire_race);
-				break;
-			case RaceFlag::kElf:
-				AddElf(race, vampire_race);
-				break;
-			case RaceFlag::kHuman:
-				AddHuman(race, vampire_race);
-				break;
-			case RaceFlag::kKhajiit:
-				AddKhajiit(race, vampire_race);
-				break;
-			case RaceFlag::kOrc:
-				AddOrc(race, vampire_race);
-				break;
+			auto it = type_map.find(head_part_str);
+			return it != type_map.end() ? it->second : Type::kNone;
+		}
+
+#define ADD_RACE_ARGS RE::TESRace *race, RE::TESRace *vampire_race
+		void HeadPartFormIdListAdder::AddRace(ADD_RACE_ARGS, Type type)
+		{
+			if (type != Type::kNone) {
+				(*this.*(kAdder[std::to_underlying(type)]))(race, vampire_race);
+				RaceManager::GetSingleton()->EmplaceHeadPartRaces(race, vampire_race, type);
 			}
-			count++;
 		}
 
 #define TRY_ADD_RACE(a_form_id_list, a_race)  \
 	if (!(a_form_id_list->HasForm(a_race))) { \
 		a_form_id_list->AddForm(a_race);      \
 	}
-		void HeadPartFormIdLists::AddArgonian(RE::TESRace* race, RE::TESRace* vampire_race)
+
+#define ADD_RACE_TO(a_form_id_list) TRY_ADD_RACE(a_form_id_list, race)
+#define ADD_VAMPIRE_RACE_TO(a_form_id_list) TRY_ADD_RACE(a_form_id_list, vampire_race)
+#define ADD_BOTH_RACES_TO(a_form_id_list) \
+	ADD_RACE_TO(a_form_id_list)           \
+	ADD_VAMPIRE_RACE_TO(a_form_id_list)
+
+		void HeadPartFormIdListAdder::AddNonBeast(ADD_RACE_ARGS)
 		{
-			// normal
-			TRY_ADD_RACE(argonian, race)
-			// vampire
-			TRY_ADD_RACE(argonian_vampire, vampire_race)
-			// both
-			TRY_ADD_RACE(argonian_and_vampire, race)
-			TRY_ADD_RACE(argonian_and_vampire, vampire_race)
+			ADD_BOTH_RACES_TO(all_races_minus_beast)
+			ADD_RACE_TO(all_races_minus_beast_vampires)
 		}
 
-		void HeadPartFormIdLists::AddElf(RE::TESRace* race, RE::TESRace* vampire_race)
+		void HeadPartFormIdListAdder::AddArgonian(ADD_RACE_ARGS)
 		{
-			AddNonBeast(race, vampire_race);
-			// normal
-			TRY_ADD_RACE(elves, race)
-			// vampire
-			TRY_ADD_RACE(humanoid_vampire, vampire_race)
-			// both
-			TRY_ADD_RACE(elves_and_vampires, race)
-			TRY_ADD_RACE(elves_and_vampires, vampire_race)
+			using func_t = decltype(&HeadPartFormIdListAdder::AddArgonian);
+			ADD_RACE_TO(argonian)
+			ADD_VAMPIRE_RACE_TO(argonian_vampire)
+			ADD_BOTH_RACES_TO(argonian_and_vampire)
 		}
 
-		void HeadPartFormIdLists::AddHuman(RE::TESRace* race, RE::TESRace* vampire_race)
+		void HeadPartFormIdListAdder::AddElf(ADD_RACE_ARGS)
 		{
 			AddNonBeast(race, vampire_race);
-			// normal
-			TRY_ADD_RACE(human, race)
-			// vampire
-			TRY_ADD_RACE(human_vampires, vampire_race)
-			TRY_ADD_RACE(humanoid_vampire, vampire_race)
-			// both
-			TRY_ADD_RACE(humans_and_vampires, race)
-			TRY_ADD_RACE(humans_and_vampires, vampire_race)
-			TRY_ADD_RACE(humans_orcs_and_vampires, race)
-			TRY_ADD_RACE(humans_orcs_and_vampires, vampire_race)
+			ADD_RACE_TO(elves)
+			ADD_VAMPIRE_RACE_TO(humanoid_vampire)
+			ADD_BOTH_RACES_TO(elves_and_vampires)
 		}
 
-		void HeadPartFormIdLists::AddKhajiit(RE::TESRace* race, RE::TESRace* vampire_race)
+		void HeadPartFormIdListAdder::AddDarkElf(ADD_RACE_ARGS)
 		{
-			// normal
-			TRY_ADD_RACE(khajiit, race)
-			// vampire
-			TRY_ADD_RACE(khajiit_vampire, vampire_race)
-			// both
-			TRY_ADD_RACE(khajiit_and_vampire, race)
-			TRY_ADD_RACE(khajiit_and_vampire, vampire_race)
+			AddElf(race, vampire_race);
+			ADD_RACE_TO(dark_elf)
+			ADD_VAMPIRE_RACE_TO(dark_elf_and_vampire)
 		}
 
-		void HeadPartFormIdLists::AddOrc(RE::TESRace* race, RE::TESRace* vampire_race)
+		void HeadPartFormIdListAdder::AddHighElf(ADD_RACE_ARGS)
+		{
+			AddElf(race, vampire_race);
+			ADD_RACE_TO(high_elf)
+			ADD_VAMPIRE_RACE_TO(high_elf_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddWoodElf(ADD_RACE_ARGS)
+		{
+			AddElf(race, vampire_race);
+			ADD_RACE_TO(wood_elf)
+			ADD_VAMPIRE_RACE_TO(wood_elf_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddHuman(ADD_RACE_ARGS)
 		{
 			AddNonBeast(race, vampire_race);
-			// normal
-			TRY_ADD_RACE(orc, race)
-			// vampire
-			TRY_ADD_RACE(humanoid_vampire, vampire_race)
-			// both
-			TRY_ADD_RACE(orc_and_vampire, race)
-			TRY_ADD_RACE(orc_and_vampire, vampire_race)
-			TRY_ADD_RACE(humans_orcs_and_vampires, race)
-			TRY_ADD_RACE(humans_orcs_and_vampires, vampire_race)
+			ADD_RACE_TO(human)
+			ADD_VAMPIRE_RACE_TO(human_vampires)
+			ADD_VAMPIRE_RACE_TO(humanoid_vampire)
+			ADD_BOTH_RACES_TO(humans_and_vampires)
+			ADD_BOTH_RACES_TO(humans_orcs_and_vampires)
 		}
 
-		void HeadPartFormIdLists::AddNonBeast(RE::TESRace* race, RE::TESRace* vampire_race)
+		void HeadPartFormIdListAdder::AddBreton(ADD_RACE_ARGS)
 		{
-			TRY_ADD_RACE(all_races_minus_beast, race)
-			TRY_ADD_RACE(all_races_minus_beast, vampire_race)
-
-			TRY_ADD_RACE(all_races_minus_beast_vampires, race)
+			AddHuman(race, vampire_race);
+			ADD_RACE_TO(breton)
+			ADD_VAMPIRE_RACE_TO(breton_and_vampire)
 		}
+
+		void HeadPartFormIdListAdder::AddImperial(ADD_RACE_ARGS)
+		{
+			AddHuman(race, vampire_race);
+			ADD_RACE_TO(imperial)
+			ADD_VAMPIRE_RACE_TO(imperial_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddNord(ADD_RACE_ARGS)
+		{
+			AddHuman(race, vampire_race);
+			ADD_RACE_TO(nord)
+			ADD_VAMPIRE_RACE_TO(nord_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddRedguard(ADD_RACE_ARGS)
+		{
+			AddHuman(race, vampire_race);
+			ADD_RACE_TO(redguard)
+			ADD_VAMPIRE_RACE_TO(redguard_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddKhajiit(ADD_RACE_ARGS)
+		{
+			ADD_RACE_TO(khajiit)
+			ADD_VAMPIRE_RACE_TO(khajiit_vampire)
+			ADD_BOTH_RACES_TO(khajiit_and_vampire)
+		}
+
+		void HeadPartFormIdListAdder::AddOrc(ADD_RACE_ARGS)
+		{
+			AddNonBeast(race, vampire_race);
+			ADD_RACE_TO(orc)
+			ADD_VAMPIRE_RACE_TO(humanoid_vampire)
+			ADD_BOTH_RACES_TO(orc_and_vampire)
+			ADD_BOTH_RACES_TO(humans_orcs_and_vampires)
+		}
+#undef ADD_BOTH_RACES_TO
+#undef ADD_VAMPIRE_RACE_TO
+#undef ADD_RACE_TO
 #undef TRY_ADD_RACE
+
+#undef ADD_RACE_ARGS
 	}  // namespace headpart
 }  // namespace rcs::manager

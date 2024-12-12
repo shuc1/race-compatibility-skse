@@ -35,14 +35,12 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
 
 	;RCS
 	Race TargetRace = akTarget.GetActorBase().GetRace()
-	Int HeadPartFlag = RaceCompatibility.GetHeadPartFlagByRace(TargetRace)
+	Int HeadPartFlag = RaceCompatibility.GetHeadPartTypeByRace(TargetRace)
 	; If (akTarget.GetActorBase().GetRace() == ArgonianRace)
-	; 'A': 65
-	If (TargetRace == ArgonianRace) || (RaceCompatibility.GetIsRaceByProxy(TargetRace, ArgonianRace) && HeadPartFlag == 65) 
+	If (TargetRace == ArgonianRace) || (RaceCompatibility.GetIsRaceByProxy(TargetRace, ArgonianRace) && HeadPartFlag == 1) 
 		akTarget.SetEyeTexture(BVSkinEyesMaleArgonianVampire)
 	; ElseIf (akTarget.GetActorBase().GetRace() == KhajiitRace)
-	; 'K': 75
-	ElseIf (TargetRace == KhajiitRace) || (RaceCompatibility.GetIsRaceByProxy(TargetRace, KhajiitRace) && HeadPartFlag == 75) 
+	ElseIf (TargetRace == KhajiitRace) || (RaceCompatibility.GetIsRaceByProxy(TargetRace, KhajiitRace) && HeadPartFlag == 11) 
 		akTarget.SetEyeTexture(BVSkinEyesKhajiitVampire)
 	Else	
 		akTarget.SetEyeTexture(BVEyesMaleHumanVampire)

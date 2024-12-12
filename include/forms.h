@@ -4,30 +4,33 @@ namespace rcs
 {
 	namespace form
 	{
-		using race_lookup_table_t = std::map<std::shared_ptr<record>, RE::TESRace*>;
+		template <typename T>
+		using FormCache = std::map<std::string, T*, std::less<>>;
 
-		static inline bool LookupRaces(race_lookup_table_t& table)
+		template <typename T>
+		static inline T* LookupCachedForm(const std::string_view form_str, FormCache<T>& cache)
 		{
-			if (const auto data_handler = RE::TESDataHandler::GetSingleton(); data_handler != nullptr) {
-				for (auto&& [record, form] : table) {
-					if (const auto form_id = std::get_if<clib_util::distribution::formid_pair>(&*record); form_id != nullptr) {
-						if (form_id->second.has_value()) {
-							form = data_handler->LookupForm(form_id->first.value(), form_id->second.value())->As<RE::TESRace>();
-						} else {
-							form = RE::TESForm::LookupByID<RE::TESRace>(form_id->first.value());
-						}
-					} else {
-						form = RE::TESForm::LookupByEditorID<RE::TESRace>(std::get<std::string>(*record));
-					}
-				}
-				return true;
+			if (const auto it = cache.find(form_str); it != cache.end()) {
+				return it->second;
 			}
-			return false;
-		}
 
-		static inline RE::BGSListForm* LookupFormIdLists(const std::string_view& editor_id)
-		{
-			return RE::TESForm::LookupByEditorID<RE::BGSListForm>(editor_id);
+			T* t;
+			// do not support lookup by id, "0x800" will be treated as editor id
+			// // BSFixedString(std::string_view) will copy the original string other than the span
+			// // must alloc a new string before passing to LookupByEditorID/LookupForm
+			if (auto split_loc = form_str.find('|');
+				split_loc != std::string::npos) {  // "OhmesRaht.esp|800" or "OhmesRaht.esp|0x800"
+				auto data_handler = RE::TESDataHandler::GetSingleton();
+				t = data_handler ?
+				        data_handler->LookupForm<T>(
+							static_cast<RE::FormID>(std::stoul(std::string{ form_str.substr(split_loc + 1) }, nullptr, 16)),
+							std::string(form_str.substr(0, split_loc))) :
+				        nullptr;
+			} else {  // "OhemsRahtRace"
+				t = RE::TESForm::LookupByEditorID<T>(std::string(form_str));
+			}
+			cache.emplace(form_str, t);
+			return t;
 		}
 	}  // namespace form
 }  // namespace rcs

@@ -1,0 +1,124 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema",
+    "title": "Race Compatibility SKSE Configuration Schema",
+    "description": "Provides definitions for Race Compatibility SKSE(RCS) configuration",
+    "$defs": {
+        "form": {
+            "type": "string",
+            "pattern": "^[\\w\\-\\. ]+\\.es[lmp]\\|(0[xX])?[\\da-fA-F]{1,8}$|^[\\w ]+$"
+        },
+        "armor": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "race": {
+                    "$ref": "#/$defs/form",
+                    "description": "The form of default race for armor addon"
+                },
+                "variants": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "slots",
+                            "proxy"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "slots": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": 30,
+                                    "maximum": 61
+                                },
+                                "description": "The specific armor slots used for armor addon variant"
+                            },
+                            "proxy": {
+                                "$ref": "#/$defs/form",
+                                "description": "The form of proxy race for specific slot"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "race": {
+            "type": "object",
+            "required": [
+                "form"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "form": {
+                    "$ref": "#/$defs/form",
+                    "description": "The form of mortal race"
+                },
+                "proxies": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/form"
+                    },
+                    "description": "The forms of proxy races, used in dialogue, magic effects, etc."
+                },
+                "armor": {
+                    "$ref": "#/$defs/armor"
+                }
+            }
+        }
+    },
+    "type": "object",
+    "required": [
+        "RCS"
+    ],
+    "properties": {
+        "RCS": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "race",
+                    "vampireRace"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the config entry",
+                        "pattern": "^[\\w\\- ]+$"
+                    },
+                    "race": {
+                        "$ref": "#/$defs/race"
+                    },
+                    "vampireRace": {
+                        "$ref": "#/$defs/race"
+                    },
+                    "headPart": {
+                        "type": "string",
+                        "description": "The head part preset for injecting race into form lists",
+                        "enum": [
+                            "Elf",
+                            "Human",
+                            "Orc",
+                            "Argonian",
+                            "Khajiit",
+                            "Breton",
+                            "Imperial",
+                            "Nord",
+                            "Redguard",
+                            "DarkElf",
+                            "HighElf",
+                            "WoodElf"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

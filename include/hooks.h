@@ -4,8 +4,8 @@ namespace rcs
 {
 	namespace hook
 	{
-		void Install();
+		void TryInstall();
 	}
 
-	void Install();
+	void TryInstall();
 }  // namespace hook
