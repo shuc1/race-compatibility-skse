@@ -32,7 +32,7 @@ namespace rcs
 			{
 				auto* race = rcs::form::LookupCachedForm(form_str, cache);
 				if (!race) {
-					logs::warn("\tInvalid race form {}"sv, form_str);
+					logs::warn("\t\tInvalid race form: {}"sv, form_str);
 				}
 				return race;
 			}
@@ -157,7 +157,7 @@ namespace rcs
 				ParseCache&                        cache)
 			{
 				for (const auto& raw_config : raw_config_data | std::views::reverse) {
-					logs::info("Entry: {}\t({}, {})"sv,
+					logs::info("\t{}: {}, {}"sv,
 						raw_config.name, raw_config.race.form, raw_config.vampireRace.form);
 
 					auto config = ConfigEntry{
@@ -168,15 +168,15 @@ namespace rcs
 
 					const auto *race = config.race.form, *race_vamp = config.vampireRace.form;
 					if (!race || !race_vamp) {
-						logs::warn("\t[SKIP] Invalid race or vampire race"sv);
+						logs::warn("\t\t[SKIP] Invalid race or vampire race"sv);
 						continue;
 					} else if (auto it_race = cache.visited_map.find(race);
 							   it_race != cache.visited_map.end()) {
-						logs::warn("\t[SKIP] Race already used in {}"sv, it_race->second);
+						logs::warn("\t\t[SKIP] Race already used in {}"sv, it_race->second);
 						continue;
 					} else if (auto it_race_vamp = cache.visited_map.find(race_vamp);
 							   it_race_vamp != cache.visited_map.end()) {
-						logs::warn("\t[SKIP] Vampire race already used in {}"sv, it_race_vamp->second);
+						logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, it_race_vamp->second);
 						continue;
 					}
 
@@ -230,9 +230,9 @@ namespace rcs
 				}
 
 				// from default
-				logs::info("Config: Default");
+				logs::info("Config: default");
 				const auto default_raw_entries = GetDefaultRawEntries();
-				ParseAndApplyRawConfig("Default", default_raw_entries, parse_cache);
+				ParseAndApplyRawConfig("default", default_raw_entries, parse_cache);
 
 				// summary
 				manager::RaceManager::GetSingleton()->Summary();

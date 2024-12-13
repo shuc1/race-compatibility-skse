@@ -14,6 +14,6 @@ Bool Function GetIsRaceByProxy(Race akSourceRace, Race akTargetRace) global nati
 ; Elf: 2, Dark Elf: 3, High Elf: 4, Wood Elf: 5
 ; Human: 6, Breton: 7, Imperial: 8, Nord: 9, Redguard: 10
 ; Khajiit: 11, Orc: 12
-; CAUTION: Human means general human type
-; CAUTION: If head part of a race is Breton type, it does NOT mean it's Human type!
+; CAUTION: Human means generic human type,
+; CAUTION: e.g. if head part of a race is Breton type, it does NOT mean it's Human type!
 Int Function GetHeadPartTypeByRace(Race akRace) global native
