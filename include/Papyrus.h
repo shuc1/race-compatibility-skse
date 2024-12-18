@@ -10,25 +10,25 @@ namespace rcs
 		[[nodiscard]] static inline auto GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* a_race)
 			-> const RE::TESRace*
 		{
-			return manager::RaceManager::GetSingleton()->GetVampireRaceByRace(a_race);
+			return manager::GetVampireRaceByRace(a_race);
 		}
 
 		[[nodiscard]] static inline auto GetRaceByVampireRace(STATIC_ARGS, const RE::TESRace* a_race)
 			-> const RE::TESRace*
 		{
-			return manager::RaceManager::GetSingleton()->GetRaceByVampireRace(a_race);
+			return manager::GetRaceByVampireRace(a_race);
 		}
 
 		[[nodiscard]] static inline auto GetIsRaceByProxy(STATIC_ARGS, RE::TESRace* a_source_race, RE::TESRace* a_target_race)
 			-> bool
 		{
-			return manager::RaceManager::GetSingleton()->GetIsRaceByProxy(a_source_race, a_target_race);
+			return manager::GetIsRaceByProxy(a_source_race, a_target_race);
 		}
 
 		[[nodiscard]] static inline auto GetHeadPartTypeByRace(STATIC_ARGS, RE::TESRace* a_race)
 			-> int
 		{
-			return std::to_underlying(manager::RaceManager::GetSingleton()->GetHeadPartType(a_race));
+			return std::to_underlying(manager::GetHeadPartType(a_race));
 		}
 #undef STATIC_ARGS
 

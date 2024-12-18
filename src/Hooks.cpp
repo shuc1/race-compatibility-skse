@@ -19,7 +19,7 @@ namespace rcs
 					if (npc && race) [[likely]] {
 						if (const auto npc_race = npc->race;
 							npc_race &&
-							manager::RaceManager::GetSingleton()->GetIsRaceByProxy(npc_race, race)) {
+							manager::GetIsRaceByProxy(npc_race, race)) {
 							result = 1.0;
 						}
 					}
@@ -42,7 +42,7 @@ namespace rcs
 					return false;
 				}
 				// race not null
-				auto* armor_parent_race = manager::RaceManager::GetSingleton()->GetProxyArmorParentRace(armor_addon, race);
+				auto* armor_parent_race = manager::GetProxyArmorParentRace(armor_addon, race);
 				if (auto armor_race = armor_addon->race;
 					race == armor_race || armor_parent_race == armor_race) {
 					return true;
@@ -70,8 +70,7 @@ namespace rcs
 
 		void TryInstall()
 		{
-			const auto* manager = manager::RaceManager::GetSingleton();
-			if (!manager->raceProxies.empty()) {
+			if (!manager::raceProxies.empty()) {
 				const REL::Relocation<std::uintptr_t> get_is_race{ RELOCATION_ID(21028, 21478), 0 };
 				stl::write_thunk_branch<GetIsRace>(get_is_race.address());
 
@@ -82,7 +81,7 @@ namespace rcs
 
 				logs::info("Installed hooks for GetIsRace");
 			}
-			if (!manager->armorRaceProxies.empty()) {
+			if (!manager::armorRaceProxies.empty()) {
 				const REL::Relocation<std::uintptr_t> is_valid_race{ RELOCATION_ID(17359, 17757), 0 };
 				stl::write_thunk_branch<IsValidRace>(is_valid_race.address());
 				logs::info("Installed hooks for TESObjectARMA::IsValidRace");

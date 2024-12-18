@@ -35,8 +35,8 @@ namespace rcs
 
 		struct ConfigEntry
 		{
-			using ArmorVariant = manager::RaceManager::ArmorProxyEntry;
-			using HeadPartType = manager::RaceManager::HeadPartType;
+			using ArmorVariant = manager::ArmorProxyEntry;
+			using HeadPartType = manager::HeadPartType;
 
 			struct RaceProxy
 			{

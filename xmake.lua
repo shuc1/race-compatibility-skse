@@ -124,11 +124,13 @@ xpack("main", function()
     add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-
+local patch_version = "2.0.0"
+set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package
     set_formats("zip")
-    set_basename(project_title .. " - Patch Hub-$(version)")
+    set_version(patch_version)
+    set_basename(project_title .. " - Patch Hub-" .. patch_version)
     -- add fomod info and all files
     add_installfiles("res/patch/(**)|**.in")
 end)

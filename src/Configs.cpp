@@ -88,18 +88,16 @@ namespace rcs
 
 			void ApplyVampirismAndHeadPart(const ConfigEntry& config, manager::headpart::HeadPartFormIdListAdder& adder)
 			{
-				auto* manager = manager::RaceManager::GetSingleton();
 				auto *race = config.race.form, *race_vamp = config.vampireRace.form;
-				manager->EmplaceVampirismRacePair(race, race_vamp);
+				manager::EmplaceVampirismRacePair(race, race_vamp);
 				adder.AddRace(race, race_vamp, config.headPart);
 			}
 
 			void ApplyRaceProxy(ConfigEntry::RaceProxy& race_proxy)
 			{
-				auto* manager = manager::RaceManager::GetSingleton();
 				// apply dialogue race proxies
 				if (!race_proxy.proxies.empty()) {
-					manager->EmplaceRaceProxies(race_proxy.form, std::move(race_proxy.proxies));
+					manager::EmplaceRaceProxies(race_proxy.form, std::move(race_proxy.proxies));
 				}
 				// set armorParentRace
 				if (auto* armor_race = race_proxy.armor.proxy;
@@ -108,7 +106,7 @@ namespace rcs
 				}
 				// add armorParentRace for specific slot mask
 				if (!race_proxy.armor.variants.empty()) {
-					manager->EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
+					manager::EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
 				}
 			}
 
@@ -235,7 +233,7 @@ namespace rcs
 				ParseAndApplyRawConfig("default", default_raw_entries, parse_cache);
 
 				// summary
-				manager::RaceManager::GetSingleton()->Summary();
+				manager::Summary();
 				return true;
 			}
 		}  // namespace detail

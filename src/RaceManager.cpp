@@ -3,58 +3,58 @@
 
 namespace rcs::manager
 {
-	void RaceManager::EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race)
+	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race)
 	{
 		vampirismPairs.emplace_back(std::make_pair(race, vampire_race));
 	}
 
-	void RaceManager::EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies)
+	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies)
 	{
 		if (proxies.size()) {
 			raceProxies.emplace(race, proxies);
 		}
 	}
 
-	void RaceManager::EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies)
+	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies)
 	{
 		if (proxies.size()) {
 			armorRaceProxies.emplace(race, proxies);
 		}
 	}
 
-	void RaceManager::EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type)
+	void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type)
 	{
 		headPartMap.emplace(race, type);
 		headPartMap.emplace(vampire_race, type);
 	}
 
-	auto RaceManager::GetVampireRaceByRace(const RE::TESRace* race) const
+	auto GetVampireRaceByRace(const RE::TESRace* race)
 		-> const RE::TESRace*
 	{
-		auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+		const auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
 			[&](auto& pair) { return pair.first == race; });
 		return (it == vampirismPairs.end()) ? nullptr : it->second;
 	}
 
-	auto RaceManager::GetRaceByVampireRace(const RE::TESRace* vampire_race) const
+	auto GetRaceByVampireRace(const RE::TESRace* vampire_race)
 		-> const RE::TESRace*
 	{
-		auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+		const auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
 			[&](auto& pair) { return pair.second == vampire_race; });
 		return (it == vampirismPairs.end()) ? nullptr : it->first;
 	}
 
-	auto RaceManager::GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) const
+	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race)
 		-> bool
 	{
 		if (source_race == target_race) {
 			return true;
 		}
-		auto it = raceProxies.find(source_race);
+		const auto it = raceProxies.find(source_race);
 		return it != raceProxies.end() && it->second.contains(target_race);
 	}
 
-	auto RaceManager::GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) const
+	auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
 		-> const RE::TESRace*
 	{
 		if (const auto it = armorRaceProxies.find(race);
@@ -69,20 +69,20 @@ namespace rcs::manager
 		return race->armorParentRace;
 	}
 
-	auto RaceManager::GetHeadPartType(const RE::TESRace* race) const
+	auto GetHeadPartType(const RE::TESRace* race)
 		-> const HeadPartType
 	{
 		const auto it = headPartMap.find(race);
 		return it != headPartMap.end() ? it->second : HeadPartType::kNone;
 	}
 
-	void RaceManager::Summary()
+	void Summary()
 	{
 		logs::info("{:*^30}", "SUMMARY");
 		logs::info("Added {} vampirism race pairs"sv, vampirismPairs.size());
 		logs::info("Proxied {} race(s)"sv, raceProxies.size());
 		logs::info("Proxied {} armor race(s)"sv, armorRaceProxies.size());
-		logs::info("Added {} races to head part lists"sv, headPartMap.size());
+		logs::info("Added {} race(s) to head part lists"sv, headPartMap.size());
 	}
 
 	namespace headpart
@@ -148,7 +148,7 @@ namespace rcs::manager
 		{
 			if (type != Type::kNone) {
 				(*this.*(kAdder[std::to_underlying(type)]))(race, vampire_race);
-				RaceManager::GetSingleton()->EmplaceHeadPartRaces(race, vampire_race, type);
+				EmplaceHeadPartRaces(race, vampire_race, type);
 			}
 		}
 

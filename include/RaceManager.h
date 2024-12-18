@@ -2,60 +2,55 @@
 
 namespace rcs::manager
 {
-	class RaceManager :
-		public REX::Singleton<RaceManager>
+
+	enum HeadPartType : char
 	{
-	public:
-		enum HeadPartType : char
-		{
-			kNone,
-			kArgonian,
-			kElf,
-			kDarkElf,
-			kHighElf,
-			kWoodElf,
-			kHuman,
-			kBreton,
-			kImperial,
-			kNord,
-			kRedguard,
-			kKhajiit,
-			kOrc,
-		};
-
-		struct ArmorProxyEntry
-		{
-			RE::TESRace*                            race;
-			RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
-		};
-
-		// TODO: could use another struct to collect all proxy config, but leave it for now
-		std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
-		std::map<const RE::TESRace*, std::set<const RE::TESRace*>>     raceProxies{};
-		std::map<const RE::TESRace*, std::vector<ArmorProxyEntry>>     armorRaceProxies{};
-		std::map<const RE::TESRace*, HeadPartType>                     headPartMap{};
-
-		// emplace
-		void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race);
-		void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies);
-		void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies);
-		void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type);
-		// judge
-		auto GetVampireRaceByRace(const RE::TESRace* race) const -> const RE::TESRace*;
-		auto GetRaceByVampireRace(const RE::TESRace* vampire_race) const -> const RE::TESRace*;
-		auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) const -> bool;
-		auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) const -> const RE::TESRace*;
-		auto GetHeadPartType(const RE::TESRace* race) const -> const HeadPartType;
-		// summary
-		void Summary();
+		kNone,
+		kArgonian,
+		kElf,
+		kDarkElf,
+		kHighElf,
+		kWoodElf,
+		kHuman,
+		kBreton,
+		kImperial,
+		kNord,
+		kRedguard,
+		kKhajiit,
+		kOrc,
 	};
+
+	struct ArmorProxyEntry
+	{
+		RE::TESRace*                            race;
+		RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
+	};
+
+	inline std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
+	inline std::map<const RE::TESRace*, std::set<const RE::TESRace*>>     raceProxies{};
+	inline std::map<const RE::TESRace*, std::vector<ArmorProxyEntry>>     armorRaceProxies{};
+	inline std::map<const RE::TESRace*, HeadPartType>                     headPartMap{};
+
+	// emplace
+	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race);
+	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies);
+	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies);
+	void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type);
+	// judge
+	auto GetVampireRaceByRace(const RE::TESRace* race) -> const RE::TESRace*;
+	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;
+	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) -> bool;
+	auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) -> const RE::TESRace*;
+	auto GetHeadPartType(const RE::TESRace* race) -> const HeadPartType;
+	// summary
+	void Summary();
 
 	namespace headpart
 	{
 		class HeadPartFormIdListAdder
 		{
 		public:
-			using Type = RaceManager::HeadPartType;
+			using Type = HeadPartType;
 
 			HeadPartFormIdListAdder(bool& is_initialized);
 			Type GetHeadPartType(std::string_view head_part_str);
