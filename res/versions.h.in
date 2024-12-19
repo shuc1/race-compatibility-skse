@@ -1,8 +1,11 @@
 #pragma once
 
-namespace race_compatibility
+namespace rcs
 {
 	inline constexpr auto VERSION = "${VERSION}"sv;
+	inline constexpr auto VERSION_MAJOR = ${ VERSION_MAJOR };
+	inline constexpr auto VERSION_MINOR = ${ VERSION_MINOR };
+	inline constexpr auto VERSION_ALTER = ${ VERSION_ALTER };
 	inline constexpr auto VERSION_BUILD = "${VERSION_BUILD}"sv;
 	inline constexpr auto PROJECT_NAME = "${PROJECT_NAME}"sv;
 	inline constexpr auto PROJECT_NAME_CAMEL = "${PROJECT_NAME_CAMEL}"sv;

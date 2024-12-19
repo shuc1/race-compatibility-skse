@@ -11,4 +11,4 @@ vs*/
 *.zip
 *.pex
 **/fomod/*.xml
-versions.h
+Versions.h

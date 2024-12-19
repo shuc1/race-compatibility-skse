@@ -1,6 +1,6 @@
 [submodule "lib/commonlibsse"]
 	path = lib/commonlibsse
 	url = https://github.com/powerof3/CommonLibSSE.git
-[submodule "lib/ClibUtil"]
-	path = lib/ClibUtil
-	url = https://github.com/powerof3/CLibUtil.git
+[submodule "lib/skyui"]
+	path = lib/skyui
+	url = https://github.com/schlangster/skyui.git

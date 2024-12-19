@@ -1,0 +1,47 @@
+{
+    "$schema": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema",
+    "RCS": [
+        {
+            "name": "Ohmes-Raht",
+            "race": {
+                "form": "OhmesRahtRace",
+                "proxies": [
+                    "KhajiitRace"
+                ],
+                "armor": {
+                    "race": "KhajiitRace",
+                    "variants": [
+                        {
+                            "slots": [
+                                30,
+                                31,
+                                42
+                            ],
+                            "proxy": "DefaultRace"
+                        }
+                    ]
+                }
+            },
+            "vampireRace": {
+                "form": "OhmesRahtRaceVampire",
+                "proxies": [
+                    "KhajiitRaceVampire"
+                ],
+                "armor": {
+                    "race": "KhajiitRaceVampire",
+                    "variants": [
+                        {
+                            "slots": [
+                                30,
+                                31,
+                                42
+                            ],
+                            "proxy": "DefaultRace"
+                        }
+                    ]
+                }
+            },
+            "headPart": "Human"
+        }
+    ]
+}

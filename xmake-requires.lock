@@ -6,16 +6,24 @@
         ["cmake#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "f145085609fcacdd48b6b4d593662c57d59732b7",
-                url = "https://gitee.com/tboox/xmake-repo.git"
+                commit = "f644dd8984701e1f4b06b2859853644bde4db0f9",
+                url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "3.29.5-msvc4"
+        },
+        ["glaze#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "b276fea04f8ae6fb668b70520896eadcd55a62be",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v4.0.1"
         },
         ["rsm-binary-io#31fecfc4"] = {
             repo = {
                 branch = "master",
                 commit = "30bf09689d5f65e9ea4e3904ceb675f8f04f0789",
-                url = "https://gitee.com/tboox/xmake-repo.git"
+                url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "2.0.6"
         },
@@ -23,17 +31,9 @@
             repo = {
                 branch = "master",
                 commit = "f145085609fcacdd48b6b4d593662c57d59732b7",
-                url = "https://gitee.com/tboox/xmake-repo.git"
+                url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.15.0"
-        },
-        ["srell#31fecfc4"] = {
-            repo = {
-                branch = "master",
-                commit = "63e995cbd44ad1e66009ec44e362c90783d630e2",
-                url = "https://gitee.com/tboox/xmake-repo.git"
-            },
-            version = "4.019"
         }
     }
 }
