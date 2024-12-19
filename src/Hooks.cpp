@@ -14,8 +14,8 @@ namespace rcs
 				// check if obj is an NPC and has the same race
 				if (obj && race_form) {
 					const auto npc = obj->data.objectReference->As<RE::TESNPC>();
-					if (const auto race = race_form->As<RE::TESRace>();
-						npc && race) [[likely]] {
+					const auto race = race_form->As<RE::TESRace>();
+					if (npc && race) {
 						if (const auto npc_race = npc->race;
 							npc_race &&
 							manager::GetIsRaceByProxy(npc_race, race)) {
