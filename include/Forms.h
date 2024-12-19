@@ -8,7 +8,7 @@ namespace rcs
 		using FormCache = std::map<std::string, T*, std::less<>>;
 
 		template <typename T>
-		static inline T* LookupCachedForm(const std::string_view form_str, FormCache<T>& cache)
+		static T* LookupCachedForm(const std::string_view form_str, FormCache<T>& cache)
 		{
 			if (const auto it = cache.find(form_str); it != cache.end()) {
 				return it->second;

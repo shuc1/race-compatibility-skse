@@ -7,25 +7,25 @@ namespace rcs
 	namespace papyrus
 	{
 #define STATIC_ARGS [[maybe_unused]] RE::BSScript::Internal::VirtualMachine *a_vm, [[maybe_unused]] RE::VMStackID a_stackID, RE::StaticFunctionTag *
-		[[nodiscard]] static inline auto GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* a_race)
+		[[nodiscard]] static auto GetVampireRaceByRace(STATIC_ARGS, const RE::TESRace* a_race)
 			-> const RE::TESRace*
 		{
 			return manager::GetVampireRaceByRace(a_race);
 		}
 
-		[[nodiscard]] static inline auto GetRaceByVampireRace(STATIC_ARGS, const RE::TESRace* a_race)
+		[[nodiscard]] static auto GetRaceByVampireRace(STATIC_ARGS, const RE::TESRace* a_race)
 			-> const RE::TESRace*
 		{
 			return manager::GetRaceByVampireRace(a_race);
 		}
 
-		[[nodiscard]] static inline auto GetIsRaceByProxy(STATIC_ARGS, RE::TESRace* a_source_race, RE::TESRace* a_target_race)
+		[[nodiscard]] static auto GetIsRaceByProxy(STATIC_ARGS, const RE::TESRace* a_source_race, const RE::TESRace* a_target_race)
 			-> bool
 		{
 			return manager::GetIsRaceByProxy(a_source_race, a_target_race);
 		}
 
-		[[nodiscard]] static inline auto GetHeadPartTypeByRace(STATIC_ARGS, RE::TESRace* a_race)
+		[[nodiscard]] static auto GetHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race)
 			-> int
 		{
 			return std::to_underlying(manager::GetHeadPartType(a_race));

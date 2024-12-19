@@ -10,8 +10,8 @@
             <optionalFileGroups order="Explicit">
                 <group name="DLL" type="SelectExactlyOne">
                     <plugins order="Explicit">
-                        <plugin name="SSE v1.6.318+ (&quot;Anniversary Edition&quot;)">
-                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.318 or higher.</description>
+                        <plugin name="SSE v1.6.640+ (&quot;Anniversary Edition&quot;)">
+                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.640 or higher.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
                                 <folder source="${FOMOD_AE_PLUGIN_DIR}"

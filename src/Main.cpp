@@ -8,7 +8,7 @@
 namespace logs = SKSE::log;
 
 #ifdef SKYRIM_SUPPORT_AE
-extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
 	SKSE::PluginVersionData v;
 	v.PluginVersion({ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 });
 	v.PluginName(rcs::PROJECT_NAME);
@@ -67,8 +67,8 @@ static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
 			logs::info("{:*^50}", "DEPENDENCIES");
-			auto start = std::chrono::system_clock::now();
-			auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
+			const auto start = std::chrono::system_clock::now();
+			const auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
 			logs::info("Loaded configs in {} ms",
 				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
 			if (should_install_hooks) {

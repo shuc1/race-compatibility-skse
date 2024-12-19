@@ -68,10 +68,9 @@ end)
 
 -- papyrus
 target("papyrus.main", function()
-    set_kind("object")
     set_default(true)
-    add_rules("papyrus")
     add_files("res/rcs/**.psc")
+    add_rules("papyrus")
 end)
 
 -- patches
@@ -81,18 +80,16 @@ for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
     target_name = path.basename(path.directory(path.directory(subdir)))
     target_full_name = "papyrus.patch." .. target_name
     target(target_full_name, function()
-        set_kind("object")
         set_default(false)
-        add_rules("papyrus")
+
         add_files(subdir .. "/**.psc")
-        add_includedirs(
-            "res/rcs/scripts/source/",
-            "lib/skyui/dist/Data/Scripts/Source/")
         potential_include = "res/papyrus/include/" .. target_name
         -- print("Potential include: " .. potential_include)
         if os.exists(potential_include) then
             add_includedirs(potential_include)
         end
+
+        add_rules("papyrus")
     end)
     table.insert(patch_targets, target_full_name)
 end

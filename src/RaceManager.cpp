@@ -1,5 +1,4 @@
 #include "RaceManager.h"
-#include "forms.h"
 
 namespace rcs::manager
 {
@@ -31,7 +30,7 @@ namespace rcs::manager
 	auto GetVampireRaceByRace(const RE::TESRace* race)
 		-> const RE::TESRace*
 	{
-		const auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+		const auto it = std::ranges::find_if(vampirismPairs,
 			[&](auto& pair) { return pair.first == race; });
 		return (it == vampirismPairs.end()) ? nullptr : it->second;
 	}
@@ -39,7 +38,7 @@ namespace rcs::manager
 	auto GetRaceByVampireRace(const RE::TESRace* vampire_race)
 		-> const RE::TESRace*
 	{
-		const auto it = std::find_if(vampirismPairs.begin(), vampirismPairs.end(),
+		const auto it = std::ranges::find_if(vampirismPairs,
 			[&](auto& pair) { return pair.second == vampire_race; });
 		return (it == vampirismPairs.end()) ? nullptr : it->first;
 	}
@@ -70,10 +69,10 @@ namespace rcs::manager
 	}
 
 	auto GetHeadPartType(const RE::TESRace* race)
-		-> const HeadPartType
+		-> HeadPartType
 	{
 		const auto it = headPartMap.find(race);
-		return it != headPartMap.end() ? it->second : HeadPartType::kNone;
+		return it != headPartMap.end() ? it->second : kNone;
 	}
 
 	void Summary()
@@ -85,11 +84,30 @@ namespace rcs::manager
 		logs::info("Added {} race(s) to head part lists"sv, headPartMap.size());
 	}
 
+	auto headpart::GetHeadPartType(const std::string_view head_part_str) -> HeadPartType
+	{
+		const std::map<std::string_view, HeadPartType> type_map{
+			{ "Argonian"sv, kArgonian },
+			{ "Elf"sv, kElf },
+			{ "DarkElf"sv, kDarkElf },
+			{ "HighElf"sv, kHighElf },
+			{ "WoodElf"sv, kWoodElf },
+			{ "Human"sv, kHuman },
+			{ "Breton"sv, kBreton },
+			{ "Imperial"sv, kImperial },
+			{ "Nord"sv, kNord },
+			{ "Redguard"sv, kRedguard },
+			{ "Khajiit"sv, kKhajiit },
+			{ "Orc"sv, kOrc }
+		};
+		const auto it = type_map.find(head_part_str);
+		return it != type_map.end() ? it->second : kNone;
+	}
+
 	namespace headpart
 	{
-		HeadPartFormIdListAdder::HeadPartFormIdListAdder(bool& is_initialized)
+		HeadPartFormIdListAdder::HeadPartFormIdListAdder()
 		{
-			is_initialized = false;
 #define LookupFormIdLists(a_editor_id) RE::TESForm::LookupByEditorID<RE::BGSListForm>(a_editor_id)
 			argonian = LookupFormIdLists("HeadPartsArgonian"sv);
 			elves = LookupFormIdLists("HeadPartsElves"sv);
@@ -125,29 +143,42 @@ namespace rcs::manager
 			all_races_minus_beast = LookupFormIdLists("HeadPartsAllRacesMinusBeast"sv);
 			humans_orcs_and_vampires = LookupFormIdLists("HeadPartsHumansOrcsandVampires"sv);
 #undef LookupFormIdLists
-
-			is_initialized = argonian && elves && dark_elf && high_elf && wood_elf &&
-			                 human && breton && imperial && nord && redguard &&
-			                 khajiit && orc && all_races_minus_beast_vampires &&
-			                 argonian_vampire &&
-			                 humanoid_vampire && dark_elf_and_vampire && high_elf_and_vampire && wood_elf_and_vampire &&
-			                 human_vampires && breton_and_vampire && imperial_and_vampire && nord_and_vampire && redguard_and_vampire &&
-			                 khajiit_vampire && argonian_and_vampire && elves_and_vampires &&
-			                 humans_and_vampires && khajiit_and_vampire && orc_and_vampire && all_races_minus_beast &&
-			                 humans_orcs_and_vampires;
 		}
 
-		auto HeadPartFormIdListAdder::GetHeadPartType(std::string_view head_part_str) -> Type
+		auto HeadPartFormIdListAdder::IsInitialized() const -> bool
 		{
-			auto it = type_map.find(head_part_str);
-			return it != type_map.end() ? it->second : Type::kNone;
+			return argonian && elves && dark_elf && high_elf && wood_elf &&
+			       human && breton && imperial && nord && redguard &&
+			       khajiit && orc && all_races_minus_beast_vampires &&
+			       argonian_vampire &&
+			       humanoid_vampire && dark_elf_and_vampire && high_elf_and_vampire && wood_elf_and_vampire &&
+			       human_vampires && breton_and_vampire && imperial_and_vampire && nord_and_vampire && redguard_and_vampire &&
+			       khajiit_vampire && argonian_and_vampire && elves_and_vampires &&
+			       humans_and_vampires && khajiit_and_vampire && orc_and_vampire && all_races_minus_beast &&
+			       humans_orcs_and_vampires;
 		}
 
 #define ADD_RACE_ARGS RE::TESRace *race, RE::TESRace *vampire_race
 		void HeadPartFormIdListAdder::AddRace(ADD_RACE_ARGS, Type type)
 		{
-			if (type != Type::kNone) {
-				(*this.*(kAdder[std::to_underlying(type)]))(race, vampire_race);
+			constexpr std::array adder{
+				&HeadPartFormIdListAdder::AddNone,
+				&HeadPartFormIdListAdder::AddArgonian,
+				&HeadPartFormIdListAdder::AddElf,
+				&HeadPartFormIdListAdder::AddDarkElf,
+				&HeadPartFormIdListAdder::AddHighElf,
+				&HeadPartFormIdListAdder::AddWoodElf,
+				&HeadPartFormIdListAdder::AddHuman,
+				&HeadPartFormIdListAdder::AddBreton,
+				&HeadPartFormIdListAdder::AddImperial,
+				&HeadPartFormIdListAdder::AddNord,
+				&HeadPartFormIdListAdder::AddRedguard,
+				&HeadPartFormIdListAdder::AddKhajiit,
+				&HeadPartFormIdListAdder::AddOrc
+			};
+
+			if (type != kNone) {
+				(this->*adder[std::to_underlying(type)])(race, vampire_race);
 				EmplaceHeadPartRaces(race, vampire_race, type);
 			}
 		}
@@ -171,7 +202,6 @@ namespace rcs::manager
 
 		void HeadPartFormIdListAdder::AddArgonian(ADD_RACE_ARGS)
 		{
-			using func_t = decltype(&HeadPartFormIdListAdder::AddArgonian);
 			ADD_RACE_TO(argonian)
 			ADD_VAMPIRE_RACE_TO(argonian_vampire)
 			ADD_BOTH_RACES_TO(argonian_and_vampire)

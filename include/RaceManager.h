@@ -41,54 +41,26 @@ namespace rcs::manager
 	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;
 	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) -> bool;
 	auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) -> const RE::TESRace*;
-	auto GetHeadPartType(const RE::TESRace* race) -> const HeadPartType;
+	auto GetHeadPartType(const RE::TESRace* race) -> HeadPartType;
 	// summary
 	void Summary();
 
 	namespace headpart
 	{
+		auto GetHeadPartType(std::string_view head_part_str) -> HeadPartType;
+
 		class HeadPartFormIdListAdder
 		{
 		public:
 			using Type = HeadPartType;
 
-			HeadPartFormIdListAdder(bool& is_initialized);
-			Type GetHeadPartType(std::string_view head_part_str);
+			HeadPartFormIdListAdder();
+
+			auto IsInitialized() const -> bool;
 #define ADD_RACE_ARGS RE::TESRace *race, RE::TESRace *vampire_race
 			void AddRace(ADD_RACE_ARGS, Type type);
 
 		private:
-			const std::map<std::string_view, Type> type_map{
-				{ "Argonian"sv, Type::kArgonian },
-				{ "Elf"sv, Type::kElf },
-				{ "DarkElf"sv, Type::kDarkElf },
-				{ "HighElf"sv, Type::kHighElf },
-				{ "WoodElf"sv, Type::kWoodElf },
-				{ "Human"sv, Type::kHuman },
-				{ "Breton"sv, Type::kBreton },
-				{ "Imperial"sv, Type::kImperial },
-				{ "Nord"sv, Type::kNord },
-				{ "Redguard"sv, Type::kRedguard },
-				{ "Khajiit"sv, Type::kKhajiit },
-				{ "Orc"sv, Type::kOrc }
-			};
-
-			const std::array<void (HeadPartFormIdListAdder::*)(RE::TESRace*, RE::TESRace*), 13> kAdder{
-				&HeadPartFormIdListAdder::AddNone,
-				&HeadPartFormIdListAdder::AddArgonian,
-				&HeadPartFormIdListAdder::AddElf,
-				&HeadPartFormIdListAdder::AddDarkElf,
-				&HeadPartFormIdListAdder::AddHighElf,
-				&HeadPartFormIdListAdder::AddWoodElf,
-				&HeadPartFormIdListAdder::AddHuman,
-				&HeadPartFormIdListAdder::AddBreton,
-				&HeadPartFormIdListAdder::AddImperial,
-				&HeadPartFormIdListAdder::AddNord,
-				&HeadPartFormIdListAdder::AddRedguard,
-				&HeadPartFormIdListAdder::AddKhajiit,
-				&HeadPartFormIdListAdder::AddOrc
-			};
-
 			// for normal races
 			// argonian
 			RE::BGSListForm* argonian{ nullptr };

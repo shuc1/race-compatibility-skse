@@ -36,7 +36,6 @@ rule("race-compatibility", function()
         target:add("packages", "glaze")
 
         target:add("files", "src/**.cpp")
-        target:add("headerfiles", "include/**.h")
         target:add("includedirs", "include/")
         target:set("pcxxheader", "include/pch.h")
     end)
@@ -44,6 +43,13 @@ end)
 
 rule("papyrus", function()
     set_extensions(".psc")
+
+    on_load(function(target)
+        target:set("kind", "object")
+
+        target:add("includedirs", "res/rcs/scripts/source/", "lib/skyui/dist/Data/Scripts/Source/")
+    end)
+
     on_buildcmd_files(function(target, batchcmds, sourcebatch, opt)
         -- envs
         local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))

@@ -26,11 +26,11 @@ namespace rcs
 				return files;
 			}
 
-			using RaceFormCache = rcs::form::FormCache<RE::TESRace>;
+			using RaceFormCache = form::FormCache<RE::TESRace>;
 
 			RE::TESRace* LookupRace(std::string_view form_str, RaceFormCache& cache)
 			{
-				auto* race = rcs::form::LookupCachedForm(form_str, cache);
+				auto* race = form::LookupCachedForm(form_str, cache);
 				if (!race) {
 					logs::warn("\t\tInvalid race form: {}"sv, form_str);
 				}
@@ -44,24 +44,27 @@ namespace rcs
 				using ArmorVariant = ConfigEntry::ArmorVariant;
 
 				ConfigEntry::RaceProxy::ArmorProxy result{
-					.proxy = armor_proxy.race.empty() ? nullptr : LookupRace(armor_proxy.race, form_cache)
+					.proxy = armor_proxy.race.empty() ? nullptr : LookupRace(armor_proxy.race, form_cache),
+					.variants = std::vector<ArmorVariant>(armor_proxy.variants.size())
 				};
 				if (!armor_proxy.variants.empty()) {
-					result.variants.reserve(armor_proxy.variants.size());
-					for (const auto& variant : armor_proxy.variants) {
-						auto* race = LookupRace(variant.proxy, form_cache);
-						if (!race || variant.slots.empty()) {
+					size_t i = 0;
+					for (const auto& [slots, proxy] : armor_proxy.variants) {
+						auto* race = LookupRace(proxy, form_cache);
+						if (!race || slots.empty()) {
 							continue;
 						}
 						auto slot_mask = REX::EnumSet<BipedObjectSlot, std::uint32_t>{};
 						for (const auto& slot :
-							variant.slots | std::views::filter([](const auto& slot) { return slot >= 30 && slot <= 61; })) {
-							slot_mask.set(BipedObjectSlot(1 << (slot - 30)));
+							slots | std::views::filter([](const auto& s) { return s >= 30 && s <= 61; })) {
+							slot_mask.set(static_cast<BipedObjectSlot>(1 << (slot - 30)));
 						}
 						if (slot_mask.underlying()) {
-							result.variants.emplace_back(ArmorVariant{
+							result.variants[i] = ArmorVariant{
 								.race = race,
-								.slotMask = slot_mask.get() });
+								.slotMask = slot_mask.get()
+							};
+							i++;
 						}
 					}
 				}
@@ -73,12 +76,12 @@ namespace rcs
 			{
 				ConfigEntry::RaceProxy result{
 					.form = LookupRace(proxy_config.form, form_cache),
+					.proxies = std::set<const RE::TESRace*>{},
 					.armor = ParseArmorProxy(proxy_config.armor, form_cache)
 				};
 
 				for (const auto& proxy : proxy_config.proxies) {
-					auto* race = LookupRace(proxy, form_cache);
-					if (race) {
+					if (const auto* race = LookupRace(proxy, form_cache); race) {
 						result.proxies.insert(race);
 					}
 				}
@@ -106,44 +109,13 @@ namespace rcs
 				}
 				// add armorParentRace for specific slot mask
 				if (!race_proxy.armor.variants.empty()) {
-					manager::EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
+					EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
 				}
-			}
-
-			const std::vector<RawConfigEntry> GetDefaultRawEntries()
-			{
-#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)       \
-	RawConfigEntry                               \
-	{                                            \
-		.name = #a_name,                         \
-		.race = RawConfigEntry::RaceProxy{       \
-			.form = (#a_name "Race"),            \
-		},                                       \
-		.vampireRace = RawConfigEntry::RaceProxy \
-		{                                        \
-			.form = (#a_name "RaceVampire"),     \
-		}                                        \
-	}
-
-				auto t = RCS_DEFAULT_RACE_RAW_ENTRY(Argonian);
-				return std::vector<RawConfigEntry>{
-					RCS_DEFAULT_RACE_RAW_ENTRY(Argonian),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Breton),
-					RCS_DEFAULT_RACE_RAW_ENTRY(DarkElf),
-					RCS_DEFAULT_RACE_RAW_ENTRY(HighElf),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Imperial),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Khajiit),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Nord),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Orc),
-					RCS_DEFAULT_RACE_RAW_ENTRY(Redguard),
-					RCS_DEFAULT_RACE_RAW_ENTRY(WoodElf),
-				};
-#undef RCS_DEFAULT_RACE_RAW_ENTRY
 			}
 
 			struct ParseCache
 			{
-				manager::headpart::HeadPartFormIdListAdder&    adder;
+				manager::headpart::HeadPartFormIdListAdder     adder;
 				RaceFormCache                                  form_cache{};
 				std::vector<std::string>                       applied_entry_info{};
 				std::map<const RE::TESRace*, std::string_view> visited_map{};
@@ -161,19 +133,21 @@ namespace rcs
 					auto config = ConfigEntry{
 						.race = ParseRaceProxy(raw_config.race, cache.form_cache),
 						.vampireRace = ParseRaceProxy(raw_config.vampireRace, cache.form_cache),
-						.headPart = cache.adder.GetHeadPartType(raw_config.headPart)
+						.headPart = manager::headpart::GetHeadPartType(raw_config.headPart)
 					};
 
 					const auto *race = config.race.form, *race_vamp = config.vampireRace.form;
 					if (!race || !race_vamp) {
 						logs::warn("\t\t[SKIP] Invalid race or vampire race"sv);
 						continue;
-					} else if (auto it_race = cache.visited_map.find(race);
-							   it_race != cache.visited_map.end()) {
+					}
+					if (auto it_race = cache.visited_map.find(race);
+						it_race != cache.visited_map.end()) {
 						logs::warn("\t\t[SKIP] Race already used in {}"sv, it_race->second);
 						continue;
-					} else if (auto it_race_vamp = cache.visited_map.find(race_vamp);
-							   it_race_vamp != cache.visited_map.end()) {
+					}
+					if (auto it_race_vamp = cache.visited_map.find(race_vamp);
+						it_race_vamp != cache.visited_map.end()) {
 						logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, it_race_vamp->second);
 						continue;
 					}
@@ -189,18 +163,26 @@ namespace rcs
 				}
 			}
 
+#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)       \
+	RawConfigEntry                               \
+	{                                            \
+		.name = #a_name,                         \
+		.race = RawConfigEntry::RaceProxy{       \
+			.form = (#a_name "Race"),            \
+		},                                       \
+		.vampireRace = RawConfigEntry::RaceProxy \
+		{                                        \
+			.form = (#a_name "RaceVampire"),     \
+		}                                        \
+	}
+
 			bool LoadConfigs(std::vector<std::string>& files)
 			{
-				bool is_adder_initialized{ false };
-				auto adder = manager::headpart::HeadPartFormIdListAdder(is_adder_initialized);
-				if (!is_adder_initialized) {
-					logs::error("Failed to initialize HeadPartFormIdListAdder"sv);
+				auto parse_cache = ParseCache{};
+				if (!parse_cache.adder.IsInitialized()) {
+					logs::error("HeadPartFormIdListAdder is not initialized"sv);
 					return false;
 				}
-
-				auto parse_cache = ParseCache{
-					.adder = adder
-				};
 
 				// from config files
 				for (const auto& file : files | std::views::reverse) {
@@ -229,14 +211,28 @@ namespace rcs
 
 				// from default
 				logs::info("Config: default");
-				const auto default_raw_entries = GetDefaultRawEntries();
-				ParseAndApplyRawConfig("default", default_raw_entries, parse_cache);
+				ParseAndApplyRawConfig(
+					"default",
+					std::vector{
+						RCS_DEFAULT_RACE_RAW_ENTRY(Argonian),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Breton),
+						RCS_DEFAULT_RACE_RAW_ENTRY(DarkElf),
+						RCS_DEFAULT_RACE_RAW_ENTRY(HighElf),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Imperial),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Khajiit),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Nord),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Orc),
+						RCS_DEFAULT_RACE_RAW_ENTRY(Redguard),
+						RCS_DEFAULT_RACE_RAW_ENTRY(WoodElf),
+					},
+					parse_cache);
 
 				// summary
 				manager::Summary();
 				return true;
 			}
 		}  // namespace detail
+#undef RCS_DEFAULT_RACE_RAW_ENTRY
 
 		bool TryReadAndApplyConfigs()
 		{

@@ -8,15 +8,14 @@ namespace rcs
 	{
 		struct GetIsRace
 		{
-			static bool thunk(RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+			static bool thunk(const RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
 			{
 				result = 0.0;
 				// check if obj is an NPC and has the same race
 				if (obj && race_form) {
-					// const auto npc = skyrim_cast<RE::TESNPC*>(obj->data.objectReference);
 					const auto npc = obj->data.objectReference->As<RE::TESNPC>();
-					const auto race = race_form->As<RE::TESRace>();
-					if (npc && race) [[likely]] {
+					if (const auto race = race_form->As<RE::TESRace>();
+						npc && race) [[likely]] {
 						if (const auto npc_race = npc->race;
 							npc_race &&
 							manager::GetIsRaceByProxy(npc_race, race)) {
@@ -43,16 +42,12 @@ namespace rcs
 				}
 				// race not null
 				auto* armor_parent_race = manager::GetProxyArmorParentRace(armor_addon, race);
-				if (auto armor_race = armor_addon->race;
+				if (const auto* armor_race = armor_addon->race;
 					race == armor_race || armor_parent_race == armor_race) {
 					return true;
 				}
-				for (const auto& target_race : armor_addon->additionalRaces) {
-					if (race == target_race || armor_parent_race == target_race) {
-						return true;
-					}
-				}
-				return false;
+				return std::ranges::any_of(armor_addon->additionalRaces,
+					[&](const auto& target_race) { return race == target_race || armor_parent_race == target_race; });
 			}
 		};
 
@@ -71,18 +66,18 @@ namespace rcs
 		void TryInstall()
 		{
 			if (!manager::raceProxies.empty()) {
-				const REL::Relocation<std::uintptr_t> get_is_race{ RELOCATION_ID(21028, 21478), 0 };
+				const REL::Relocation get_is_race{ RELOCATION_ID(21028, 21478), 0 };
 				stl::write_thunk_branch<GetIsRace>(get_is_race.address());
 
 #ifdef SKYRIM_SUPPORT_AE
-				const REL::Relocation<std::uintptr_t> get_pc_is_race{ RELOCATION_ID(0, 21484), 0 };
+				const REL::Relocation get_pc_is_race{ RELOCATION_ID(0, 21484), 0 };
 				stl::write_thunk_branch<GetPcIsRace>(get_pc_is_race.address());
 #endif  // SKYRIM_SUPPORT_AE
 
 				logs::info("Installed hooks for GetIsRace");
 			}
 			if (!manager::armorRaceProxies.empty()) {
-				const REL::Relocation<std::uintptr_t> is_valid_race{ RELOCATION_ID(17359, 17757), 0 };
+				const REL::Relocation is_valid_race{ RELOCATION_ID(17359, 17757), 0 };
 				stl::write_thunk_branch<IsValidRace>(is_valid_race.address());
 				logs::info("Installed hooks for TESObjectARMA::IsValidRace");
 			}
