@@ -6,18 +6,18 @@
         ["cmake#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "f644dd8984701e1f4b06b2859853644bde4db0f9",
+                commit = "d5c975b507239791bbbf6882ffb66cbc44911804",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "3.29.5-msvc4"
+            version = "3.31.3"
         },
         ["glaze#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "b276fea04f8ae6fb668b70520896eadcd55a62be",
+                commit = "4630bd968436f7e41a8f22c2e325e4dda7a8da91",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "v4.0.1"
+            version = "v4.2.2"
         },
         ["rsm-binary-io#31fecfc4"] = {
             repo = {

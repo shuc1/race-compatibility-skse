@@ -6,12 +6,13 @@
 
         <installStep name="Plugin">
             <optionalFileGroups order="Explicit">
-                <group name="" type="SelectAny">
+                <group name="" type="SelectAtMostOne">
                     <plugins order="Explicit">
 
                         <plugin name="RaceCompatibility Dummy Plugin">
                             <description>
 Select this if you have mods require RaceCompatibility.
+Contains Vanilla Ring/Amulet Armor Addon Fix.
 
 1. Please disable the original RaceCompatibility mod after installation
 2. Make sure you've set up RCS config files and ACTIVATED the dummy plugin.
@@ -42,6 +43,7 @@ The best way to use RCS is to clean up the custom race plugins before disabling 
                         <plugin name="Vanilla Ring/Amulet Armor Addon Fix">
                             <description>
 Select this if you want to patch vanilla ring/amulet armor addons.
+Contained in RaceCompatibility Dummy Plugin.
 
 Some armor addons don't use DefaultRace as the Race; instead, they use ArgonianRace and add other playable races in Additional Races.
 For custom races whose armor race is typically set to DefaultRace, this will cause the ring/amulet to not occupy the equipment slot properly, allowing multiple rings/amulets to be worn at the same time.</description>
@@ -74,7 +76,7 @@ For custom races whose armor race is typically set to DefaultRace, this will cau
 
         <installStep name="Vampire">
             <optionalFileGroups order="Explicit">
-                <group name="Vampire Lord Transform" type="SelectAny">
+                <group name="Vampire Lord Transform" type="SelectAtMostOne">
                     <plugins order="Explicit">
                         <plugin name="Dawnguard Vampire Lord Transform Script Fix">
                             <description>
@@ -85,7 +87,8 @@ The only function of this patch is to store the player's race every time they ch
 If you are not going to do that, or if you have other mods that rewrite the same script, you probably DON'T need this.</description>
                             <image path="fomod/images/patch.png" />
                             <files>
-                                <folder source="vampire/dawnguard-vampire-lord-transform-fix"
+                                <folder
+                                    source="vampire-lord-transform/dawnguard"
                                     destination="./" priority="-1" />
                             </files>
                             <typeDescriptor>
@@ -95,15 +98,15 @@ If you are not going to do that, or if you have other mods that rewrite the same
                     </plugins>
                 </group>
 
-                <group name="Vampire Overhaul" type="SelectAny">
+                <group name="Vampire Overhaul" type="SelectAtMostOne">
                     <plugins order="Explicit">
 
                         <plugin name="USSEP">
                             <description>Select this if you are using Unofficial Skyrim Special Edition Patch - USSEP</description>
                             <image path="fomod/images/ussep.jpg" />
                             <files>
-                                <folder source="vampire/ussep"
-                                    destination="./" priority="-1" />
+                                <folder source="vampire-overhual/ussep"
+                                    destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
                                 <dependencyType>
@@ -126,7 +129,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
                             <description>Select this if you are using Better Vampires</description>
                             <image path="fomod/images/better-vampires.png" />
                             <files>
-                                <folder source="vampire/better-vampires"
+                                <folder source="vampire-overhual/better-vampires"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -150,7 +153,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
                             <description>Select this if you are using Scion</description>
                             <image path="fomod/images/scion.jpg" />
                             <files>
-                                <folder source="vampire/scion"
+                                <folder source="vampire-overhual/scion"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -172,7 +175,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
                             <description>Select this if you are using Sacrilege - Minimalistic Vampires of Skyrim</description>
                             <image path="fomod/images/sacrilege.jpg" />
                             <files>
-                                <folder source="vampire/sacrilege"
+                                <folder source="vampire-overhual/sacrilege"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -196,7 +199,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
                             <description>Select this if you are using Sacrosanct - Vampires of Skyrim</description>
                             <image path="fomod/images/sacrosanct.jpg" />
                             <files>
-                                <folder source="vampire/sacrosanct"
+                                <folder source="vampire-overhual/sacrosanct"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -225,7 +228,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
         <installStep name="Werewolf">
             <optionalFileGroups order="Explicit">
 
-                <group name="Werewolf Change Script" type="SelectAny">
+                <group name="Werewolf Change Script" type="SelectAtMostOne">
                     <plugins order="Explicit">
 
                         <plugin name="Vanilla Werewolf Change Script Fix">
@@ -237,11 +240,38 @@ The only function of this patch is to add a check before changing to werewolf, i
 If you are not going to do that, or if you have other mods that rewrite the same script, you probably DON'T need this.</description>
                             <image path="fomod/images/patch.png" />
                             <files>
-                                <folder source="werewolf/vanilla-werewolf-change-script-fix"
+                                <folder source="werewolf-change/vanilla"
                                     destination="./" priority="-1" />
                             </files>
                             <typeDescriptor>
                                 <type name="Optional" />
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="USMP v2.6.4">
+                            <description>
+Select this if you want to replace the script PlayerWerewolfChangeScript.psc for Unofficial Skyrim Modder's Patch - USMP SE
+
+Same function as above. You probably don't need this.</description>
+                            <image path="fomod/images/usmp.jpg" />
+                            <files>
+                                <folder source="werewolf-change/usmp"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Unofficial Skyrim Modders Patch.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
                             </typeDescriptor>
                         </plugin>
 
@@ -252,7 +282,7 @@ Select this if you want to replace the script PlayerWerewolfChangeScript.psc for
 Same function as above. You probably don't need this.</description>
                             <image path="fomod/images/growl.jpg" />
                             <files>
-                                <folder source="werewolf/growl"
+                                <folder source="werewolf-change/growl"
                                     destination="./" priority="-1" />
                             </files>
                             <typeDescriptor>
@@ -260,41 +290,14 @@ Same function as above. You probably don't need this.</description>
                             </typeDescriptor>
                         </plugin>
 
-                    </plugins>
-                </group>
-
-                <group name="Werewolf Overhaul" type="SelectAny">
-                    <plugins order="Explicit">
-
-                        <plugin name="At Your Own Pace - Companions v3.0.4CP">
-                            <description>Select this if you are using At Your Own Pace - Companions</description>
-                            <image path="fomod/images/at-your-own-pace.jpg" />
-                            <files>
-                                <folder source="werewolf/at-your-own-pace"
-                                    destination="./" priority="0" />
-                            </files>
-                            <typeDescriptor>
-                                <dependencyType>
-                                    <defaultType name="Optional" />
-                                    <patterns>
-                                        <pattern>
-                                            <dependencies operator="And">
-                                                <fileDependency
-                                                    file="At Your Own Pace - Companions.esp"
-                                                    state="Active" />
-                                            </dependencies>
-                                            <type name="Recommended" />
-                                        </pattern>
-                                    </patterns>
-                                </dependencyType>
-                            </typeDescriptor>
-                        </plugin>
-
                         <plugin name="Nightmare Night v2.2.0.0">
-                            <description>Select this if you are using Nightmare Night - Werebeasts Unleashed - Werewolf Overhaul</description>
+                            <description>
+Select this if you want to replace the script PlayerWerewolfChangeScript.psc for Nightmare Night - Werebeasts Unleashed - Werewolf Overhaul.
+
+Same function as above. You probably don't need this.</description>
                             <image path="fomod/images/nightmare-night.jpg" />
                             <files>
-                                <folder source="werewolf/nightmare-night"
+                                <folder source="werewolf-change/nightmare-night"
                                     destination="./" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -314,6 +317,59 @@ Same function as above. You probably don't need this.</description>
                             </typeDescriptor>
                         </plugin>
 
+                    </plugins>
+                </group>
+
+                <group name="Companions Related" type="SelectAtMostOne">
+                    <plugins order="Explicit">
+
+                        <plugin name="USMP v2.6.4">
+                            <description>Select this if you are using Unofficial Skyrim Modder's Patch - USMP SE</description>
+                            <image path="fomod/images/usmp.jpg" />
+                            <files>
+                                <folder source="werewolf-companions/usmp"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Unofficial Skyrim Modders Patch.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="At Your Own Pace - Companions v3.0.4CP">
+                            <description>Select this if you are using At Your Own Pace - Companions</description>
+                            <image path="fomod/images/at-your-own-pace.jpg" />
+                            <files>
+                                <folder source="werewolf-companions/at-your-own-pace"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="At Your Own Pace - Companions.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
 
                     </plugins>
                 </group>

@@ -13,7 +13,7 @@ local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.0.0", {build = "%Y-%m-%d"})
+set_version("2.0.1", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -30,9 +30,10 @@ add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 set_config("commonlib_dir", "lib/commonlibsse")
 
 -- set defaults
-set_languages("c++23")
+set_languages("cxxlatest")
 set_warnings("allextra", "error")
 set_defaultmode("releasedbg")
+-- set_optimize("faster")
 
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")
@@ -121,7 +122,7 @@ xpack("main", function()
     add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-local patch_version = "2.0.0"
+local patch_version = "2.0.1"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package

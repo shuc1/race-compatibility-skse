@@ -60,10 +60,9 @@ namespace rcs
 							slot_mask.set(static_cast<BipedObjectSlot>(1 << (slot - 30)));
 						}
 						if (slot_mask.underlying()) {
-							result.variants[i] = ArmorVariant{
-								.race = race,
-								.slotMask = slot_mask.get()
-							};
+							auto& variant = result.variants[i];
+							variant.race = race;
+							variant.slotMask = slot_mask.get();
 							i++;
 						}
 					}
@@ -81,7 +80,7 @@ namespace rcs
 				};
 
 				for (const auto& proxy : proxy_config.proxies) {
-					if (const auto* race = LookupRace(proxy, form_cache); race) {
+					if (const auto* race = LookupRace(proxy, form_cache)) {
 						result.proxies.insert(race);
 					}
 				}
@@ -103,8 +102,7 @@ namespace rcs
 					manager::EmplaceRaceProxies(race_proxy.form, std::move(race_proxy.proxies));
 				}
 				// set armorParentRace
-				if (auto* armor_race = race_proxy.armor.proxy;
-					armor_race) {
+				if (auto* armor_race = race_proxy.armor.proxy) {
 					race_proxy.form->armorParentRace = armor_race;
 				}
 				// add armorParentRace for specific slot mask
@@ -163,17 +161,17 @@ namespace rcs
 				}
 			}
 
-#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)       \
-	RawConfigEntry                               \
-	{                                            \
-		.name = #a_name,                         \
-		.race = RawConfigEntry::RaceProxy{       \
-			.form = (#a_name "Race"),            \
-		},                                       \
-		.vampireRace = RawConfigEntry::RaceProxy \
-		{                                        \
-			.form = (#a_name "RaceVampire"),     \
-		}                                        \
+#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)                   \
+	RawConfigEntry                                           \
+	{                                                        \
+		.name = #a_name,                                     \
+		.race = RawConfigEntry::RaceProxy{                   \
+			.form = std::string_view(#a_name "Race"),        \
+		},                                                   \
+		.vampireRace = RawConfigEntry::RaceProxy             \
+		{                                                    \
+			.form = std::string_view(#a_name "RaceVampire"), \
+		}                                                    \
 	}
 
 			bool LoadConfigs(std::vector<std::string>& files)
