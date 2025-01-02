@@ -35,8 +35,10 @@ rule("race-compatibility", function()
         
         target:add("packages", "glaze")
 
-        target:add("files", "src/**.cpp")
+        target:add("files", "src/*.cpp")
         target:add("includedirs", "include/")
+        -- for vs studio project
+        target:add("headerfiles", "include/*.h")
         target:set("pcxxheader", "include/pch.h")
     end)
 end)
