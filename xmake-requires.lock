@@ -6,7 +6,7 @@
         ["cmake#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "d5c975b507239791bbbf6882ffb66cbc44911804",
+                commit = "327049a727b7f63a2419bbb8128051c0de3fa91b",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "3.31.3"

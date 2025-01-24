@@ -13,7 +13,7 @@ local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.0.1", {build = "%Y-%m-%d"})
+set_version("2.0.2", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs

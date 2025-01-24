@@ -219,21 +219,21 @@ namespace rcs::manager
 		{
 			AddElf(race, vampire_race);
 			ADD_RACE_TO(dark_elf)
-			ADD_VAMPIRE_RACE_TO(dark_elf_and_vampire)
+			ADD_BOTH_RACES_TO(dark_elf_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddHighElf(ADD_RACE_ARGS)
 		{
 			AddElf(race, vampire_race);
 			ADD_RACE_TO(high_elf)
-			ADD_VAMPIRE_RACE_TO(high_elf_and_vampire)
+			ADD_BOTH_RACES_TO(high_elf_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddWoodElf(ADD_RACE_ARGS)
 		{
 			AddElf(race, vampire_race);
 			ADD_RACE_TO(wood_elf)
-			ADD_VAMPIRE_RACE_TO(wood_elf_and_vampire)
+			ADD_BOTH_RACES_TO(wood_elf_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddHuman(ADD_RACE_ARGS)
@@ -250,28 +250,28 @@ namespace rcs::manager
 		{
 			AddHuman(race, vampire_race);
 			ADD_RACE_TO(breton)
-			ADD_VAMPIRE_RACE_TO(breton_and_vampire)
+			ADD_BOTH_RACES_TO(breton_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddImperial(ADD_RACE_ARGS)
 		{
 			AddHuman(race, vampire_race);
 			ADD_RACE_TO(imperial)
-			ADD_VAMPIRE_RACE_TO(imperial_and_vampire)
+			ADD_BOTH_RACES_TO(imperial_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddNord(ADD_RACE_ARGS)
 		{
 			AddHuman(race, vampire_race);
 			ADD_RACE_TO(nord)
-			ADD_VAMPIRE_RACE_TO(nord_and_vampire)
+			ADD_BOTH_RACES_TO(nord_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddRedguard(ADD_RACE_ARGS)
 		{
 			AddHuman(race, vampire_race);
 			ADD_RACE_TO(redguard)
-			ADD_VAMPIRE_RACE_TO(redguard_and_vampire)
+			ADD_BOTH_RACES_TO(redguard_and_vampire)
 		}
 
 		void HeadPartFormIdListAdder::AddKhajiit(ADD_RACE_ARGS)
