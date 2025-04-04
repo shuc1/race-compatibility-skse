@@ -83,8 +83,7 @@
                 "type": "object",
                 "required": [
                     "name",
-                    "race",
-                    "vampireRace"
+                    "race"
                 ],
                 "additionalProperties": false,
                 "properties": {

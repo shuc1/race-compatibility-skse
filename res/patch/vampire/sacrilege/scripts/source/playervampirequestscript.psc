@@ -195,24 +195,38 @@ Function VampireChange(Actor Target)
   VampireChangeFX.stop(Target as ObjectReference)
   Race PlayerRace = Target.GetActorBase().GetRace()
   CureRace = PlayerRace
-  Int RaceID = SQL_Races.Find(PlayerRace as Form)
-  If RaceID >= 0
-    RacialSpell = SQL_Racial.GetAt(RaceID) as Spell
-    Target.SetRace(SQL_RacesVampire.GetAt(RaceID) as Race)
-    Target.AddSpell(RacialSpell, False)
+  ; Int RaceID = SQL_Races.Find(PlayerRace as Form)
+  ; If RaceID >= 0
+  ;   RacialSpell = SQL_Racial.GetAt(RaceID) as Spell
+  ;   Target.SetRace(SQL_RacesVampire.GetAt(RaceID) as Race)
+  ;   Target.AddSpell(RacialSpell, False)
+  ; Else
+  ;   SQL_Mechanics_Message_RaceBroken.Show(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+  ;   Target.SetRace(NordRaceVampire)
+  ; EndIf
+
+  ; RCS
+  Race VampireRace = RaceCompatibility.GetVampireRaceByRace(PlayerRace)
+  If VampireRace != None
+    Target.SetRace(VampireRace)
+    ; To assign racial abilities
+    Int RaceID = 0
+    Int Size = SQL_Races.GetSize()
+    While (RaceID < Size)
+      If RaceCompatibility.GetIsRaceByProxy(PlayerRace, SQL_Races.GetAt(RaceID) As Race)
+        RacialSpell = SQL_Racial.GetAt(RaceID) as Spell
+        Target.AddSpell(RacialSpell, False)
+        ; equivalence for break
+        RaceID = Size
+      Else
+        RaceID += 1
+      EndIf
+    EndWhile
   Else
-    ; RCS
-    Race PlayerVampireRace = RaceCompatibility.GetVampireRaceByRace(PlayerRace)
-    If PlayerVampireRace != None
-      ; Default racial spell for custom races
-      Target.SetRace(PlayerVampireRace)
-      RacialSpell = SQL_Racial.GetAt(0) as Spell
-      Target.AddSpell(RacialSpell, False)
-    Else
-      SQL_Mechanics_Message_RaceBroken.Show(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-      Target.SetRace(NordRaceVampire)
-    EndIf
+    SQL_Mechanics_Message_RaceBroken.Show(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    Target.SetRace(NordRaceVampire)
   EndIf
+
   VampireCureDisease.Cast(Target as ObjectReference, None)
   VampireStatus = 1
   Self.VampireProgression(Player, 1)
@@ -411,9 +425,9 @@ Function VampireCure(Actor akPlayer)
   Player.RemoveSpell(SQL_Mechanics_Spell_HiddenVampireAbilities_Ab)
   If !CureRace
     ; RCS, default to Nord
-    Race PlayerRace = RaceCompatibility.GetRaceByVampireRace(Player.GetRace())
-    If PlayerRace != None
-      Player.SetRace(PlayerRace)
+    Race MortalRace = RaceCompatibility.GetRaceByVampireRace(Player.GetRace())
+    If MortalRace != None
+      Player.SetRace(MortalRace)
     Else
       Player.SetRace(NordRace)
     EndIf

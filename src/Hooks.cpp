@@ -25,7 +25,6 @@ namespace rcs
 				}
 
 				if (RE::GetStaticTLSData()->consoleMode) {
-					// RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf", result);
 					RE::ConsoleLog::GetSingleton()->Print("GetIsRace >> %0.2lf", result);
 				}
 				return true;

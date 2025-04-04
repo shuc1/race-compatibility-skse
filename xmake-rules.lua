@@ -70,7 +70,6 @@ rule("papyrus", function()
         end
         includes = includes .. tesv_includes
         -- batchcmds:show_progress(opt.progress, "${color.build.object}includes %s", includes)
-
         -- collect source files by directory
         local batchdirs = {}
         for _, sourcefile in ipairs(sourcebatch.sourcefiles) do
@@ -81,26 +80,29 @@ rule("papyrus", function()
             table.insert(batchdirs[dir], sourcefile)
         end
 
+        
         -- compile each directory
         for dir, files in pairs(batchdirs) do
-            batchcmds:show_progress(opt.progress, "${color.build.object}compiling.papyrus %s", dir)
             local output = path.directory(dir)
-            -- batchcmds:mkdir(output)
-            batchcmds:vrunv(papyrus_compiler, {
-                path.absolute(dir),
-                "-i=" .. dir .. ";" .. includes,
-                "-o=" .. output,
-                "-f=" .. flags,
-                "-a"
-            })
-            -- add dependfile
+            -- check last modified time
+            local ismodified = false
             for _, file in ipairs(files) do
-                local dependfile = target:dependfile(path.join(output, path.basename(file) .. ".pex"))
-                batchcmds:set_depmtime(os.mtime(dependfile))
-                batchcmds:set_depcache(dependfile)
+                if os.mtime(file) > (os.mtime(path.join(output, path.basename(file) .. ".pex")) or 0) then
+                    ismodified = true
+                    break
+                end
+            end
+            if ismodified then
+                batchcmds:show_progress(opt.progress, "${color.build.object}compiling.papyrus %s", dir)
+                batchcmds:vrunv(papyrus_compiler, {
+                    path.absolute(dir),
+                    "-i=" .. dir .. ";" .. includes,
+                    "-o=" .. output,
+                    "-f=" .. flags,
+                    "-a"
+                })
             end
         end
-
         -- add deps
         batchcmds:add_depfiles(sourcebatch.sourcefiles)
     end)

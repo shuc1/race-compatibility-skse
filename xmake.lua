@@ -13,7 +13,7 @@ local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.0.2", {build = "%Y-%m-%d"})
+set_version("2.1.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -81,16 +81,15 @@ for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
     target_name = path.basename(path.directory(path.directory(subdir)))
     target_full_name = "papyrus.patch." .. target_name
     target(target_full_name, function()
-        set_default(false)
+        add_rules("papyrus")
 
+        set_default(false)
         add_files(subdir .. "/**.psc")
         potential_include = "res/papyrus/include/" .. target_name
         -- print("Potential include: " .. potential_include)
         if os.exists(potential_include) then
             add_includedirs(potential_include)
         end
-
-        add_rules("papyrus")
     end)
     table.insert(patch_targets, target_full_name)
 end
@@ -122,7 +121,7 @@ xpack("main", function()
     add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-local patch_version = "2.0.1"
+local patch_version = "2.1.0"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package

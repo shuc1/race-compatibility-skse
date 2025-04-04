@@ -9,7 +9,8 @@ namespace rcs
 	{
 		namespace detail
 		{
-			std::vector<std::string> CollectConfigFilesFromFolder(const std::string_view folder)
+			auto CollectConfigFilenamesFromFolder(const std::string_view folder)
+				-> std::vector<std::string>
 			{
 				std::vector<std::string> files{};
 				if (!std::filesystem::exists(folder)) {
@@ -19,7 +20,7 @@ namespace rcs
 				files.reserve(4);  // there should not be that many config files
 				for (const auto& entry : std::filesystem::directory_iterator(folder)) {
 					if (entry.is_regular_file() && entry.path().extension() == ".json"sv) {
-						files.emplace_back(entry.path().string());
+						files.emplace_back(entry.path().filename().string());
 					}
 				}
 				std::ranges::sort(files);
@@ -28,13 +29,14 @@ namespace rcs
 
 			using RaceFormCache = form::FormCache<RE::TESRace>;
 
-			RE::TESRace* LookupRace(std::string_view form_str, RaceFormCache& cache)
+			auto LookupRace(std::string_view form_str, RaceFormCache& cache)
+				-> RE::TESRace*
 			{
-				auto* race = form::LookupCachedForm(form_str, cache);
-				if (!race) {
-					logs::warn("\t\tInvalid race form: {}"sv, form_str);
-				}
-				return race;
+				//auto* race = form::LookupCachedForm(form_str, cache);
+				// if (!race) {
+				// 	logs::warn("\t\tInvalid race form: {}"sv, form_str);
+				// }
+				return form_str.empty() ? nullptr : form::LookupCachedForm(form_str, cache);
 			}
 
 			auto ParseArmorProxy(const RawConfigEntry::RaceProxy::ArmorProxy& armor_proxy, RaceFormCache& form_cache)
@@ -126,17 +128,18 @@ namespace rcs
 			{
 				for (const auto& raw_config : raw_config_data | std::views::reverse) {
 					logs::info("\t{}: {}, {}"sv,
-						raw_config.name, raw_config.race.form, raw_config.vampireRace.form);
+						raw_config.name, raw_config.race.form,
+						raw_config.vampireRace.form.empty() ? "N/A"sv : raw_config.vampireRace.form);
 
 					auto config = ConfigEntry{
 						.race = ParseRaceProxy(raw_config.race, cache.form_cache),
 						.vampireRace = ParseRaceProxy(raw_config.vampireRace, cache.form_cache),
-						.headPart = manager::headpart::GetHeadPartType(raw_config.headPart)
+						.headPart = manager::headpart::StringToHeadPartType(raw_config.headPart)
 					};
 
 					const auto *race = config.race.form, *race_vamp = config.vampireRace.form;
-					if (!race || !race_vamp) {
-						logs::warn("\t\t[SKIP] Invalid race or vampire race"sv);
+					if (!race) {
+						logs::warn("\t\t[SKIP] Invalid race"sv);
 						continue;
 					}
 					if (auto it_race = cache.visited_map.find(race);
@@ -144,20 +147,25 @@ namespace rcs
 						logs::warn("\t\t[SKIP] Race already used in {}"sv, it_race->second);
 						continue;
 					}
-					if (auto it_race_vamp = cache.visited_map.find(race_vamp);
-						it_race_vamp != cache.visited_map.end()) {
-						logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, it_race_vamp->second);
-						continue;
+					if (race_vamp) {
+						if (auto it_race_vamp = cache.visited_map.find(race_vamp);
+							it_race_vamp != cache.visited_map.end()) {
+							logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, it_race_vamp->second);
+							continue;
+						}
 					}
 
 					ApplyVampirismAndHeadPart(config, cache.adder);
 					ApplyRaceProxy(config.race);
 					ApplyRaceProxy(config.vampireRace);
 
+					// add to visited map
 					auto info = std::string_view(
 						cache.applied_entry_info.emplace_back(std::format("{}:{}"sv, filename, raw_config.name)));
 					cache.visited_map.emplace(race, info);
-					cache.visited_map.emplace(race_vamp, info);
+					if (race_vamp) {
+						cache.visited_map.emplace(race_vamp, info);
+					}
 				}
 			}
 
@@ -183,11 +191,12 @@ namespace rcs
 				}
 
 				// from config files
-				for (const auto& file : files | std::views::reverse) {
-					logs::info("Config: {}", file);
+				for (const auto& filename : files | std::views::reverse) {
+					logs::info("{}:", filename);
 
 					///// Read Configs From File
-					auto content = glz::read_json<glz::json_t>(glz::file_to_buffer(file));
+					auto content = glz::read_json<glz::json_t>(
+						glz::file_to_buffer(std::format("{}\\{}"sv, rcs::CONFIG_DIR, filename)));
 					if (!content) {
 						logs::error("Failed to read file for {}",
 							content.error().custom_error_message);
@@ -203,12 +212,12 @@ namespace rcs
 					/////
 
 					///// Parse And Apply Raw Configs
-					ParseAndApplyRawConfig(file, raw_config_data.value(), parse_cache);
+					ParseAndApplyRawConfig(filename, raw_config_data.value(), parse_cache);
 					/////
 				}
 
 				// from default
-				logs::info("Config: default");
+				logs::info("default:");
 				ParseAndApplyRawConfig(
 					"default",
 					std::vector{
@@ -239,7 +248,7 @@ namespace rcs
 				logs::error("TESDataHandler is not initialized"sv);
 				return false;
 			}
-			auto files = detail::CollectConfigFilesFromFolder(rcs::CONFIG_DIR);
+			auto files = detail::CollectConfigFilenamesFromFolder(rcs::CONFIG_DIR);
 			if (files.empty()) {
 				logs::warn("No config files found in {}"sv, rcs::CONFIG_DIR);
 			}
