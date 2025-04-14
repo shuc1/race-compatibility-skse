@@ -79,28 +79,24 @@ rule("papyrus", function()
             end
             table.insert(batchdirs[dir], sourcefile)
         end
-
         
         -- compile each directory
         for dir, files in pairs(batchdirs) do
-            local output = path.directory(dir)
-            -- check last modified time
-            local ismodified = false
+            local outputdir = path.directory(dir)
+            batchcmds:show_progress(opt.progress, "${color.build.object}compiling.papyrus %s", dir)
+            batchcmds:vrunv(papyrus_compiler, {
+                path.absolute(dir),
+                "-i=" .. dir .. ";" .. includes,
+                "-o=" .. outputdir,
+                "-f=" .. flags,
+                "-a"
+            })
+
+            -- add deps
             for _, file in ipairs(files) do
-                if os.mtime(file) > (os.mtime(path.join(output, path.basename(file) .. ".pex")) or 0) then
-                    ismodified = true
-                    break
-                end
-            end
-            if ismodified then
-                batchcmds:show_progress(opt.progress, "${color.build.object}compiling.papyrus %s", dir)
-                batchcmds:vrunv(papyrus_compiler, {
-                    path.absolute(dir),
-                    "-i=" .. dir .. ";" .. includes,
-                    "-o=" .. output,
-                    "-f=" .. flags,
-                    "-a"
-                })
+                local dependfile = target:dependfile(path.join(outputdir, path.basename(file) .. ".pex"))
+                batchcmds:set_depmtime(os.mtime(dependfile))
+                batchcmds:set_depcache(dependfile)
             end
         end
         -- add deps

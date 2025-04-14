@@ -29,14 +29,14 @@ Bool property bSetAlphaToZeroEarly = False Auto
 
 TextureSet Property BVEyesMaleHumanVampire auto
 TextureSet Property BVSkinEyesKhajiitVampire auto
-TextureSet Property BVSkinEyesMaleArgonianVampire auto		
+TextureSet Property BVSkinEyesMaleArgonianVampire auto
 TextureSet Property EyesMaleHumanVampire auto
 TextureSet Property SkinEyesKhajiitVampire auto
-TextureSet Property SkinEyesMaleArgonianVampire auto						
-TextureSet Property EyesMaleHumanBrown Auto				
+TextureSet Property SkinEyesMaleArgonianVampire auto
+TextureSet Property EyesMaleHumanBrown Auto
 TextureSet Property SkinEyesKhajiitBase auto
-TextureSet Property SkinEyesMaleArgonian auto					
-									
+TextureSet Property SkinEyesMaleArgonian auto
+
 Faction Property VampirePCFaction  Auto  
 Faction Property VampirePCFamily  Auto
 Faction Property PotentialFollowerFaction  Auto
@@ -83,15 +83,15 @@ Faction Property GuardFactionDawnstar Auto
 Faction Property GuardFactionHaafingar Auto
 Faction Property GuardFactionSolitude Auto
 Faction Property GuardFactionDragonbridge Auto
-Faction Property GuardFactionFalkreath Auto	
-Faction Property GuardFactionKarthwasten Auto	
+Faction Property GuardFactionFalkreath Auto
+Faction Property GuardFactionKarthwasten Auto
 Faction Property GuardFactionMarkarth Auto
 Faction Property GuardFactionWhiterun Auto
 Faction Property CWSonsFaction Auto
 Faction Property CWSonsFactionNPC Auto
 Faction Property CWImperialFaction Auto
 Faction Property CWImperialFactionNPC Auto
-			
+
 Faction Property CWMission08AllGiantsPlayerFriendFaction Auto
 Faction Property DA02CulistsPlayerEnemy Auto
 Faction Property DA02CultistsAreEnemies Auto
@@ -124,14 +124,14 @@ Faction Property WEThalmorPlayerEnemyFaction Auto
 Faction Property WIPlayerEnemyFaction Auto
 Faction Property WIPlayerEnemySpecialCombatFaction Auto
 
-Spell Property crVampireSunDamage Auto						
+Spell Property crVampireSunDamage Auto
 Spell Property VampireTurnToAshPile Auto
 Spell Property ABVampireSkills Auto
 Spell Property ABVampireSkills02 Auto
 Spell Property AbVampire02 Auto
 Spell Property AbVampire02b Auto
 Spell Property VampireVampirism Auto
-Spell Property crVampireDrain03 Auto	
+Spell Property crVampireDrain03 Auto
 Spell Property VampireCharm Auto
 Spell Property VampireRaiseThrall02 Auto
 Spell Property VampireStrength02 Auto
@@ -233,7 +233,7 @@ Globalvariable Property VampireDawnguardInstalled Auto
 Globalvariable Property VampireVictimsWillFeed Auto
 GlobalVariable Property VampireIdentifyingTurnedNPCs Auto
 GlobalVariable Property SEVersion Auto
-						
+
 ;======================================================================================;
 ;  VARIABLES   /
 ;=============/
@@ -263,12 +263,12 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 	Utility.Wait(1.0)
 
 	VampTarget = VampTargetActor
-	
-	If VampTarget.HasKeyword(ImATurnedVampire) == True	
-	
+
+	If VampTarget.HasKeyword(ImATurnedVampire) == True
+
 		If VampTarget.GetAV("Variable01") < 0
 			VampTarget.SetAV("Variable01", 0)
-		EndIf	
+		EndIf
 
 		VampTarget.SetAV("Variable01", (VampTarget.GetAV("Variable01")+1))
 
@@ -278,23 +278,23 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 			VampTarget.StopCombat()
 
 			;Remove From Crime Factions
-			VampTarget.RemoveFromFaction(CrimeFactionEastmarch)			
-			VampTarget.RemoveFromFaction(CrimeFactionFalkreath)	
-			VampTarget.RemoveFromFaction(CrimeFactionHjaalmarch)	
-			VampTarget.RemoveFromFaction(CrimeFactionImperial)	
-			VampTarget.RemoveFromFaction(CrimeFactionOrcs)	
-			VampTarget.RemoveFromFaction(CrimeFactionPale)	
-			VampTarget.RemoveFromFaction(CrimeFactionReach)	
-			VampTarget.RemoveFromFaction(CrimeFactionRift)	
-			VampTarget.RemoveFromFaction(CrimeFactionSons)	
-			VampTarget.RemoveFromFaction(CrimeFactionWhiterun)	
-			VampTarget.RemoveFromFaction(CrimeFactionWinterhold)	
+			VampTarget.RemoveFromFaction(CrimeFactionEastmarch)
+			VampTarget.RemoveFromFaction(CrimeFactionFalkreath)
+			VampTarget.RemoveFromFaction(CrimeFactionHjaalmarch)
+			VampTarget.RemoveFromFaction(CrimeFactionImperial)
+			VampTarget.RemoveFromFaction(CrimeFactionOrcs)
+			VampTarget.RemoveFromFaction(CrimeFactionPale)
+			VampTarget.RemoveFromFaction(CrimeFactionReach)
+			VampTarget.RemoveFromFaction(CrimeFactionRift)
+			VampTarget.RemoveFromFaction(CrimeFactionSons)
+			VampTarget.RemoveFromFaction(CrimeFactionWhiterun)
+			VampTarget.RemoveFromFaction(CrimeFactionWinterhold)
 			VampTarget.RemoveFromFaction(VigilantOfStendarrFaction)
 			VampTarget.RemoveFromFaction(VampireHunter)
 			VampTarget.RemoveFromFaction(DLC1HunterFaction)
 			VampTarget.RemoveFromFaction(DLC1DawnguardFaction)
-			VampTarget.RemoveFromFaction(DLC1DawnguardExteriorGuardFaction)			
-			
+			VampTarget.RemoveFromFaction(DLC1DawnguardExteriorGuardFaction)
+
 			;Remove From Guard Factions
 			VampTarget.RemoveFromFaction(WERoad02BodyguardFaction)
 			VampTarget.RemoveFromFaction(MorthalGuardhouseFaction)
@@ -320,16 +320,16 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 			VampTarget.RemoveFromFaction(GuardFactionHaafingar)
 			VampTarget.RemoveFromFaction(GuardFactionSolitude)
 			VampTarget.RemoveFromFaction(GuardFactionDragonbridge)
-			VampTarget.RemoveFromFaction(GuardFactionFalkreath)	
-			VampTarget.RemoveFromFaction(GuardFactionKarthwasten)	
+			VampTarget.RemoveFromFaction(GuardFactionFalkreath)
+			VampTarget.RemoveFromFaction(GuardFactionKarthwasten)
 			VampTarget.RemoveFromFaction(GuardFactionMarkarth)
 			VampTarget.RemoveFromFaction(GuardFactionWhiterun)
 			VampTarget.RemoveFromFaction(CWSonsFaction)
 			VampTarget.RemoveFromFaction(CWSonsFactionNPC)
 			VampTarget.RemoveFromFaction(CWImperialFaction)
-			VampTarget.RemoveFromFaction(CWImperialFactionNPC)			
-			
-			;Remove From Player Hated Factions			
+			VampTarget.RemoveFromFaction(CWImperialFactionNPC)
+
+			;Remove From Player Hated Factions
 			VampTarget.RemoveFromFaction(CWMission08AllGiantsPlayerFriendFaction)
 			VampTarget.RemoveFromFaction(DA02CulistsPlayerEnemy)
 			VampTarget.RemoveFromFaction(DA02CultistsAreEnemies)
@@ -362,31 +362,31 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 			VampTarget.RemoveFromFaction(WIPlayerEnemyFaction)
 			VampTarget.RemoveFromFaction(WIPlayerEnemySpecialCombatFaction)
 
-			VampTarget.StopCombat()				
-			
-			utility.wait(0.5)			
+			VampTarget.StopCombat()
+
+			utility.wait(0.5)
 			VampTarget.AddtoFaction(VampirePCFamily)
 			VampTarget.SetFactionRank(VampirePCFamily, 0)
 			VampTarget.SetRelationshipRank(Game.GetPlayer(), 4)
-			Game.GetPlayer().SetRelationshipRank(VampTarget, 4)			
-			
-			
+			Game.GetPlayer().SetRelationshipRank(VampTarget, 4)
+
+
 			If VampTarget.IsInFaction(PotentialFollowerFaction) || VampTarget.IsInFaction(CurrentFollowerFaction)
 			Else
 				VampTarget.AddtoFaction(PotentialFollowerFaction)
 				VampTarget.SetFactionRank(PotentialFollowerFaction, 0)
 				VampTarget.AddtoFaction(CurrentFollowerFaction)
-				VampTarget.SetFactionRank(CurrentFollowerFaction, -1)					
+				VampTarget.SetFactionRank(CurrentFollowerFaction, -1)
 			EndIf
 
 			VampTarget.SetActorValue("Assistance", 2)
 			VampTarget.SetActorValue("Aggression", 1)
 			VampTarget.SetActorValue("Confidence", 4)
-			VampTarget.SetActorValue("Morality", 0)				
+			VampTarget.SetActorValue("Morality", 0)
 
-				
+
 			If VampireVictimAppearance.GetValue() == 0
-			
+
 				If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 					;VampTarget.SetEyeTexture(BVSkinEyesMaleArgonianVampire)
 					VampTarget.SetEyeTexture(SkinEyesMaleArgonianVampire)
@@ -394,12 +394,12 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 					;VampTarget.SetEyeTexture(BVSkinEyesKhajiitVampire)
 					VampTarget.SetEyeTexture(SkinEyesKhajiitVampire)
 				Else
-					;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)	
+					;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)
 					VampTarget.SetEyeTexture(EyesMaleHumanVampire)
-				EndIf	
-				
+				EndIf
+
 			EndIf
-			
+
 			If VampireVictimAppearance.GetValue() == 20000
 				; RCS
 				Race VampTargetRace = VampTarget.GetActorBase().GetRace()
@@ -414,7 +414,7 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 				; ElseIf (VampTarget.GetActorBase().GetRace() == DarkElfRace)
 				; 	VampTarget.SetRace(DarkElfRaceVampire)
 				; ElseIf (VampTarget.GetActorBase().GetRace() == ElderRace)
-				; 	VampTarget.SetRace(ElderRaceVampire)				
+				; 	VampTarget.SetRace(ElderRaceVampire)
 				; ElseIf (VampTarget.GetActorBase().GetRace() == HighElfRace)
 				; 	VampTarget.SetRace(HighElfRaceVampire)
 				; ElseIf (VampTarget.GetActorBase().GetRace() == ImperialRace)
@@ -430,20 +430,20 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 				; ElseIf (VampTarget.GetActorBase().GetRace() == WoodElfRace)
 				; 	VampTarget.SetRace(WoodElfRaceVampire)
 				; EndIf
-		
+
 				;Many NPCs, like guards, are actually part of the Fox Race
 				If (VampTargetRace == FoxRace)
 					VampTarget.SetRace(NordRaceVampire)
 					VampTarget.RemoveFromAllFactions()
-				EndIf		
+				EndIf
 
 				If VampTarget.IsOnMount() == False
-				
+
 					If  SEVersion.GetValue() == 0 && VampireVictimAppearance.GetValue() == 20000
-					
-						If SKSE.GetVersionRelease() > 0 				
+
+						If SKSE.GetVersionRelease() > 0 
 							;Utility.Wait(0.5)
-							;VampTarget.SetWeight(45)	
+							;VampTarget.SetWeight(45)
 							;Utility.Wait(0.5)
 							;VampTarget.SetWeight(50)
 							;;Debug.Notification("Weight changed")
@@ -451,75 +451,75 @@ Event OnEffectStart(Actor VampTargetActor, Actor Caster)
 							float VampTargetNewWeight = Utility.RandomFloat(45, 55)
 							Float NeckDelta = (VampTargetOrigWeight / 100) - (VampTargetNewWeight / 100) ;Work out the neckdelta.
 							VampTarget.GetActorBase().SetWeight(VampTargetNewWeight) ;Set Player's weight to a random float between 0.0 and 100.0.
-							VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.	
+							VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.
 							String facegen = "bUseFaceGenPreprocessedHeads:General"
 							Utility.SetINIBool(facegen, False)
 							Utility.Wait(0.5)
 							VampTarget.QueueNiNodeUpdate() 
 							;VampTarget.RegenerateHead()
-							Utility.Wait(0.5)			
+							Utility.Wait(0.5)
 							Utility.SetINIBool(facegen, True)
-						EndIf	
-						
-					EndIf	
-				EndIf				
-				
+						EndIf
+
+					EndIf
+				EndIf
+
 			EndIf
-			
+
 			If VampireVictimSkills.GetValue() == 0
-			
+
 				Float PlayerHealth = Game.GetPlayer().GetBaseActorValue("Health")
 				Float VampTargetHealth = PlayerHealth
 				VampTarget.SetActorValue("Health", VampTargetHealth)
-				
+
 				Float PlayerMagicka = Game.GetPlayer().GetBaseActorValue("Magicka")
-				VampTarget.SetActorValue("Magicka", PlayerMagicka)			
-				
+				VampTarget.SetActorValue("Magicka", PlayerMagicka)
+
 				Float PlayerStamina = Game.GetPlayer().GetBaseActorValue("Stamina")
-				VampTarget.SetActorValue("Stamina", PlayerStamina)						
-				
-				VampTarget.SetActorValue("Sneak", 100)				
-				
+				VampTarget.SetActorValue("Stamina", PlayerStamina)
+
+				VampTarget.SetActorValue("Sneak", 100)
+
 				Float Player1Hand = Game.GetPlayer().GetActorValue("OneHanded")
 				VampTarget.SetActorValue("OneHanded", Player1Hand)
-				
+
 				Float Player2Hand= Game.GetPlayer().GetActorValue("TwoHanded")
 				VampTarget.SetActorValue("TwoHanded", Player2Hand)
 
 				Float PlayerMarksman = Game.GetPlayer().GetActorValue("Marksman")
-				VampTarget.SetActorValue("Marksman", PlayerMarksman)	
-				
+				VampTarget.SetActorValue("Marksman", PlayerMarksman)
+
 				Float PlayerDestruction = Game.GetPlayer().GetActorValue("Destruction")
-				VampTarget.SetActorValue("Destruction", PlayerDestruction)				
-				
+				VampTarget.SetActorValue("Destruction", PlayerDestruction)
+
 				Float PlayerBlock = Game.GetPlayer().GetActorValue("Block")
 				VampTarget.SetActorValue("Block", PlayerBlock)
-				
+
 				Float PlayerDamageResist = Game.GetPlayer().GetActorValue("DamageResist")
 				VampTarget.SetActorValue("DamageResist", PlayerDamageResist)
-				
-			EndIf	
-			
-			VampTarget.SetActorValue("Sneak", 100)				
-			
-			VampTarget.SetAttackActorOnSight(False)	
-			
-			utility.wait(1.0)			
+
+			EndIf
+
+			VampTarget.SetActorValue("Sneak", 100)
+
+			VampTarget.SetAttackActorOnSight(False)
+
+			utility.wait(1.0)
 
 			VampTarget.StopCombat()
-			
+
 			If VampTarget.GetAV("Variable01") >= 5 && CurrentlySearching == 0
 				LookForFeedingVictim()
 			EndIf
-			
-			
-		;VampireIdentifyingTurnedNPCs.SetValue(0)	
-		
+
+
+		;VampireIdentifyingTurnedNPCs.SetValue(0)
+
 		;Debug.Notification("NPC Vampire Spell is Attached")
 		RegisterForUpdateGameTime(1)
-		
-	EndIf	
-	
+
+	EndIf
+
 EndEvent
 
 
@@ -531,32 +531,32 @@ Event OnUpdateGameTime()
 	Utility.Wait(1.0)
 
 	If VampTarget.HasKeyword(ImATurnedVampire) == True
-	
+
 		;Debug.Notification("Updating Game Time")
-	
+
 		If VampTarget.GetAV("Variable01") < 0
 			VampTarget.SetAV("Variable01", 0)
-		EndIf	
+		EndIf
 
 		VampTarget.SetAV("Variable01", (VampTarget.GetAV("Variable01")+1))
-	
-		utility.wait(0.5)			
+
+		utility.wait(0.5)
 		VampTarget.AddtoFaction(VampirePCFamily)
 		VampTarget.SetFactionRank(VampirePCFamily, 0)
 		VampTarget.SetRelationshipRank(Game.GetPlayer(), 4)
-		Game.GetPlayer().SetRelationshipRank(VampTarget, 4)			
-		
-		
+		Game.GetPlayer().SetRelationshipRank(VampTarget, 4)
+
+
 		If VampTarget.IsInFaction(PotentialFollowerFaction) || VampTarget.IsInFaction(CurrentFollowerFaction)
 		Else
 			VampTarget.AddtoFaction(PotentialFollowerFaction)
 			VampTarget.SetFactionRank(PotentialFollowerFaction, 0)
 			VampTarget.AddtoFaction(CurrentFollowerFaction)
-			VampTarget.SetFactionRank(CurrentFollowerFaction, -1)					
-		EndIf	
-	
+			VampTarget.SetFactionRank(CurrentFollowerFaction, -1)
+		EndIf
+
 		If VampireVictimAppearance.GetValue() == 0
-		
+
 			If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 				;VampTarget.SetEyeTexture(BVSkinEyesMaleArgonianVampire)
 				VampTarget.SetEyeTexture(SkinEyesMaleArgonianVampire)
@@ -564,19 +564,14 @@ Event OnUpdateGameTime()
 				;VampTarget.SetEyeTexture(BVSkinEyesKhajiitVampire)
 				VampTarget.SetEyeTexture(SkinEyesKhajiitVampire)
 			Else
-				;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)	
+				;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)
 				VampTarget.SetEyeTexture(EyesMaleHumanVampire)
-			EndIf	
-			
+			EndIf
+
 		EndIf
-		
+
 		If VampireVictimAppearance.GetValue() == 20000
-			; RCS
-			Race VampTargetRace = VampTarget.GetActorBase().GetRace()
-			Race VampTargetRaceVampire = RaceCompatibility.GetVampireRaceByRace(VampTargetRace)
-			If (VampTargetRaceVampire != None)
-				VampTarget.SetRace(VampTargetRaceVampire)
-			EndIf	
+
 			; If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 			; 	VampTarget.SetRace(ArgonianRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == BretonRace)
@@ -584,7 +579,7 @@ Event OnUpdateGameTime()
 			; ElseIf (VampTarget.GetActorBase().GetRace() == DarkElfRace)
 			; 	VampTarget.SetRace(DarkElfRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == ElderRace)
-			; 	VampTarget.SetRace(ElderRaceVampire)				
+			; 	VampTarget.SetRace(ElderRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == HighElfRace)
 			; 	VampTarget.SetRace(HighElfRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == ImperialRace)
@@ -600,20 +595,26 @@ Event OnUpdateGameTime()
 			; ElseIf (VampTarget.GetActorBase().GetRace() == WoodElfRace)
 			; 	VampTarget.SetRace(WoodElfRaceVampire)
 			; EndIf
-	
+			; RCS
+			Race VampTargetRace = VampTarget.GetActorBase().GetRace()
+			Race VampTargetRaceVampire = RaceCompatibility.GetVampireRaceByRace(VampTargetRace)
+			If (VampTargetRaceVampire != None)
+				VampTarget.SetRace(VampTargetRaceVampire)
+			EndIf
+
 			;Many NPCs, like guards, are actually part of the Fox Race
 			If (VampTargetRace == FoxRace)
 				VampTarget.SetRace(NordRaceVampire)
 				VampTarget.RemoveFromAllFactions()
-			EndIf		
+			EndIf
 
 			If VampTarget.IsOnMount() == False
-			
+
 				If  SEVersion.GetValue() == 0 && VampireVictimAppearance.GetValue() == 20000
-				
-					If SKSE.GetVersionRelease() > 0 				
+
+					If SKSE.GetVersionRelease() > 0 
 						;Utility.Wait(0.5)
-						;VampTarget.SetWeight(45)	
+						;VampTarget.SetWeight(45)
 						;Utility.Wait(0.5)
 						;VampTarget.SetWeight(50)
 						;;Debug.Notification("Weight changed")
@@ -621,66 +622,66 @@ Event OnUpdateGameTime()
 						float VampTargetNewWeight = Utility.RandomFloat(45, 55)
 						Float NeckDelta = (VampTargetOrigWeight / 100) - (VampTargetNewWeight / 100) ;Work out the neckdelta.
 						VampTarget.GetActorBase().SetWeight(VampTargetNewWeight) ;Set Player's weight to a random float between 0.0 and 100.0.
-						VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.	
+						VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.
 						String facegen = "bUseFaceGenPreprocessedHeads:General"
 						Utility.SetINIBool(facegen, False)
 						Utility.Wait(0.5)
 						VampTarget.QueueNiNodeUpdate() 
 						;VampTarget.RegenerateHead()
-						Utility.Wait(0.5)			
+						Utility.Wait(0.5)
 						Utility.SetINIBool(facegen, True)
-					EndIf	
-					
-				EndIf	
-			EndIf				
-			
+					EndIf
+
+				EndIf
+			EndIf
+
 		EndIf
-		
+
 		If VampireVictimSkills.GetValue() == 0
-		
+
 			Float PlayerHealth = Game.GetPlayer().GetBaseActorValue("Health")
 			Float VampTargetHealth = PlayerHealth
 			VampTarget.SetActorValue("Health", VampTargetHealth)
-			
+
 			Float PlayerMagicka = Game.GetPlayer().GetBaseActorValue("Magicka")
-			VampTarget.SetActorValue("Magicka", PlayerMagicka)			
-			
-			VampTarget.SetActorValue("Sneak", 100)				
-			
+			VampTarget.SetActorValue("Magicka", PlayerMagicka)
+
+			VampTarget.SetActorValue("Sneak", 100)
+
 			Float Player1Hand = Game.GetPlayer().GetActorValue("OneHanded")
 			VampTarget.SetActorValue("OneHanded", Player1Hand)
-			
+
 			Float Player2Hand= Game.GetPlayer().GetActorValue("TwoHanded")
 			VampTarget.SetActorValue("TwoHanded", Player2Hand)
 
 			Float PlayerMarksman = Game.GetPlayer().GetActorValue("Marksman")
-			VampTarget.SetActorValue("Marksman", PlayerMarksman)	
-			
+			VampTarget.SetActorValue("Marksman", PlayerMarksman)
+
 			Float PlayerBlock = Game.GetPlayer().GetActorValue("Block")
 			VampTarget.SetActorValue("Block", PlayerBlock)
-			
+
 			Float PlayerDamageResist = Game.GetPlayer().GetActorValue("DamageResist")
 			VampTarget.SetActorValue("DamageResist", PlayerDamageResist)
-			
-		EndIf	
-		
-		VampTarget.SetActorValue("Sneak", 100)				
-		
-		VampTarget.SetAttackActorOnSight(False)	
-		
-		utility.wait(1.0)			
+
+		EndIf
+
+		VampTarget.SetActorValue("Sneak", 100)
+
+		VampTarget.SetAttackActorOnSight(False)
+
+		utility.wait(1.0)
 
 		If VampTarget.GetAV("Variable01") >= 5 && CurrentlySearching == 0
 			LookForFeedingVictim()
 		EndIf
-			
-	
+
+
 	ElseIf VampTarget.HasKeyword(ImATurnedVampire) == False
-	
+
 		VampTarget.DispelSpell(VampireTurnToAshPileNPC)	 
 		VampTarget.RemoveSpell(VampireTurnToAshPileNPC)
-	
-	EndIf		
+
+	EndIf
 
 
 EndEvent
@@ -690,31 +691,31 @@ EndEvent
 
 
 Event OnLoad()
-	
+
 	Utility.Wait(5.0)
-	
+
 	If VampTarget.HasKeyword(ImATurnedVampire) == True
-	
+
 		;Debug.Notification("NPC Loaded")
-	
-		utility.wait(0.5)			
+
+		utility.wait(0.5)
 		VampTarget.AddtoFaction(VampirePCFamily)
 		VampTarget.SetFactionRank(VampirePCFamily, 0)
 		VampTarget.SetRelationshipRank(Game.GetPlayer(), 4)
-		Game.GetPlayer().SetRelationshipRank(VampTarget, 4)			
-		
-		
+		Game.GetPlayer().SetRelationshipRank(VampTarget, 4)
+
+
 		If VampTarget.IsInFaction(PotentialFollowerFaction) || VampTarget.IsInFaction(CurrentFollowerFaction)
 		Else
 			VampTarget.AddtoFaction(PotentialFollowerFaction)
 			VampTarget.SetFactionRank(PotentialFollowerFaction, 0)
 			VampTarget.AddtoFaction(CurrentFollowerFaction)
-			VampTarget.SetFactionRank(CurrentFollowerFaction, -1)					
-		EndIf	
-	
-	
+			VampTarget.SetFactionRank(CurrentFollowerFaction, -1)
+		EndIf
+
+
 		If VampireVictimAppearance.GetValue() == 0
-		
+
 			If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 				;VampTarget.SetEyeTexture(BVSkinEyesMaleArgonianVampire)
 				VampTarget.SetEyeTexture(SkinEyesMaleArgonianVampire)
@@ -722,19 +723,19 @@ Event OnLoad()
 				;VampTarget.SetEyeTexture(BVSkinEyesKhajiitVampire)
 				VampTarget.SetEyeTexture(SkinEyesKhajiitVampire)
 			Else
-				;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)	
+				;VampTarget.SetEyeTexture(BVEyesMaleHumanVampire)
 				VampTarget.SetEyeTexture(EyesMaleHumanVampire)
-			EndIf		
-			
+			EndIf
+
 		EndIf
-		
+
 		If VampireVictimAppearance.GetValue() == 20000
 			; RCS
 			Race VampTargetRace = VampTarget.GetActorBase().GetRace()
 			Race VampTargetRaceVampire = RaceCompatibility.GetVampireRaceByRace(VampTargetRace)
 			If (VampTargetRaceVampire != None)
 				VampTarget.SetRace(VampTargetRaceVampire)
-			EndIf		
+			EndIf
 			; If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 			; 	VampTarget.SetRace(ArgonianRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == BretonRace)
@@ -742,7 +743,7 @@ Event OnLoad()
 			; ElseIf (VampTarget.GetActorBase().GetRace() == DarkElfRace)
 			; 	VampTarget.SetRace(DarkElfRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == ElderRace)
-			; 	VampTarget.SetRace(ElderRaceVampire)				
+			; 	VampTarget.SetRace(ElderRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == HighElfRace)
 			; 	VampTarget.SetRace(HighElfRaceVampire)
 			; ElseIf (VampTarget.GetActorBase().GetRace() == ImperialRace)
@@ -763,15 +764,15 @@ Event OnLoad()
 			If (VampTargetRace == FoxRace)
 				VampTarget.SetRace(NordRaceVampire)
 				VampTarget.RemoveFromAllFactions()
-			EndIf		
+			EndIf
 
 			If VampTarget.IsOnMount() == False
-			
+
 				If  SEVersion.GetValue() == 0 && VampireVictimAppearance.GetValue() == 20000
-				
-					If SKSE.GetVersionRelease() > 0 				
+
+					If SKSE.GetVersionRelease() > 0 
 						;Utility.Wait(0.5)
-						;VampTarget.SetWeight(45)	
+						;VampTarget.SetWeight(45)
 						;Utility.Wait(0.5)
 						;VampTarget.SetWeight(50)
 						;;Debug.Notification("Weight changed")
@@ -779,28 +780,28 @@ Event OnLoad()
 						float VampTargetNewWeight = Utility.RandomFloat(45, 55)
 						Float NeckDelta = (VampTargetOrigWeight / 100) - (VampTargetNewWeight / 100) ;Work out the neckdelta.
 						VampTarget.GetActorBase().SetWeight(VampTargetNewWeight) ;Set Player's weight to a random float between 0.0 and 100.0.
-						VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.	
+						VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.
 						String facegen = "bUseFaceGenPreprocessedHeads:General"
 						Utility.SetINIBool(facegen, False)
 						Utility.Wait(0.5)
 						VampTarget.QueueNiNodeUpdate() 
 						;VampTarget.RegenerateHead()
-						Utility.Wait(0.5)			
+						Utility.Wait(0.5)
 						Utility.SetINIBool(facegen, True)
-					EndIf	
-					
-				EndIf	
-			EndIf			
-			
+					EndIf
+
+				EndIf
+			EndIf
+
 		EndIf
-	
+
 	ElseIf VampTarget.HasKeyword(ImATurnedVampire) == False
-	
+
 		VampTarget.DispelSpell(VampireTurnToAshPileNPC)	 
 		VampTarget.RemoveSpell(VampireTurnToAshPileNPC)
-		
-	EndIf	
-	
+
+	EndIf
+
 EndEvent
 
 
@@ -810,21 +811,21 @@ EndEvent
 Function LookForFeedingVictim()
 
 		GetCurrentTimeOfDay()
-		
+
 		If VampireVictimsWillFeed.GetValue() == 0 && VampTarget.GetAV("Variable01") >= 5 && CurrentlySearching == 0 && (VampTarget.IsInInterior() == 1 || (VampTarget.IsInInterior() == 0 && FeedingDayTime < 5) || (VampTarget.IsInInterior() == 0 && FeedingDayTime > 20))
 
 			Utility.Wait(0.1)
 
-			Int SearchForVictim = 40				
-		
+			Int SearchForVictim = 40
+
 			;Debug.Notification("NPC Vampire is searching!")
-		
+
 			While SearchForVictim > 0
-				
+
 				Actor RandomFeedTarget = Game.FindRandomActorFromRef(VampTarget, 1200)
 				CurrentlySearching = 1
 				Race RandomFeedTargetRace = RandomFeedTarget.GetRace()
-				
+
 				; If (RandomFeedTargetRace == ArgonianRace) || (RandomFeedTargetRace == BretonRace) || (RandomFeedTargetRace == DarkElfRace) || (RandomFeedTargetRace == HighElfRace) || (RandomFeedTargetRace == ImperialRace) || (RandomFeedTargetRace == KhajiitRace) || (RandomFeedTargetRace == NordRace) || (RandomFeedTargetRace == OrcRace) || (RandomFeedTargetRace == RedguardRace) || (RandomFeedTargetRace == FoxRace) || (RandomFeedTargetRace == WoodElfRace)
 				; RCS
 				If (RandomFeedTargetRace == FoxRace) || (RaceCompatibility.GetVampireRaceByRace(RandomFeedTargetRace) != None)
@@ -833,13 +834,13 @@ Function LookForFeedingVictim()
 
 						;Debug.Notification("NPC Vampire has found " + RandomFeedTarget)
 						TurnedVampireHungry.Clear()
-						TurnedVampireVictim.Clear()							
+						TurnedVampireVictim.Clear()
 						TurnedVampireHungry.ForceRefTo(VampTarget)
 						TurnedVampireVictim.ForceRefTo(RandomFeedTarget)
 						VampTarget.EvaluatePackage()
-						
+
 						VampTarget.SetLookAt(RandomFeedTarget)
-						
+
 						Int SneakingToVictim = 60
 
 						While VampTarget.GetDistance(RandomFeedTarget) > 100 && SneakingToVictim > 0
@@ -847,21 +848,21 @@ Function LookForFeedingVictim()
 							SneakingToVictim -= 1
 							Utility.Wait(1.0)
 						EndWhile
-						
+
 						Int TryingToFeed = 5
 						Bool NPCIsFeeding = False
-						
-						;Debug.Notification("NPC Vampire trying to feed ...")							
-						
+
+						;Debug.Notification("NPC Vampire trying to feed ...")
+
 						Int PCIsInDialogue = 180
-						
+
 						While UI.IsMenuOpen("Dialogue Menu") == True && PCIsInDialogue > 0
 							Utility.Wait(1.0)
 							PCIsInDialogue -= 1
 						EndWhile
-						
+
 						While VampTarget.GetDistance(RandomFeedTarget) < 400 && TryingToFeed > 0 && NPCIsFeeding == False && VampTarget.GetDialogueTarget() != Game.GetPlayer()
-					
+
 							If RandomFeedTarget.GetSleepState() >= 3
 								If RandomFeedTarget.IsInInterior() == True
 									If RandomFeedTarget.GetHeadingAngle(VampTarget) > 0
@@ -871,7 +872,7 @@ Function LookForFeedingVictim()
 										If NPCIsFeeding == True
 											;Debug.Notification("Bed Feeding")
 											VampTarget.SetAV("Variable01", 0)
-										EndIf	
+										EndIf
 									Else
 										NPCIsFeeding = VampTarget.PlayIdle(VampireFeedingBedRight_Loose)
 										;Int instanceID1 = MAGVampireTransform01.Play(RandomFeedTarget)
@@ -879,17 +880,17 @@ Function LookForFeedingVictim()
 										If NPCIsFeeding == True
 											;Debug.Notification("Bed Feeding")
 											VampTarget.SetAV("Variable01", 0)
-										EndIf	
-									EndIf			
+										EndIf
+									EndIf
 								ElseIf RandomFeedTarget.IsInInterior() == False
-									If RandomFeedTarget.GetHeadingAngle(VampTarget) > 0	
+									If RandomFeedTarget.GetHeadingAngle(VampTarget) > 0
 										NPCIsFeeding = VampTarget.PlayIdle(VampireFeedingBedrollLeft_Loose)
 										;Int instanceID1 = MAGVampireTransform01.Play(RandomFeedTarget)
 										;Sound.SetInstanceVolume(instanceID1, 0.5)
 										If NPCIsFeeding == True
 											;Debug.Notification("Bedroll Feeding")
 											VampTarget.SetAV("Variable01", 0)
-										EndIf	
+										EndIf
 									Else
 										NPCIsFeeding = VampTarget.PlayIdle(VampireFeedingBedrollRight_Loose)
 										;Int instanceID1 = MAGVampireTransform01.Play(RandomFeedTarget)
@@ -897,8 +898,8 @@ Function LookForFeedingVictim()
 										If NPCIsFeeding == True
 											;Debug.Notification("Bedroll Feeding")
 											VampTarget.SetAV("Variable01", 0)
-										EndIf	
-									EndIf	
+										EndIf
+									EndIf
 								EndIf
 							ElseIf RandomFeedTarget.GetSleepState() < 3
 								If VampireDawnguardInstalled.GetValue() == 10000
@@ -906,25 +907,25 @@ Function LookForFeedingVictim()
 										VampireCharm.Cast(VampTarget, RandomFeedTarget)
 										VampTarget.DoCombatSpellApply(VampireCharm, RandomFeedTarget)
 									EndIf
-									VampTarget.MoveToInteractionLocation(RandomFeedTarget)	
+									VampTarget.MoveToInteractionLocation(RandomFeedTarget)
 									Utility.Wait(3.0)
 									If RandomFeedTarget.HasLOS(VampTarget) == True
 										NPCIsFeeding = VampTarget.PlayIdleWithTarget(IdleVampireStandingFront, RandomFeedTarget as ObjectReference)
 									Else
 										NPCIsFeeding = VampTarget.PlayIdleWithTarget(IdleVampireStandingBack, RandomFeedTarget as ObjectReference)
-									EndIf	
+									EndIf
 									;Int instanceID1 = MAGVampireTransform01.Play(RandomFeedTarget)
 									;Sound.SetInstanceVolume(instanceID1, 0.5)
 									If NPCIsFeeding == True
 										;Debug.Notification("Grapple Feeding")
 										VampTarget.SetAV("Variable01", 0)
-									EndIf										
+									EndIf
 								ElseIf VampireDawnguardInstalled.GetValue() == 0
 									If !RandomFeedTarget.HasMagicEffect(InfluenceAggDownFFAimed) 
 										VampireCharm.Cast(VampTarget, RandomFeedTarget)
 										VampTarget.DoCombatSpellApply(VampireCharm, RandomFeedTarget)
 									EndIf
-									VampTarget.MoveToInteractionLocation(RandomFeedTarget)	
+									VampTarget.MoveToInteractionLocation(RandomFeedTarget)
 									Utility.Wait(3.0)
 									NPCIsFeeding = VampTarget.PlayIdleWithTarget(pa_HugA, RandomFeedTarget as ObjectReference)
 									;Int instanceID1 = MAGVampireTransform01.Play(RandomFeedTarget)
@@ -932,52 +933,52 @@ Function LookForFeedingVictim()
 									If NPCIsFeeding == True
 										;Debug.Notification("Hug Feeding")
 										VampTarget.SetAV("Variable01", 0)
-									EndIf		
-								EndIf		
+									EndIf
+								EndIf
 							EndIf
-							
+
 							TryingToFeed -= 1
-							
+
 						EndWhile
-						
+
 						VampTarget.ClearLookAt()
 						CurrentlySearching = 0
 						SearchForVictim = 0
-						
+
 						;Debug.Notification("NPC Vampire is now finished searching.")
 						TurnedVampireHungry.Clear()
 						TurnedVampireVictim.Clear()
-						
+
 						If RandomFeedTarget.GetSleepState() >= 3
 						Else
 							Utility.Wait(4.0)
 							If VampTarget.GetDistance(RandomFeedTarget) < 200
 								TurnedVictimInvisibilityVampiric.Cast(VampTarget, VampTarget)
-							EndIf	
-						EndIf	
-						
+							EndIf
+						EndIf
+
 					Else
-					
+
 						;Debug.Notification("No specific target...")
-						
+
 					EndIf
-				
+
 					;Debug.Notification("No racial target...")
-				
+
 				EndIf
-			
+
 				SearchForVictim -= 1
-			
-				Utility.Wait(1.0)				
-			
+
+				Utility.Wait(1.0)
+
 			EndWhile
-		
+
 			CurrentlySearching = 0
-		
+
 		EndIf
-		
+
 		;Debug.Notification("NPC Vampire will not feed at this time.")
-		
+
 		CurrentlySearching = 0
 
 EndFunction
@@ -1102,7 +1103,7 @@ Event OnDying(Actor Killer)
 			 
 		VampTarget.DispelSpell(VampireTurnToAshPileNPC)	 
 		VampTarget.RemoveSpell(VampireTurnToAshPileNPC)
-		
+
 		UnRegisterForUpdateGameTime()
 			 
 EndEvent
@@ -1110,15 +1111,15 @@ EndEvent
 ;==============================================================================================
 
 Event OnEffectFinish(Actor VampTargetActor, Actor Caster)
-	
+
 	Utility.Wait(1.0)
-	
+
 	VampTarget = VampTargetActor
-	
-	If VampTarget.HasKeyword(ImATurnedVampire) == False	
-	
+
+	If VampTarget.HasKeyword(ImATurnedVampire) == False
+
 		UnRegisterForUpdateGameTime()
-	
+
 		If (VampTarget.GetActorBase().GetRace() == ArgonianRace)
 			VampTarget.SetEyeTexture(SkinEyesMaleArgonian)
 		ElseIf (VampTarget.GetActorBase().GetRace() == KhajiitRace)
@@ -1127,12 +1128,6 @@ Event OnEffectFinish(Actor VampTargetActor, Actor Caster)
 			VampTarget.SetEyeTexture(EyesMaleHumanBrown)
 		EndIf
 
-		;RCS
-		Race VampTargetRace = VampTarget.GetActorBase().GetRace()
-		Race VampTargetRaceNormal = RaceCompatibility.GetRaceByVampireRace(VampTargetRace)
-		If (VampTargetRaceNormal != None)
-			VampTarget.SetRace(VampTargetRaceNormal)
-		EndIf
 		; If (VampTarget.GetActorBase().GetRace() == ArgonianRaceVampire)
 		; 	VampTarget.SetRace(ArgonianRace)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == BretonRaceVampire)
@@ -1140,7 +1135,7 @@ Event OnEffectFinish(Actor VampTargetActor, Actor Caster)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == DarkElfRaceVampire)
 		; 	VampTarget.SetRace(DarkElfRace)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == ElderRaceVampire)
-		; 	VampTarget.SetRace(ElderRace)				
+		; 	VampTarget.SetRace(ElderRace)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == HighElfRaceVampire)
 		; 	VampTarget.SetRace(HighElfRace)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == ImperialRaceVampire)
@@ -1156,14 +1151,19 @@ Event OnEffectFinish(Actor VampTargetActor, Actor Caster)
 		; ElseIf (VampTarget.GetActorBase().GetRace() == WoodElfRaceVampire)
 		; 	VampTarget.SetRace(WoodElfRace)
 		; EndIf
-		
+		; RCS
+		Race VampTargetRaceMortal = RaceCompatibility.GetRaceByVampireRace(VampTarget.GetActorBase().GetRace())
+		If (VampTargetRaceMortal != None)
+			VampTarget.SetRace(VampTargetRaceMortal)
+		EndIf
+
 		If VampTarget.IsOnMount() == False
-		
+
 			If  SEVersion.GetValue() == 0 && VampireVictimAppearance.GetValue() == 20000
-			
-				If SKSE.GetVersionRelease() > 0 				
+
+				If SKSE.GetVersionRelease() > 0 
 					;Utility.Wait(0.5)
-					;VampTarget.SetWeight(45)	
+					;VampTarget.SetWeight(45)
 					;Utility.Wait(0.5)
 					;VampTarget.SetWeight(50)
 					;;Debug.Notification("Weight changed")
@@ -1171,28 +1171,28 @@ Event OnEffectFinish(Actor VampTargetActor, Actor Caster)
 					float VampTargetNewWeight = Utility.RandomFloat(45, 55)
 					Float NeckDelta = (VampTargetOrigWeight / 100) - (VampTargetNewWeight / 100) ;Work out the neckdelta.
 					VampTarget.GetActorBase().SetWeight(VampTargetNewWeight) ;Set Player's weight to a random float between 0.0 and 100.0.
-					VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.	
+					VampTarget.UpdateWeight(NeckDelta) ;Apply the changes.
 					String facegen = "bUseFaceGenPreprocessedHeads:General"
 					Utility.SetINIBool(facegen, False)
 					Utility.Wait(0.5)
 					VampTarget.QueueNiNodeUpdate() 
 					;VampTarget.RegenerateHead()
-					Utility.Wait(0.5)			
+					Utility.Wait(0.5)
 					Utility.SetINIBool(facegen, True)
-				EndIf	
-				
-			EndIf	
-		EndIf			
-		
-		VampTarget.SetActorValue("Variable08", 0)	
+				EndIf
+
+			EndIf
+		EndIf
+
+		VampTarget.SetActorValue("Variable08", 0)
 		VampTarget.SetActorValue("Variable05", 0)
-		
+
 		VampTarget.RemoveFromFaction(VampirePCFamily)
-		
+
 		UnRegisterForUpdateGameTime()
 		VampTarget.DispelSpell(VampireTurnToAshPileNPC)
-		VampTarget.RemoveSpell(VampireTurnToAshPileNPC)	
-		
-	EndIf	
-	
+		VampTarget.RemoveSpell(VampireTurnToAshPileNPC)
+
+	EndIf
+
 EndEvent

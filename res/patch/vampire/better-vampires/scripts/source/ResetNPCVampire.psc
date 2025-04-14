@@ -214,17 +214,17 @@ Keyword Property ImEnthralled Auto
 EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 
 	If akFeedTarget.HasKeyword(ImATurnedVampire) == True  || akFeedTarget.HasSpell(VampireTurnToAshPileNPC) 
-	
-			utility.Wait(2.0)	
+
+			utility.Wait(2.0)
 			ObjectReference ResetXmarker = akFeedTarget.PlaceAtMe(Xmarker)
 			akFeedTarget.EnableAI(false)
-			
+
 			VampireChangeFX.play(akFeedTarget)
 			utility.wait(2.0)
-			VampireChangeFX.stop(akFeedTarget)				
-			
+			VampireChangeFX.stop(akFeedTarget)
+
 			akFeedTarget.SetAttackActorOnSight(False)
-			
+
 			If akFeedTarget == VampireTurnedVictimAlias01.GetActorReference()
 				VampireTurnedVictimAlias01.Clear()
 				;Debug.Notification("Alias1 Cleared")
@@ -315,9 +315,9 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 			EndIf
 			If akFeedTarget == VampireTurnedVictimAlias30.GetActorReference()
 				VampireTurnedVictimAlias30.Clear()
-			EndIf							
-			
-			
+			EndIf
+
+
 			;Dispel all abilities
 			akFeedTarget.DispelSpell(VampireVampirism)
 			akFeedTarget.DispelSpell(ABVampireSkills)
@@ -326,7 +326,7 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 			akFeedTarget.DispelSpell(AbVampire02b)
 			akFeedTarget.DispelSpell(VampireVampirism)
 			akFeedTarget.DispelSpell(crVampireDrain03)
-			akFeedTarget.DispelSpell(VampireCharm)				
+			akFeedTarget.DispelSpell(VampireCharm)
 			;akFeedTarget.DispelSpell(VampireRankFrostCloud04)
 			akFeedTarget.DispelSpell(VampireRankIceFleshSpell04)
 			akFeedTarget.DispelSpell(VampireRankMistFormSpell)
@@ -346,7 +346,7 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 			akFeedTarget.RemoveSpell(AbVampire02b)
 			akFeedTarget.RemoveSpell(VampireVampirism)
 			akFeedTarget.RemoveSpell(crVampireDrain03)
-			akFeedTarget.RemoveSpell(VampireCharm)				
+			akFeedTarget.RemoveSpell(VampireCharm)
 			;akFeedTarget.RemoveSpell(VampireRankFrostCloud04)
 			akFeedTarget.RemoveSpell(VampireRankIceFleshSpell04)
 			akFeedTarget.RemoveSpell(VampireRankMistFormSpell)
@@ -357,14 +357,14 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 			akFeedTarget.RemoveSpell(VampireSleep)
 			akFeedTarget.RemoveSpell(InvisibilityVampiric)
 			akFeedTarget.RemoveSpell(VampireTurnToAshPileNPC)
-			
-			akFeedTarget.SetActorValue("Variable08", 0)	
+
+			akFeedTarget.SetActorValue("Variable08", 0)
 			akFeedTarget.SetActorValue("Variable05", 0)
-			
-			akFeedTarget.RemoveFromFaction(VampirePCFamily)	
-			
-			If VampireVictimAppearance.GetValue() == 0			
-			
+
+			akFeedTarget.RemoveFromFaction(VampirePCFamily)
+
+			If VampireVictimAppearance.GetValue() == 0
+
 				If (akFeedTarget.GetActorBase().GetRace() == ArgonianRace)
 					akFeedTarget.SetEyeTexture(SkinEyesMaleArgonian)
 				ElseIf (akFeedTarget.GetActorBase().GetRace() == KhajiitRace)
@@ -372,17 +372,11 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 				Else
 					akFeedTarget.SetEyeTexture(EyesMaleHumanBrown)
 				EndIf
-				
+
 			EndIf
 
 			If VampireVictimAppearance.GetValue() == 20000
 
-				; RCS
-				Race FeedTargetRace = akFeedTarget.GetActorBase().GetRace()
-				Race FeedTargetRaceVampire = RaceCompatibility.GetVampireRaceByRace(FeedTargetRace)
-				If (FeedTargetRaceVampire != None)
-					akFeedTarget.SetRace(FeedTargetRaceVampire)
-				EndIf
 				; If (akFeedTarget.GetActorBase().GetRace() == ArgonianRaceVampire)
 				; 	akFeedTarget.SetRace(ArgonianRace)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == BretonRaceVampire)
@@ -390,7 +384,7 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == DarkElfRaceVampire)
 				; 	akFeedTarget.SetRace(DarkElfRace)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == ElderRaceVampire)
-				; 	akFeedTarget.SetRace(ElderRace)				
+				; 	akFeedTarget.SetRace(ElderRace)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == HighElfRaceVampire)
 				; 	akFeedTarget.SetRace(HighElfRace)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == ImperialRaceVampire)
@@ -406,11 +400,17 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 				; ElseIf (akFeedTarget.GetActorBase().GetRace() == WoodElfRaceVampire)
 				; 	akFeedTarget.SetRace(WoodElfRace)
 				; EndIf
-				
+				; RCS
+				Race akFeedTargetRaceMortal = RaceCompatibility.GetRaceByVampireRace(akFeedTarget.GetActorBase().GetRace())
+				If akFeedTargetRaceMortal != None
+					akFeedTarget.SetRace(akFeedTargetRaceMortal)
+				EndIf
+
+
 				If akFeedTarget.IsOnMount() == False
 					If  VampireVictimAppearance.GetValue() == 20000
 						Utility.Wait(0.5)
-						akFeedTarget.SetWeight(45)	
+						akFeedTarget.SetWeight(45)
 						Utility.Wait(0.5)
 						akFeedTarget.SetWeight(50)
 						;Debug.Notification("Weight changed")
@@ -420,32 +420,32 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 							Utility.Wait(0.5)
 							akFeedTarget.QueueNiNodeUpdate() 
 							;akFeedTarget.RegenerateHead()
-							Utility.Wait(0.5)			
+							Utility.Wait(0.5)
 							Utility.SetINIBool(facegen, True)
-						EndIf	
-					EndIf	
-				EndIf			
-			
+						EndIf
+					EndIf
+				EndIf
+
 			EndIf
-			
-			
+
+
 			akFeedTarget.DispelSpell(VampireTurnToAshPileNPC)
 			akFeedTarget.RemoveSpell(VampireTurnToAshPileNPC)
-			
-			akFeedTarget.EvaluatePackage()	
-			
+
+			akFeedTarget.EvaluatePackage()
+
 			Debug.Notification("My victim has been cured of their vampirism.")
 			akFeedTarget.SetAlpha(1, true)
 			akFeedTarget.EnableAI()
-			
+
 			ResetXmarker.Disable()
 			ResetXmarker.Delete()
-			
+
 			utility.Wait(1.0)
 			akFeedTarget.SetAlpha(1, true)
 
 	ElseIf akFeedTarget.HasKeyword(ImEnthralled) == True
-			
+
 			If akFeedTarget == VampireEnthrallAlias01.GetActorReference()
 				VampireEnthrallAlias01.Clear()
 				;Debug.Notification("Alias1 Cleared")
@@ -507,25 +507,25 @@ EVENT OnEffectStart(Actor akFeedTarget, Actor akCaster)
 			If akFeedTarget == VampireEnthrallAlias20.GetActorReference()
 				VampireEnthrallAlias20.Clear()
 			EndIf
-			
-			akFeedTarget.RemoveFromFaction(VampirePCFamily)				
+
+			akFeedTarget.RemoveFromFaction(VampirePCFamily)
 			akFeedTarget.DispelSpell(VampireEnthrallNPC)
-			akFeedTarget.RemoveSpell(VampireEnthrallNPC)			
-			
-			
-			Debug.Notification("My thrall is released; their mind is restored.")			
-			
+			akFeedTarget.RemoveSpell(VampireEnthrallNPC)
+
+
+			Debug.Notification("My thrall is released; their mind is restored.")
+
 	Else
-	
+
 			Debug.Notification("Tollere Sanguinare has no effect")
-	
+
 	EndIf
-	
+
 EndEvent
 
 ;==============================================================================================
 
 Event OnEffectFinish(Actor akFeedTarget, Actor akCaster)
-	
-			
+
+
 EndEvent

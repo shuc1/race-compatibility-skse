@@ -125,7 +125,7 @@ If you are not going to do that, or if you have other mods that rewrite the same
                             </typeDescriptor>
                         </plugin>
 
-                        <plugin name="Better Vampires v9.0">
+                        <plugin name="Better Vampires v9.1">
                             <description>Select this if you are using Better Vampires</description>
                             <image path="fomod/images/better-vampires.png" />
                             <files>
@@ -210,6 +210,30 @@ If you are not going to do that, or if you have other mods that rewrite the same
                                             <dependencies operator="And">
                                                 <fileDependency
                                                     file="Sacrosanct - Vampires of Skyrim.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Immortal Blood v2.1">
+                            <description>Select this if you are using Immortal Blood - Vampire Overhaul</description>
+                            <image path="fomod/images/immortal-blood.jpg" />
+                            <files>
+                                <folder source="vampire/immortal-blood"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Immortal Blood.esp"
                                                     state="Active" />
                                             </dependencies>
                                             <type name="Recommended" />

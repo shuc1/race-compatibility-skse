@@ -121,7 +121,7 @@ xpack("main", function()
     add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-local patch_version = "2.1.0"
+local patch_version = "2.1.1"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package

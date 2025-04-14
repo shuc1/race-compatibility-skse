@@ -169,19 +169,6 @@ namespace rcs
 				}
 			}
 
-#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)                   \
-	RawConfigEntry                                           \
-	{                                                        \
-		.name = #a_name,                                     \
-		.race = RawConfigEntry::RaceProxy{                   \
-			.form = std::string_view(#a_name "Race"),        \
-		},                                                   \
-		.vampireRace = RawConfigEntry::RaceProxy             \
-		{                                                    \
-			.form = std::string_view(#a_name "RaceVampire"), \
-		}                                                    \
-	}
-
 			bool LoadConfigs(std::vector<std::string>& files)
 			{
 				auto parse_cache = ParseCache{};
@@ -216,7 +203,19 @@ namespace rcs
 					/////
 				}
 
-				// from default
+#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)                   \
+	RawConfigEntry                                           \
+	{                                                        \
+		.name = #a_name,                                     \
+		.race = RawConfigEntry::RaceProxy{                   \
+			.form = std::string_view(#a_name "Race"),        \
+		},                                                   \
+		.vampireRace = RawConfigEntry::RaceProxy             \
+		{                                                    \
+			.form = std::string_view(#a_name "RaceVampire"), \
+		}                                                    \
+	}
+				// from vanilla game
 				logs::info("default:");
 				ParseAndApplyRawConfig(
 					"default",
@@ -233,13 +232,13 @@ namespace rcs
 						RCS_DEFAULT_RACE_RAW_ENTRY(WoodElf),
 					},
 					parse_cache);
+#undef RCS_DEFAULT_RACE_RAW_ENTRY
 
 				// summary
 				manager::Summary();
 				return true;
 			}
 		}  // namespace detail
-#undef RCS_DEFAULT_RACE_RAW_ENTRY
 
 		bool TryReadAndApplyConfigs()
 		{
