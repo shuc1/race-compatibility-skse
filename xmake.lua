@@ -26,9 +26,6 @@ set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
 -- add config files
 add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 
--- set config
-set_config("commonlib_dir", "lib/commonlibsse")
-
 -- set defaults
 set_languages("cxxlatest")
 set_warnings("allextra", "error")

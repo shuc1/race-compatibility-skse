@@ -177,30 +177,25 @@ namespace rcs
 					return false;
 				}
 
-				// from config files
 				for (const auto& filename : files | std::views::reverse) {
 					logs::info("{}:", filename);
 
-					///// Read Configs From File
+					// Read Configs From File
 					auto content = glz::read_json<glz::json_t>(
 						glz::file_to_buffer(std::format("{}\\{}"sv, rcs::CONFIG_DIR, filename)));
 					if (!content) {
-						logs::error("Failed to read file for {}",
-							content.error().custom_error_message);
+						logs::error("Failed to read file for \"{}\"", glz::format_error(content));
 						continue;
 					}
 					auto raw_config_data = glz::read_json<std::vector<RawConfigEntry>>(
 						content.value()[rcs::CONFIG_KEY]);
 					if (!raw_config_data) {
-						logs::error("Failed to read config from file for {}"sv,
-							raw_config_data.error().custom_error_message);
+						logs::error("Failed to read config from file for \"{}\""sv, glz::format_error(raw_config_data));
 						continue;
 					}
-					/////
 
-					///// Parse And Apply Raw Configs
+					// Parse And Apply Raw Configs
 					ParseAndApplyRawConfig(filename, raw_config_data.value(), parse_cache);
-					/////
 				}
 
 #define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)                   \

@@ -29,6 +29,7 @@ Ensure that you set path `SKYRIM_HOME=YOUR_SKYRIM_GAME_FOLDER` and arrange the `
 ### Build
 To build the project, run the following command:
 ```bat
+xmake f -m releasedbg
 xmake
 ```
 
