@@ -4,27 +4,17 @@ set_xmakever("2.8.6")
 -- includes
 includes("@builtin/xpack")
 includes("xmake-rules.lua")
-includes("res/xmake/commonlibsse")
+includes("xmake-commonlib.lua")
 
 -- set project
-local project_name = "race-compatibility"
-local project_title = to_title(project_name)
-local required_dir = "required/"
-local plugin_dir = "skse/plugins/"
+project_name = "race-compatibility"
+project_title = to_title(project_name)
+required_dir = "required/"
+plugin_dir = "skse/plugins/"
 
 set_project(project_name)
 set_version("2.2.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
-
--- set configs
-set_configdir("$(projectdir)")
--- project source
-set_configvar("CONFIG_KEY", "RCS")
-set_configvar("CONFIG_DIR", path.join("data", plugin_dir, string.lower("RCS")))
-set_configvar("PROJECT_NAME", project_name)
-set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
--- add config files
-add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 
 -- set defaults
 set_languages("cxxlatest")
@@ -46,8 +36,17 @@ add_requires("glaze")
 set_encodings("utf-8")
 
 -- targets
+-- set configs
+set_configdir("$(projectdir)")
+-- project source
+set_configvar("CONFIG_KEY", "RCS")
+set_configvar("CONFIG_DIR", path.join("data", plugin_dir, string.lower("RCS")))
+set_configvar("PROJECT_NAME", project_name)
+set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
+-- add config files
+add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 
--- rcs se
+-- builds
 target(project_name .. ".se", function()
     add_deps("commonlibsse.se")
     set_targetdir("$(buildir)/main/se")
@@ -69,37 +68,6 @@ target(project_name .. ".vr", function()
     add_rules("race-compatibility")
 end)
 
--- papyrus
-target("papyrus.main", function()
-    -- set target group
-    set_group("main")
-
-    set_default(true)
-    add_files("res/rcs/**.psc")
-    add_rules("papyrus")
-end)
-
--- patches
-for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
-    -- print("Adding patch subdir: " .. subdir)
-    target_name = path.basename(path.directory(path.directory(subdir)))
-    target_full_name = "papyrus.patch." .. target_name
-    target(target_full_name, function()
-        -- set target group
-        set_group("patch")
-
-        add_rules("papyrus")
-
-        set_default(false)
-        add_files(subdir .. "/**.psc")
-        potential_include = "res/papyrus/include/" .. target_name
-        -- print("Potential include: " .. potential_include)
-        if os.exists(potential_include) then
-            add_includedirs(potential_include)
-        end
-    end)
-end
-
 -- xpack
 -- fomod
 set_configvar("PROJECT_TITLE", project_title)
@@ -117,14 +85,14 @@ xpack("main", function()
     -- set_outputdir("build/xpack") 
     set_basename(project_title .. "-$(version)")
     -- fomod info
-    add_installfiles("res/rcs/(fomod/**)|*.in")
+    add_installfiles("res/main/(fomod/**)|*.in")
     -- plugin files
     add_installfiles("build/(main/**.dll)")
     -- script files
-    add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
+    add_installfiles("res/main/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-local patch_version = "2.1.2"
+patch_version = "2.1.2"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package

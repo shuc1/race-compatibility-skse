@@ -1,9 +1,8 @@
-[submodule "lib/commonlibsse"]
-	path = lib/commonlibsse
+[submodule "extern/commonlibsse"]
+	path = extern/commonlibsse
 	url = https://github.com/powerof3/CommonLibSSE.git
-[submodule "lib/skyui"]
-	path = lib/skyui
-	url = https://github.com/schlangster/skyui.git
-[submodule "lib/commonlibvr"]
-	path = lib/commonlibvr
+	shallow = true
+[submodule "extern/commonlibvr"]
+	path = extern/commonlibvr
 	url = https://github.com/alandtse/CommonLibVR.git
+	shallow = true

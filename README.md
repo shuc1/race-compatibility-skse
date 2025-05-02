@@ -4,7 +4,6 @@ Plugin for race compatibility in dialogue, vampirism and so on.
 ### Requirements
 * [XMake](https://xmake.io) [2.8.6+]
 * C++23 Compiler (MSVC)
-* Papyrus Compiler
 
 ## Getting Started
 ```bat
