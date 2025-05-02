@@ -4,3 +4,6 @@
 [submodule "lib/skyui"]
 	path = lib/skyui
 	url = https://github.com/schlangster/skyui.git
+[submodule "lib/commonlibvr"]
+	path = lib/commonlibvr
+	url = https://github.com/alandtse/CommonLibVR.git

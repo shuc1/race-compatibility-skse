@@ -62,7 +62,7 @@ namespace rcs
 
 		void TryInstall()
 		{
-			// vr getisrace 1402e8bc0 21028 (shared?)
+			// VR shared GetIsRace/IsValidRace ids with SE
 			if (!manager::raceProxies.empty()) {
 				const REL::Relocation get_is_race{ RELOCATION_ID(21028, 21478), 0 };
 				stl::write_thunk_branch<GetIsRace>(get_is_race.address());
@@ -75,7 +75,6 @@ namespace rcs
 				logs::info("Installed hooks for GetIsRace");
 			}
 			if (!manager::armorRaceProxies.empty()) {
-				// vr 1402380a0 17359
 				const REL::Relocation is_valid_race{ RELOCATION_ID(17359, 17757), 0 };
 				stl::write_thunk_branch<IsValidRace>(is_valid_race.address());
 				logs::info("Installed hooks for TESObjectARMA::IsValidRace");

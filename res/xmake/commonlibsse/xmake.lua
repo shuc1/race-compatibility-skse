@@ -1,9 +1,9 @@
--- v2024-11-15
+-- v2025-5-1
 -- set minimum xmake version
 set_xmakever("2.8.2")
 
 -- set project
-set_project("commonlibsse")
+set_project("commonlib")
 set_arch("x64")
 set_languages("c++23")
 set_warnings("allextra")
@@ -40,11 +40,6 @@ option("skse_xbyak", function()
     add_defines("SKSE_SUPPORT_XBYAK=1")
 end)
 
-option("commonlib_dir", function()
-    set_default("lib/commonlibsse")
-    set_description("commonlib directory")
-end)
-
 -- require packages
 add_requires("rsm-binary-io")
 add_requires("spdlog", { configs = { header_only = false, wchar = true, std_format = true } })
@@ -65,8 +60,11 @@ if has_config("skse_xbyak") then
     add_requires("xbyak")
 end
 
-rule("commonlibsse", function()
-    on_load(function(target) 
+rule("commonlib", function()
+    on_load(function(target)
+        -- set target group
+        target:set("group", "commonlib")
+
         -- set target kind
         target:set("kind", "static")
 
@@ -77,15 +75,24 @@ rule("commonlibsse", function()
         target:add("packages", "rsm-binary-io", "spdlog", { public = true })
         
         -- add options
-        target:add("options", "rex_ini", "rex_json", "rex_toml", "commonlib_dir", "skse_xbyak", { public = true })
+        target:add("options", "rex_ini", "rex_json", "rex_toml", "skse_xbyak", { public = true })
         
         -- add system links
         target:add("syslinks", "advapi32", "bcrypt", "d3d11", "d3dcompiler", "dbghelp", "dxgi", "ole32", "shell32", "user32", "version")
         
-        -- add files
-        local libdir = get_config("commonlib_dir")
+        -- add files and headers
+        local libdir = target:values("lib_dir")
+        local build_ver = target:values("build_ver")
+        if build_ver == "se" then
+            target:add("undefines", "SKYRIM_SUPPORT_AE", { public = true })
+        elseif build_ver == "ae" then
+            target:add("defines", "SKYRIM_SUPPORT_AE", { public = true })
+        elseif build_ver == "vr" then
+            target:add("undefines", "SKYRIM_SUPPORT_AE", { public = true })
+            target:add("defines", "SKYRIMVR", { public = true })
+            target:add("includedirs", libdir .. "/extern/openvr/headers", { public = true })
+        end
         target:add("files", libdir .. "/src/**.cpp")
-        -- add header files
         target:add("includedirs", libdir .. "/include", { public = true })
         target:add("headerfiles",
             libdir .. "/include/(RE/**.h)",
@@ -194,14 +201,20 @@ rule("commonlibsse", function()
 end)
 
 -- define targets
-target("commonlibsse-se", function()
-    add_undefines("SKYRIM_SUPPORT_AE")
-
-    add_rules("commonlibsse")
+target("commonlibsse.se", function()
+    set_values("build_ver", "se")
+    set_values("lib_dir", "lib/commonlibsse")
+    add_rules("commonlib")
 end)
 
-target("commonlibsse-ae", function()
-    add_defines("SKYRIM_SUPPORT_AE=1")
+target("commonlibsse.ae", function()
+    set_values("build_ver", "ae")
+    set_values("lib_dir", "lib/commonlibsse")
+    add_rules("commonlib")
+end)
 
-    add_rules("commonlibsse")
+target("commonlibvr", function()
+    set_values("build_ver", "vr")
+    set_values("lib_dir", "lib/commonlibvr")
+    add_rules("commonlib")
 end)

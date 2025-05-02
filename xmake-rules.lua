@@ -28,6 +28,8 @@ end
 
 rule("race-compatibility", function()
     on_load(function(target)
+        -- set target group
+        target:set("group", "main")
         target:set("default", true)
         target:set("arch", "x64")
         target:set("kind", "shared")
@@ -56,7 +58,7 @@ rule("papyrus", function()
         -- envs
         local skyrim_home = path.absolute(os.getenv("SKYRIM_HOME"))
         local papyrus_compiler = path.join(skyrim_home, "/Papyrus Compiler/PapyrusCompiler.exe")
-        local tesv_includes = path.join(skyrim_home, "/data/scripts/source/")
+        local tesv_includes = path.join(skyrim_home, "/Data/Scripts/Source/")
         local flags = path.join(tesv_includes, "TESV_Papyrus_Flags.flg")
         assert(os.exists(skyrim_home), "SKYRIM_HOME not found in environment")
         assert(os.exists(papyrus_compiler), "PapyrusCompiler.exe not found in " .. papyrus_compiler)

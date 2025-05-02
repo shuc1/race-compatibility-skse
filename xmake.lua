@@ -13,7 +13,7 @@ local required_dir = "required/"
 local plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.1.0", {build = "%Y-%m-%d"})
+set_version("2.2.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set configs
@@ -49,35 +49,45 @@ set_encodings("utf-8")
 
 -- rcs se
 target(project_name .. ".se", function()
-    add_undefines("SKYRIM_SUPPORT_AE")
-    add_deps("commonlibsse-se")
+    add_deps("commonlibsse.se")
     set_targetdir("$(buildir)/main/se")
 
-    add_rules(project_name)
+    add_rules("race-compatibility")
 end)
 
 target(project_name .. ".ae", function()
-    add_defines("SKYRIM_SUPPORT_AE=1")
-    add_deps("commonlibsse-ae")
+    add_deps("commonlibsse.ae")
     set_targetdir("$(buildir)/main/ae")
     
-    add_rules(project_name)
+    add_rules("race-compatibility")
+end)
+
+target(project_name .. ".vr", function()
+    add_deps("commonlibvr")
+    set_targetdir("$(buildir)/main/vr")
+    
+    add_rules("race-compatibility")
 end)
 
 -- papyrus
 target("papyrus.main", function()
+    -- set target group
+    set_group("main")
+
     set_default(true)
     add_files("res/rcs/**.psc")
     add_rules("papyrus")
 end)
 
 -- patches
-local patch_targets = {}
 for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
     -- print("Adding patch subdir: " .. subdir)
     target_name = path.basename(path.directory(path.directory(subdir)))
     target_full_name = "papyrus.patch." .. target_name
     target(target_full_name, function()
+        -- set target group
+        set_group("patch")
+
         add_rules("papyrus")
 
         set_default(false)
@@ -88,13 +98,7 @@ for subdir, _ in pairs(get_papyrus_source_subdirs("res/patch")) do
             add_includedirs(potential_include)
         end
     end)
-    table.insert(patch_targets, target_full_name)
 end
-
-target("papyrus.patch", function()
-    set_kind("phony")
-    add_deps(patch_targets)
-end)
 
 -- xpack
 -- fomod
@@ -103,12 +107,14 @@ set_configvar("FOMOD_REQUIRED_DIR", required_dir)
 set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
 set_configvar("FOMOD_SE_PLUGIN_DIR", "main/se")
 set_configvar("FOMOD_AE_PLUGIN_DIR", "main/ae")
+set_configvar("FOMOD_VR_PLUGIN_DIR", "main/vr")
 add_configfiles("res/(**.xml.in)", {prefixdir = "res/"})
 
 -- installation packs
 xpack("main", function() 
     -- package
     set_formats("zip")
+    -- set_outputdir("build/xpack") 
     set_basename(project_title .. "-$(version)")
     -- fomod info
     add_installfiles("res/rcs/(fomod/**)|*.in")
@@ -118,7 +124,7 @@ xpack("main", function()
     add_installfiles("res/rcs/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-local patch_version = "2.1.1"
+local patch_version = "2.1.2"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package

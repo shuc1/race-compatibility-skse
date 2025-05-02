@@ -59,7 +59,8 @@ xmake require --upgrade
 Please refer to the [Wiki](../../wiki/Home) for more advanced topics.
 
 ## Credits
-- [Ryan McKenzie](https://github.com/Ryan-rsm-McKenzie) and [powerof3](https://github.com/powerof3) for their work on `commonlibsse`.
+- [Ryan McKenzie](https://github.com/Ryan-rsm-McKenzie) and [powerof3](https://github.com/powerof3) for their work on `CommonLibSSE`.
+- [alandtse](https://github.com/alandtse) for `CommonLibVR`.
 - [qudix](https://github.com/qudix) for [commonlibsse-template](https://github.com/qudix/commonlibsse-template)
 - [fenix31415](https://github.com/fenix31415) for `SKSE` modding [tutorial](https://www.youtube.com/watch?v=PunbccQr9xk)
 - [meh321](https://github.com/meh321) and the entire community on `xSE RE` server
