@@ -3,9 +3,12 @@ name: Race Compatibility SKSE CI/CD
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   build:
+    if: github.event_name == 'pull_request'
     runs-on: windows-latest
     outputs:
         version: ${{ steps.extract_version.outputs.version }}
@@ -16,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          submodules: true
+          submodules: recursive
 
       - name: Extract version
         id: extract_version
@@ -37,7 +40,6 @@ jobs:
       - name: Check if tag exists
         run: |
             $ErrorActionPreference = "Continue"
-
             git fetch --tags 2>$null
             $tag = "${{ steps.extract_version.outputs.tag }}"
             git rev-parse $tag -- 2>$null
@@ -64,6 +66,7 @@ jobs:
 
       - name: Build and pack
         run: |
+          $ErrorActionPreference = 'Stop'
           xmake f -v -y -m releasedbg
           xmake -vD -y
           xmake pack
@@ -81,6 +84,7 @@ jobs:
           if-no-files-found: error
 
   release:
+    if: github.event_name == 'push'
     permissions:
       contents: write
       pull-requests: read
