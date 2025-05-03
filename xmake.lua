@@ -1,5 +1,5 @@
 -- set minimum xmake version
-set_xmakever("2.8.6")
+set_xmakever("2.9.9")
 
 -- includes
 includes("@builtin/xpack")
@@ -14,6 +14,7 @@ plugin_dir = "skse/plugins/"
 
 set_project(project_name)
 set_version("2.2.0", {build = "%Y-%m-%d"})
+patch_version = "2.1.2"
 set_license("GPL-3.0")
 
 -- set defaults
@@ -89,10 +90,9 @@ xpack("main", function()
     -- plugin files
     add_installfiles("build/(main/**.dll)")
     -- script files
-    add_installfiles("res/main/(scripts/**)",  {prefixdir = required_dir})
+    add_installfiles("extern/res/main/(scripts/**)",  {prefixdir = required_dir})
 end)   
 
-patch_version = "2.1.2"
 set_configvar("PATCH_VERSION", patch_version)
 xpack("patch", function() 
     -- package
@@ -101,4 +101,5 @@ xpack("patch", function()
     set_basename(project_title .. " - Patch Hub-" .. patch_version)
     -- add fomod info and all files
     add_installfiles("res/patch/(**)|**.in")
+    add_installfiles("extern/res/patch/(**)")
 end)

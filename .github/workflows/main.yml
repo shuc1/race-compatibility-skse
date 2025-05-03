@@ -1,0 +1,135 @@
+name: Race Compatibility SKSE CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+        version: ${{ steps.extract_version.outputs.version }}
+        tag: ${{ steps.extract_version.outputs.tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Extract version
+        id: extract_version
+        run: |
+          $content = Get-Content xmake.lua -Raw
+          $regex = [regex]'set_version\("([^"]+)"'
+          $match = $regex.Match($content)
+          if (-not $match.Success) {
+            echo "❌ Version not found in xmake.lua"
+            exit 1
+          }
+          $version = $match.Groups[1].Value
+          $tag = "v$version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+          echo "✅ Version: $version"
+
+      - name: Check if tag exists
+        run: |
+            $ErrorActionPreference = "Continue"
+
+            git fetch --tags 2>$null
+            $tag = "${{ steps.extract_version.outputs.tag }}"
+            git rev-parse $tag -- 2>$null
+
+            if ($LASTEXITCODE -eq 0) {
+              echo "❌ Tag already exists: $tag"
+              exit 1
+            } else {
+              echo "✅ Tag does not exist: $tag"
+              exit 0
+            }
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: ${{ runner.os }}
+          build-cache: true
+          build-cache-key: ${{ runner.os }}
+          package-cache: true
+          package-cache-key: ${{ runner.os }}
+          project-path: ${{ github.workspace }}
+
+      - name: Build and pack
+        run: |
+          xmake f -v -y -m releasedbg
+          xmake -vD -y
+          xmake pack
+
+      - name: Flatten zip files
+        run: |
+          mkdir -p upload
+          Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
+            Copy-Item -Destination upload/
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: upload/*.zip
+          if-no-files-found: error
+
+  release:
+    permissions:
+      contents: write
+      pull-requests: read
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Git tag
+        run: |
+          tag=${{ needs.build.outputs.tag }}
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git tag -a "${tag}" HEAD -m "Release ${tag}"
+          git push origin "${tag}" || (echo "Failed to push tag"; exit 1)
+
+      - name: Generate changelog
+        run: |
+          url="https://github.com/${{ github.repository }}"
+          prev_tag=$(git describe --tags --abbrev=0 --match "v*.*.*" $(git rev-list --tags --skip=1 --max-count=1))
+          echo "prev_tag=$prev_tag" >> $GITHUB_OUTPUT
+          {
+            echo "## What's Changed"
+            echo "* release: version ${{ needs.build.outputs.version }} by @${GITHUB_ACTOR} in ${url}/pull/${{ github.event.number }}"
+            echo
+            echo
+            echo "**Full Changelog**: ${url}/compare/${prev_tag}...${{ needs.build.outputs.tag }}"
+          } > CHANGELOG.md
+
+      - name: Download all ZIP artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: List downloaded files
+        run: |
+          echo "✅ Artifacts:"
+          ls -R artifacts
+
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.build.outputs.tag }}
+          name: ${{ needs.build.outputs.tag }}
+          body_path: CHANGELOG.md
+          files: artifacts/**/*.zip

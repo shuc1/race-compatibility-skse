@@ -6,3 +6,7 @@
 	path = extern/commonlibvr
 	url = https://github.com/alandtse/CommonLibVR.git
 	shallow = true
+[submodule "extern/res"]
+	path = extern/res
+	url = https://github.com/shuc1/race-compatibility-skse-papyrus.git
+	shallow = true
