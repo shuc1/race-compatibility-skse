@@ -31,7 +31,14 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 	}
 
 	const auto ver = a_skse->RuntimeVersion();
-	if (ver < SKSE::RUNTIME_1_5_39) {
+
+	if (ver
+#ifdef SKYRIMVR
+		> SKSE::RUNTIME_VR_1_4_15_1
+#else
+		< SKSE::RUNTIME_1_5_39
+#endif
+	) {
 		SKSE::log::critical("Unsupported runtime version {}", ver.string());
 		return false;
 	}

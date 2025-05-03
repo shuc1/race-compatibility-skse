@@ -33,10 +33,17 @@
                                             </dependencies>
                                             <type name="Optional" />
                                         </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.4" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
                                     </patterns>
                                 </dependencyType>
                             </typeDescriptor>
                         </plugin>
+
                         <plugin name="SSE v1.5.97 (&quot;Special Edition&quot;)">
                             <description>Select this if you are using Skyrim Special Edition v1.5.97.</description>
                             <image path="fomod/images/cover.png" />
@@ -57,6 +64,46 @@
                                         <pattern>
                                             <dependencies>
                                                 <gameDependency version="1.5" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.4" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="VR v1.4.15">
+                            <description>Select this if you are using Skyrim VR 1.4.15.</description>
+                            <image path="fomod/images/cover.png" />
+                            <files>
+                                <folder source="${FOMOD_VR_PLUGIN_DIR}"
+                                    destination="${FOMOD_PLUGIN_DIR}" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.6" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.5" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.4" />
                                             </dependencies>
                                             <type name="Recommended" />
                                         </pattern>

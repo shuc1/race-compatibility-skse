@@ -47,7 +47,7 @@ namespace rcs::manager
 
 	namespace headpart
 	{
-		auto GetHeadPartType(std::string_view head_part_str) -> HeadPartType;
+		auto StringToHeadPartType(std::string_view head_part_str) -> HeadPartType;
 
 		class HeadPartFormIdListAdder
 		{
@@ -116,7 +116,6 @@ namespace rcs::manager
 			RE::BGSListForm* humans_orcs_and_vampires{ nullptr };
 
 			void AddNone([[maybe_unused]] RE::TESRace* race, [[maybe_unused]] RE::TESRace* vampire_race) {};
-			void AddNonBeast(ADD_RACE_ARGS);
 			void AddArgonian(ADD_RACE_ARGS);
 			void AddElf(ADD_RACE_ARGS);
 			void AddDarkElf(ADD_RACE_ARGS);

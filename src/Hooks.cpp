@@ -25,7 +25,6 @@ namespace rcs
 				}
 
 				if (RE::GetStaticTLSData()->consoleMode) {
-					// RE::ConsoleLog::GetSingleton()->Print("[RCS]GetIsRace >> %0.2lf", result);
 					RE::ConsoleLog::GetSingleton()->Print("GetIsRace >> %0.2lf", result);
 				}
 				return true;
@@ -56,15 +55,14 @@ namespace rcs
 		{
 			static inline bool thunk([[maybe_unused]] RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
 			{
-				return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form,
-					unused, result);
+				return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form, unused, result);
 			}
-			// static inline REL::Relocation<decltype(GetPcIsRace::thunk)> func;
 		};
 #endif  // SKYRIM_SUPPORT_AE
 
 		void TryInstall()
 		{
+			// VR shared GetIsRace/IsValidRace ids with SE
 			if (!manager::raceProxies.empty()) {
 				const REL::Relocation get_is_race{ RELOCATION_ID(21028, 21478), 0 };
 				stl::write_thunk_branch<GetIsRace>(get_is_race.address());
