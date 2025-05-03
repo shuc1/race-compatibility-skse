@@ -63,20 +63,22 @@ jobs:
           package-cache-key: ${{ runner.os }}
           project-path: ${{ github.workspace }}
 
-      - name: Build and pack
+      - name: Build
         run: |
           $ErrorActionPreference = 'Stop'
           xmake f -v -y -m releasedbg
           xmake -vD -y
-          xmake pack
 
-      - name: Flatten zip files
+      - name: Pack and flatten zip files
+        if: github.event_name == 'push'
         run: |
+          xmake pack
           mkdir -p upload
           Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
             Copy-Item -Destination upload/
 
       - name: Upload
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           path: upload/*.zip
