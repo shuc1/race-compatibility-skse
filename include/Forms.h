@@ -20,7 +20,7 @@ namespace rcs
 			// // must alloc a new string before passing to LookupByEditorID/LookupForm
 			if (auto split_loc = form_str.find('|');
 				split_loc != std::string::npos) {  // "OhmesRaht.esp|800" or "OhmesRaht.esp|0x800"
-				auto data_handler = RE::TESDataHandler::GetSingleton();
+				const auto data_handler = RE::TESDataHandler::GetSingleton();
 				t = data_handler ?
 				        data_handler->LookupForm<T>(
 							static_cast<RE::FormID>(std::stoul(std::string{ form_str.substr(split_loc + 1) }, nullptr, 16)),

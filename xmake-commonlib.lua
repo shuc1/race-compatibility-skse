@@ -98,7 +98,8 @@ rule("commonlib", function()
             libdir .. "/include/(RE/**.h)",
             libdir .. "/include/(REL/**.h)",
             libdir .. "/include/(REX/**.h)",
-            libdir .. "/include/(SKSE/**.h)"
+            libdir .. "/include/(SKSE/**.h)",
+            { public = true }
         )
 
         -- set precompiled header

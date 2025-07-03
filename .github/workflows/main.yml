@@ -57,8 +57,6 @@ jobs:
           xmake-version: latest
           actions-cache-folder: '.xmake-cache'
           actions-cache-key: ${{ runner.os }}
-          build-cache: true
-          build-cache-key: ${{ runner.os }}
           package-cache: true
           package-cache-key: ${{ runner.os }}
           project-path: ${{ github.workspace }}
@@ -113,7 +111,7 @@ jobs:
           echo "prev_tag=$prev_tag" >> $GITHUB_OUTPUT
           {
             echo "## What's Changed"
-            echo "* release: version ${{ needs.build.outputs.version }} by @${GITHUB_ACTOR} in ${url}/pull/${{ github.event.number }}"
+            echo "* release: version ${{ needs.build.outputs.version }} by @${GITHUB_ACTOR}"
             echo
             echo
             echo "**Full Changelog**: ${url}/compare/${prev_tag}...${{ needs.build.outputs.tag }}"
