@@ -13,7 +13,7 @@ required_dir = "required/"
 plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.2.0", {build = "%Y-%m-%d"})
+set_version("2.2.1", {build = "%Y-%m-%d"})
 patch_version = "2.1.2"
 set_license("GPL-3.0")
 
@@ -48,26 +48,31 @@ set_configvar("PROJECT_NAME_CAMEL", to_camel(project_name))
 add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 
 -- builds
-target(project_name .. ".se", function()
-    add_deps("commonlibsse.se")
-    set_targetdir("$(buildir)/main/se")
+targettable = {
+    -- name, dep
+    ['se']='commonlibsse.se',
+    ['ae']='commonlibsse.ae',
+    ['vr']='commonlibvr'
+}
 
-    add_rules("race-compatibility")
-end)
+for name, dep in pairs(targettable) do
+    target(project_name .. "." .. name, function()
+        add_deps(dep)
+        set_targetdir("$(builddir)/main/" .. name)
 
-target(project_name .. ".ae", function()
-    add_deps("commonlibsse.ae")
-    set_targetdir("$(buildir)/main/ae")
-    
-    add_rules("race-compatibility")
-end)
+        add_rules("race-compatibility")
+    end)
 
-target(project_name .. ".vr", function()
-    add_deps("commonlibvr")
-    set_targetdir("$(buildir)/main/vr")
-    
-    add_rules("race-compatibility")
-end)
+    -- -- compatible version
+    -- target(project_name .. ".compatible." .. name, function()
+    --     add_deps(dep)
+    --     set_targetdir("$(builddir)/compatible/" .. name)
+
+    --     -- placeholder for hook compatibility
+    --     add_defines("COMPATIBLE_BUILD=1")
+    --     add_rules("race-compatibility")
+    -- end)
+end
 
 -- xpack
 -- fomod

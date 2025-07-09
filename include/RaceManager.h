@@ -22,7 +22,7 @@ namespace rcs::manager
 
 	struct ArmorProxyEntry
 	{
-		RE::TESRace*                            race;
+		RE::TESRace*                            proxy;
 		RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
 	};
 
@@ -35,7 +35,7 @@ namespace rcs::manager
 	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race);
 	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies);
 	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies);
-	void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type);
+	void EmplaceHeadPartRace(const RE::TESRace* race, HeadPartType type);
 	// judge
 	auto GetVampireRaceByRace(const RE::TESRace* race) -> const RE::TESRace*;
 	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;
@@ -51,13 +51,12 @@ namespace rcs::manager
 
 		class HeadPartFormIdListAdder
 		{
+#define ADD_RACE_ARGS [[maybe_unused]] RE::TESRace *race, [[maybe_unused]] RE::TESRace *vampire_race
 		public:
 			using Type = HeadPartType;
 
 			HeadPartFormIdListAdder();
-
 			auto IsInitialized() const -> bool;
-#define ADD_RACE_ARGS RE::TESRace *race, RE::TESRace *vampire_race
 			void AddRace(ADD_RACE_ARGS, Type type);
 
 		private:
@@ -115,21 +114,19 @@ namespace rcs::manager
 			// non-beast, non-elf races and vampires
 			RE::BGSListForm* humans_orcs_and_vampires{ nullptr };
 
-			void AddNone([[maybe_unused]] RE::TESRace* race, [[maybe_unused]] RE::TESRace* vampire_race) {};
-			void AddArgonian(ADD_RACE_ARGS);
-			void AddElf(ADD_RACE_ARGS);
-			void AddDarkElf(ADD_RACE_ARGS);
-			void AddHighElf(ADD_RACE_ARGS);
-			void AddWoodElf(ADD_RACE_ARGS);
-			void AddHuman(ADD_RACE_ARGS);
-			void AddBreton(ADD_RACE_ARGS);
-			void AddImperial(ADD_RACE_ARGS);
-			void AddNord(ADD_RACE_ARGS);
-			void AddRedguard(ADD_RACE_ARGS);
-			void AddKhajiit(ADD_RACE_ARGS);
-			void AddOrc(ADD_RACE_ARGS);
-
-#undef ADD_RACE_ARGS
+			void AddNone(ADD_RACE_ARGS) const {}
+			void AddArgonian(ADD_RACE_ARGS) const;
+			void AddElf(ADD_RACE_ARGS) const;
+			void AddDarkElf(ADD_RACE_ARGS) const;
+			void AddHighElf(ADD_RACE_ARGS) const;
+			void AddWoodElf(ADD_RACE_ARGS) const;
+			void AddHuman(ADD_RACE_ARGS) const;
+			void AddBreton(ADD_RACE_ARGS) const;
+			void AddImperial(ADD_RACE_ARGS) const;
+			void AddNord(ADD_RACE_ARGS) const;
+			void AddRedguard(ADD_RACE_ARGS) const;
+			void AddKhajiit(ADD_RACE_ARGS) const;
+			void AddOrc(ADD_RACE_ARGS) const;
 		};
 	}  // namespace headpart
 }  // namespace rcs::manager

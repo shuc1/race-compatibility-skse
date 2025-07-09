@@ -1,11 +1,6 @@
 #pragma once
 
-namespace rcs
+namespace rcs::hook
 {
-	namespace hook
-	{
-		void TryInstall();
-	}
-
 	void TryInstall();
-}  // namespace hook
+}

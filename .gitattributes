@@ -1,5 +1,3 @@
-res/rcs/scripts/source/CompanionsHousekeepingScript.psc linguist-vendored
-res/rcs/scripts/source/PlayerVampireQuestScript.psc linguist-vendored
-res/patch/** linguist-vendored
-res/papyrus/** linguist-vendored
-res/xmake/** linguist-vendored
+res/**/*.xml.in linguist-language=XML
+res/Versions.h.in linguist-language=C++
+xmake*.lua linguist-language=Xmake
