@@ -87,27 +87,31 @@ namespace rcs::config
 			return result;
 		}
 
-		void ApplyVampirismAndHeadPart(const ConfigEntry& config, manager::headpart::HeadPartFormIdListAdder& adder)
-		{
-			auto *race = config.race.form, *race_vamp = config.vampireRace.form;
-			manager::EmplaceVampirismRacePair(race, race_vamp);
-			adder.AddRace(race, race_vamp, config.headPart);
-		}
-
 		void ApplyRaceProxy(ConfigEntry::RaceProxy& race_proxy)
 		{
-			// apply dialogue race proxies
-			if (!race_proxy.proxies.empty()) {
-				manager::EmplaceRaceProxies(race_proxy.form, std::move(race_proxy.proxies));
-			}
+			// apply condition race proxies
+			manager::EmplaceRaceProxies(race_proxy.form, std::move(race_proxy.proxies));
 			// set armorParentRace
 			if (auto* armor_race = race_proxy.armor.race) {
 				race_proxy.form->armorParentRace = armor_race;
 			}
-			// add armorParentRace for specific slot mask
-			if (!race_proxy.armor.variants.empty()) {
-				EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
+			// set armorParentRace for specific slot masks
+			manager::EmplaceArmorRaceProxies(race_proxy.form, std::move(race_proxy.armor.variants));
+		}
+
+		void ApplyConfigEntry(ConfigEntry& config, manager::headpart::HeadPartFormIdListAdder& adder)
+		{
+			auto *race = config.race.form, *race_vamp = config.vampireRace.form;
+
+			// condition & armor related
+			ApplyRaceProxy(config.race);
+			if (race_vamp) {
+				ApplyRaceProxy(config.vampireRace);
+				// vampirism related
+				manager::EmplaceVampirismRacePair(race, race_vamp);
 			}
+			// head part related, due to RE::BGSListForm::AddForm, race cannot be const
+			adder.AddRace(race, race_vamp, config.headPart);
 		}
 
 		struct ParseCache
@@ -152,9 +156,8 @@ namespace rcs::config
 					}
 				}
 
-				ApplyVampirismAndHeadPart(config, cache.adder);
-				ApplyRaceProxy(config.race);
-				ApplyRaceProxy(config.vampireRace);
+				// race are guaranteed to be valid at this point, but vampireRace can be empty
+				ApplyConfigEntry(config, cache.adder);
 
 				// add to visited map
 				auto info = std::string_view(
@@ -239,4 +242,4 @@ namespace rcs::config
 		}
 		return detail::LoadConfigs(files);
 	}
-} // namespace rcs::config
+}  // namespace rcs::config

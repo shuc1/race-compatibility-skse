@@ -35,7 +35,7 @@ namespace rcs::manager
 	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race);
 	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies);
 	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies);
-	void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type);
+	void EmplaceHeadPartRace(const RE::TESRace* race, HeadPartType type);
 	// judge
 	auto GetVampireRaceByRace(const RE::TESRace* race) -> const RE::TESRace*;
 	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;

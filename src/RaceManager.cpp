@@ -11,22 +11,23 @@ namespace rcs::manager
 
 	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies)
 	{
-		if (proxies.size()) {
-			raceProxies.emplace(race, proxies);
+		if (race && !proxies.empty()) {
+			raceProxies.emplace(race, std::move(proxies));
 		}
 	}
 
 	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies)
 	{
-		if (proxies.size()) {
-			armorRaceProxies.emplace(race, proxies);
+		if (race && !proxies.empty()) {
+			armorRaceProxies.emplace(race, std::move(proxies));
 		}
 	}
 
-	void EmplaceHeadPartRaces(const RE::TESRace* race, const RE::TESRace* vampire_race, HeadPartType type)
+	void EmplaceHeadPartRace(const RE::TESRace* race, HeadPartType type)
 	{
-		headPartMap.emplace(race, type);
-		headPartMap.emplace(vampire_race, type);
+		if (race) {
+			headPartMap.emplace(race, type);
+		}
 	}
 
 	auto GetVampireRaceByRace(const RE::TESRace* race)
@@ -181,7 +182,8 @@ namespace rcs::manager
 
 			if (type != kNone) {
 				(this->*adder[std::to_underlying(type)])(race, vampire_race);
-				EmplaceHeadPartRaces(race, vampire_race, type);
+				EmplaceHeadPartRace(race, type);
+				EmplaceHeadPartRace(vampire_race, type);
 			}
 		}
 

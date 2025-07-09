@@ -55,7 +55,7 @@ namespace rcs::hook
 	{
 		static bool thunk([[maybe_unused]] RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
 		{
-			return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form, unused, result);
+			return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form, 0x0, result);
 		}
 	};
 #endif  // SKYRIM_SUPPORT_AE

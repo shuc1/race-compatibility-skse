@@ -23,18 +23,14 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          $content = Get-Content xmake.lua -Raw
-          $regex = [regex]'set_version\("([^"]+)"'
-          $match = $regex.Match($content)
-          if (-not $match.Success) {
-            echo "❌ Version not found in xmake.lua"
-            exit 1
-          }
-          $version = $match.Groups[1].Value
+          . .github/scripts/match-string.ps1
+
+          $content = Get-Content xmake.lua -Raw -Encoding UTF8
+          $version = Match-String -content $content -pattern 'set_version\("([^"]+)"'
           $tag = "v$version"
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "tag=$tag" >> $env:GITHUB_OUTPUT
-          echo "✅ Version: $version"
+          echo "📘 Version: $version"
 
       - name: Check if tag exists
         run: |
@@ -47,9 +43,33 @@ jobs:
               echo "❌ Tag already exists: $tag"
               exit 1
             } else {
-              echo "✅ Tag does not exist: $tag"
+              echo "🏷️ Tag does not exist: $tag"
               exit 0
             }
+      
+      - name: Check if patch updated
+        id: check_patch_version
+        run: |
+            . .github/scripts/match-string.ps1
+
+            $patch_version_pattern = 'patch_version = "([^"]+)"'
+
+            $content = Get-Content xmake.lua -Raw -Encoding UTF8
+            $current_version = Match-String -content $content -pattern  $patch_version_pattern
+            echo "📗 Current patch version: $current_version"
+
+            $content = git --no-pager show origin/main:xmake.lua
+            $main_branch_version = Match-String -content $content -pattern  $patch_version_pattern
+            echo "📗 Main branch patch version: $main_branch_version"
+
+            if ($current_version -eq $main_branch_version) {
+              echo "❌ No patch update found."
+              echo "updated=false" >> $env:GITHUB_OUTPUT
+            } else {
+              echo "☝️ Patch is updated to: $current_version"
+              echo "updated=true" >> $env:GITHUB_OUTPUT
+            }
+
 
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
@@ -67,13 +87,26 @@ jobs:
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
-      - name: Pack and flatten zip files
+      - name: Pack fomods and Flatten zip files
         if: github.event_name == 'push'
         run: |
           xmake pack
+
           mkdir -p upload
           Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
             Copy-Item -Destination upload/
+          echo "🗃️ Flattened ZIP files"
+
+          # if patch version already exists, remove copied patch file
+          $updated = "${{ steps.check_patch_version.outputs.updated }}"
+          if ($updated -eq 'false') {
+            # name with "Patch" in the filename
+            $patch_file = Get-ChildItem -Path upload -Filter '*Patch*.zip' -Recurse | Select-Object -First 1
+            if ($patch_file -ne $null -and (Test-Path $patch_file)) {
+              Remove-Item $patch_file
+              echo "🗑️ Removed existing patch for no update: $patch_file"
+            }
+          }
 
       - name: Upload
         if: github.event_name == 'push'
@@ -124,11 +157,11 @@ jobs:
       
       - name: List downloaded files
         run: |
-          echo "✅ Artifacts:"
+          echo "💼 Artifacts:"
           ls -R artifacts
 
       - name: Create GitHub Release and upload assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

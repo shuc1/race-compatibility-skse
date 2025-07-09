@@ -68,6 +68,7 @@ for name, dep in pairs(targettable) do
     --     add_deps(dep)
     --     set_targetdir("$(builddir)/compatible/" .. name)
 
+    --     -- placeholder for hook compatibility
     --     add_defines("COMPATIBLE_BUILD=1")
     --     add_rules("race-compatibility")
     -- end)
