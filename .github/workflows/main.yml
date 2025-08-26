@@ -74,6 +74,8 @@ jobs:
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
+          # TODO: build cache for commonlib
+          # ref: https://github.com/xmake-io/xmake/blob/dev/.github/workflows/windows.yml
           xmake-version: latest
           actions-cache-folder: '.xmake-cache'
           actions-cache-key: ${{ runner.os }}
@@ -87,7 +89,7 @@ jobs:
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
-      - name: Pack fomods and Flatten zip files
+      - name: Pack fomods and flatten zip files
         if: github.event_name == 'push'
         run: |
           xmake pack
