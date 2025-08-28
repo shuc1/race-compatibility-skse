@@ -3,83 +3,116 @@
 
 namespace rcs::hook
 {
-	// hook for GetIsRace
-	struct GetIsRace
+	namespace
 	{
-		static bool thunk(const RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+#define LOG_TO_CONSOLE(a_name)                                               \
+	if (RE::GetStaticTLSData()->consoleMode) {                               \
+		RE::ConsoleLog::GetSingleton()->Print(#a_name " >> %0.2lf", result); \
+	}
+
+		// thunk for GetIsRace
+		struct GetIsRace
 		{
-			result = 0.0;
-			// check if obj is an NPC and has the same race
-			if (obj && race_form) {
-				const auto npc = obj->data.objectReference->As<RE::TESNPC>();
-				const auto race = race_form->As<RE::TESRace>();
-				if (npc && race) {
-					if (const auto npc_race = npc->race;
-						npc_race &&
-						manager::GetIsRaceByProxy(npc_race, race)) {
+			static bool thunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+			{
+				result = 0.0;
+				// check if obj is an NPC and has the same race
+				if (obj && race_form) {
+					const auto npc = obj->data.objectReference->As<RE::TESNPC>();
+					const auto race = race_form->As<RE::TESRace>();
+					if (npc && race && manager::GetIsRaceByProxy(npc->race, race)) {
 						result = 1.0;
 					}
 				}
-			}
-
-			if (RE::GetStaticTLSData()->consoleMode) {
-				RE::ConsoleLog::GetSingleton()->Print("GetIsRace >> %0.2lf", result);
-			}
-			return true;
-		}
-	};
-
-	// hook for TESObjectARMA::IsValidRace
-	struct IsValidRace
-	{
-		static bool thunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
-		{
-			//auto* source_race = !race || !race->armorParentRace ? race : race->armorParentRace;
-			if (!race) {
-				return false;
-			}
-			// race not null
-			auto* armor_parent_race = manager::GetProxyArmorParentRace(armor_addon, race);
-			if (const auto* armor_race = armor_addon->race;
-				race == armor_race || armor_parent_race == armor_race) {
+				LOG_TO_CONSOLE(GetIsRace)
 				return true;
 			}
-			return std::ranges::any_of(armor_addon->additionalRaces,
-				[&](const auto& target_race) { return race == target_race || armor_parent_race == target_race; });
-		}
-	};
+		};
+
+		struct SameRace
+		{
+			static bool thunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
+			{
+				result = 0.0;
+				if (obj1 && obj2) {
+					// check if obj1 and obj2 are NPC
+					const auto npc1 = obj1->data.objectReference->As<RE::TESNPC>();
+					const auto npc2 = obj2->data.objectReference->As<RE::TESNPC>();
+					if (npc1 && npc2 && manager::GetIsRaceByProxy(npc1->race, npc2->race)) {
+						result = 1.0;
+					}
+				}
+				LOG_TO_CONSOLE(SameRace)
+				return true;
+			}
+		};
 
 #ifdef SKYRIM_SUPPORT_AE
-	// hook for GetPcsRace
-	struct GetPcIsRace
-	{
-		static bool thunk([[maybe_unused]] RE::TESObjectREFR* obj, RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+		// thunk for GetPCIsRace
+		struct GetPCIsRace
 		{
-			return GetIsRace::thunk(RE::PlayerCharacter::GetSingleton(), race_form, 0x0, result);
-		}
-	};
-#endif  // SKYRIM_SUPPORT_AE
+			static bool thunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
+			{
+				result = 0.0;
+				if (const auto pc = RE::PlayerCharacter::GetSingleton(); pc && race_form) {
+					if (const auto race = race_form->As<RE::TESRace>();
+						race && manager::GetIsRaceByProxy(pc->race, race)) {
+						result = 1.0;
+					}
+				}
+				LOG_TO_CONSOLE(GetIsRace)
+				return true;
+			}
+		};
+#endif
+#undef LOG_TO_CONSOLE
 
-	/////////////////////
-	// Install the hooks
+		// thunk for TESObjectARMA::IsValidRace
+		struct IsValidRace
+		{
+			static bool thunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
+			{
+				//auto* source_race = !race || !race->armorParentRace ? race : race->armorParentRace;
+				if (!race) {
+					return false;
+				}
+				// race not null
+				auto* armor_parent_race = manager::GetProxyArmorParentRace(armor_addon, race);
+				if (const auto* armor_race = armor_addon->race;
+					race == armor_race || armor_parent_race == armor_race) {
+					return true;
+				}
+				return std::ranges::any_of(armor_addon->additionalRaces,
+					[&](const auto& target_race) { return race == target_race || armor_parent_race == target_race; });
+			}
+		};
+
+		template <typename T>
+		void InstallHook(const REL::ID id)
+		{
+			const REL::Relocation target{ id, 0 };
+			stl::write_jump_to_thunk<T>(target.address());
+		}
+
+	}
+
 	void TryInstall()
 	{
-		// VR shared GetIsRace/IsValidRace ids with SE
 		if (!manager::raceProxies.empty()) {
-			const REL::Relocation get_is_race{ RELOCATION_ID(21028, 21478), 0 };
-			stl::write_thunk_branch<GetIsRace>(get_is_race.address());
+			// VR shared GetIsRace/IsValidRace ids with SE
+			InstallHook<GetIsRace>(RELOCATION_ID(21028, 21478));
+			InstallHook<SameRace>(RELOCATION_ID(20978, 21428));
+			logs::info("Installed hooks for GetIsRace and SameRace");
 
 #ifdef SKYRIM_SUPPORT_AE
-			const REL::Relocation get_pc_is_race{ RELOCATION_ID(0, 21484), 0 };
-			stl::write_thunk_branch<GetPcIsRace>(get_pc_is_race.address());
-#endif  // SKYRIM_SUPPORT_AE
-
-			logs::info("Installed hooks for GetIsRace");
+			InstallHook<GetPCIsRace>(REL::ID(21484));
+			logs::info("Installed hook for GetPCIsRace");
+#endif
 		}
+
 		if (!manager::armorRaceProxies.empty()) {
-			const REL::Relocation is_valid_race{ RELOCATION_ID(17359, 17757), 0 };
-			stl::write_thunk_branch<IsValidRace>(is_valid_race.address());
-			logs::info("Installed hooks for TESObjectARMA::IsValidRace");
+			InstallHook<IsValidRace>(RELOCATION_ID(17359, 17757));
+			logs::info("Installed hook for TESObjectARMA::IsValidRace");
 		}
 	}
 }  // namespace rcs::hook

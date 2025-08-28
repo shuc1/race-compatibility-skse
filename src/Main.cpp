@@ -5,7 +5,50 @@
 #include "Hooks.h"
 #include "Papyrus.h"
 
-namespace logs = SKSE::log;
+namespace
+{
+	void InitLogging()
+	{
+		auto path = SKSE::log::log_directory();
+		if (!path)
+			return;
+
+		*path /= std::format("{}.log", rcs::PROJECT_NAME);
+
+		spdlog::sinks_init_list sinks{
+			std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
+			std::make_shared<spdlog::sinks::msvc_sink_mt>()
+		};
+
+		auto logger = std::make_shared<spdlog::logger>("global", sinks);
+		logger->set_level(spdlog::level::info);
+		logger->flush_on(spdlog::level::info);
+
+		spdlog::set_default_logger(std::move(logger));
+		spdlog::set_pattern("[%^%L%$] %v");
+	}
+
+	void MessageHandler(SKSE::MessagingInterface::Message* a_message)
+	{
+		switch (a_message->type) {
+		case SKSE::MessagingInterface::kDataLoaded:
+			{
+				logs::info("{:*^50}", "DEPENDENCIES");
+				const auto start = std::chrono::system_clock::now();
+				const auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
+				logs::info("Loaded configs in {} ms",
+					std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
+				if (should_install_hooks) {
+					logs::info("{:*^30}", "HOOKS");
+					rcs::hook::TryInstall();
+				}
+				break;
+			}
+		default:
+			break;
+		}
+	}
+}
 
 #ifdef SKYRIM_SUPPORT_AE
 extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
@@ -15,7 +58,7 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
 	v.AuthorName("shuc");
 	v.UsesAddressLibrary();
 	v.UsesUpdatedStructs();
-	v.CompatibleVersions({ SKSE::RUNTIME_LATEST });
+	v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
 	return v;
 }();
 #else
@@ -33,11 +76,12 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 	const auto ver = a_skse->RuntimeVersion();
 
 	if (ver
-#ifdef SKYRIMVR
-		> SKSE::RUNTIME_VR_1_4_15_1
-#else
-		< SKSE::RUNTIME_1_5_39
-#endif
+#	ifdef SKYRIMVR
+		!= SKSE::RUNTIME_VR_1_4_15_1
+#	else
+		< SKSE::RUNTIME_SSE_1_5_39
+#	endif
+
 	) {
 		SKSE::log::critical("Unsupported runtime version {}", ver.string());
 		return false;
@@ -46,48 +90,6 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 	return true;
 }
 #endif
-
-static inline void InitLogging()
-{
-	auto path = logs::log_directory();
-	if (!path)
-		return;
-
-	*path /= std::format("{}.log", rcs::PROJECT_NAME);
-
-	spdlog::sinks_init_list sinks{
-		std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
-		std::make_shared<spdlog::sinks::msvc_sink_mt>()
-	};
-
-	auto logger = std::make_shared<spdlog::logger>("global", sinks);
-	logger->set_level(spdlog::level::info);
-	logger->flush_on(spdlog::level::info);
-
-	spdlog::set_default_logger(std::move(logger));
-	spdlog::set_pattern("[%^%L%$] %v");
-}
-
-static void MessageHandler(SKSE::MessagingInterface::Message* a_message)
-{
-	switch (a_message->type) {
-	case SKSE::MessagingInterface::kDataLoaded:
-		{
-			logs::info("{:*^50}", "DEPENDENCIES");
-			const auto start = std::chrono::system_clock::now();
-			const auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
-			logs::info("Loaded configs in {} ms",
-				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
-			if (should_install_hooks) {
-				logs::info("{:*^30}", "HOOKS");
-				rcs::hook::TryInstall();
-			}
-			break;
-		}
-	default:
-		break;
-	}
-}
 
 extern "C" __declspec(dllexport) bool SKSEAPI
 	SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
