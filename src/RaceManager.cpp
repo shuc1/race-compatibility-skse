@@ -52,6 +52,9 @@ namespace rcs::manager
 		if (source_race == target_race) {
 			return true;
 		}
+		if (!source_race) {
+			return false;
+		}
 		const auto it = raceProxies.find(source_race);
 		return it != raceProxies.end() && it->second.contains(target_race);
 	}

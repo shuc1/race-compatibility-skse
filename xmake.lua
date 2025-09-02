@@ -13,15 +13,14 @@ required_dir = "required/"
 plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.2.1", {build = "%Y-%m-%d"})
-patch_version = "2.1.2"
+set_version("2.3.0", {build = "%Y-%m-%d"})
+patch_version = "2.1.3"
 set_license("GPL-3.0")
 
 -- set defaults
 set_languages("cxxlatest")
 set_warnings("allextra", "error")
 set_defaultmode("releasedbg")
--- set_optimize("faster")
 
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")
@@ -29,6 +28,7 @@ add_rules("plugin.vsxmake.autoupdate")
 
 -- set policies
 set_policy("package.requires_lock", true)
+set_policy("build.optimization.lto", true)
 
 -- add requires
 add_requires("glaze")
@@ -37,6 +37,7 @@ add_requires("glaze")
 set_encodings("utf-8")
 
 -- targets
+set_toolchains("msvc")
 -- set configs
 set_configdir("$(projectdir)")
 -- project source
@@ -59,7 +60,6 @@ for name, dep in pairs(targettable) do
     target(project_name .. "." .. name, function()
         add_deps(dep)
         set_targetdir("$(builddir)/main/" .. name)
-
         add_rules("race-compatibility")
     end)
 

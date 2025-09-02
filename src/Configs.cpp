@@ -3,7 +3,7 @@
 
 namespace rcs::config
 {
-	namespace detail
+	namespace
 	{
 		auto CollectConfigFilenamesFromFolder(const std::string_view folder)
 			-> std::vector<std::string>
@@ -208,7 +208,7 @@ namespace rcs::config
 			logs::info("default:");
 			ParseAndApplyRawConfig(
 				"default",
-				std::vector{
+				{
 					RCS_DEFAULT_RACE_RAW_ENTRY(Argonian),
 					RCS_DEFAULT_RACE_RAW_ENTRY(Breton),
 					RCS_DEFAULT_RACE_RAW_ENTRY(DarkElf),
@@ -227,7 +227,7 @@ namespace rcs::config
 			manager::Summary();
 			return true;
 		}
-	}  // namespace detail
+	}  // anonymous namespace
 
 	bool TryReadAndApplyConfigs()
 	{
@@ -236,10 +236,10 @@ namespace rcs::config
 			logs::error("TESDataHandler is not initialized"sv);
 			return false;
 		}
-		auto files = detail::CollectConfigFilenamesFromFolder(rcs::CONFIG_DIR);
+		auto files = CollectConfigFilenamesFromFolder(rcs::CONFIG_DIR);
 		if (files.empty()) {
 			logs::warn("No config files found in {}"sv, rcs::CONFIG_DIR);
 		}
-		return detail::LoadConfigs(files);
+		return LoadConfigs(files);
 	}
 }  // namespace rcs::config
