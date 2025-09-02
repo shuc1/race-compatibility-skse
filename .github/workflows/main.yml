@@ -10,8 +10,8 @@ jobs:
   build:
     runs-on: windows-latest
     outputs:
-        version: ${{ steps.extract_version.outputs.version }}
-        tag: ${{ steps.extract_version.outputs.tag }}
+      version: ${{ steps.extract_version.outputs.version }}
+      tag: ${{ steps.extract_version.outputs.tag }}
 
     steps:
       - name: Checkout repository
@@ -28,87 +28,48 @@ jobs:
           $content = Get-Content xmake.lua -Raw -Encoding UTF8
           $version = Match-String -content $content -pattern 'set_version\("([^"]+)"'
           $tag = "v$version"
+
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "tag=$tag" >> $env:GITHUB_OUTPUT
+
           echo "📘 Version: $version"
 
       - name: Check if tag exists
         run: |
-            $ErrorActionPreference = "Continue"
-            git fetch --tags 2>$null
-            $tag = "${{ steps.extract_version.outputs.tag }}"
-            git rev-parse $tag -- 2>$null
+          $ErrorActionPreference = "Continue"
+          git fetch --tags 2>$null
+          $tag = "${{ steps.extract_version.outputs.tag }}"
+          git rev-parse $tag -- 2>$null
+          $ErrorActionPreference = "Stop"
 
-            if ($LASTEXITCODE -eq 0) {
-              echo "❌ Tag already exists: $tag"
-              exit 1
-            } else {
-              echo "🏷️ Tag does not exist: $tag"
-              exit 0
-            }
-      
-      - name: Check if patch updated
-        id: check_patch_version
-        run: |
-            . .github/scripts/match-string.ps1
-
-            $patch_version_pattern = 'patch_version = "([^"]+)"'
-
-            $content = Get-Content xmake.lua -Raw -Encoding UTF8
-            $current_version = Match-String -content $content -pattern  $patch_version_pattern
-            echo "📗 Current patch version: $current_version"
-
-            $content = git --no-pager show origin/main:xmake.lua
-            $main_branch_version = Match-String -content $content -pattern  $patch_version_pattern
-            echo "📗 Main branch patch version: $main_branch_version"
-
-            if ($current_version -eq $main_branch_version) {
-              echo "❌ No patch update found."
-              echo "updated=false" >> $env:GITHUB_OUTPUT
-            } else {
-              echo "☝️ Patch is updated to: $current_version"
-              echo "updated=true" >> $env:GITHUB_OUTPUT
-            }
-
+          if ($LASTEXITCODE -eq 0) {
+            echo "❌ Tag already exists: $tag"
+            exit 1
+          } else {
+            echo "🏷️ Tag does not exist: $tag"
+            exit 0
+          }
 
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
-          # TODO: build cache for commonlib
           # ref: https://github.com/xmake-io/xmake/blob/dev/.github/workflows/windows.yml
           xmake-version: latest
           actions-cache-folder: '.xmake-cache'
           actions-cache-key: ${{ runner.os }}
-          package-cache: true
-          package-cache-key: ${{ runner.os }}
-          project-path: ${{ github.workspace }}
 
       - name: Build
         run: |
-          $ErrorActionPreference = 'Stop'
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
-      - name: Pack fomods and flatten zip files
-        if: github.event_name == 'push'
+      - name: Pack
         run: |
           xmake pack
-
           mkdir -p upload
           Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
             Copy-Item -Destination upload/
-          echo "🗃️ Flattened ZIP files"
-
-          # if patch version already exists, remove copied patch file
-          $updated = "${{ steps.check_patch_version.outputs.updated }}"
-          if ($updated -eq 'false') {
-            # name with "Patch" in the filename
-            $patch_file = Get-ChildItem -Path upload -Filter '*Patch*.zip' -Recurse | Select-Object -First 1
-            if ($patch_file -ne $null -and (Test-Path $patch_file)) {
-              Remove-Item $patch_file
-              echo "🗑️ Removed existing patch for no update: $patch_file"
-            }
-          }
+          echo "🗃️ Uploaded artifact"
 
       - name: Upload
         if: github.event_name == 'push'
@@ -155,12 +116,12 @@ jobs:
       - name: Download all ZIP artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
-      
+          path: artifact
+
       - name: List downloaded files
         run: |
-          echo "💼 Artifacts:"
-          ls -R artifacts
+          echo "💼 Artifact:"
+          ls -R artifact
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
@@ -170,4 +131,4 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag }}
           name: ${{ needs.build.outputs.tag }}
           body_path: CHANGELOG.md
-          files: artifacts/**/*.zip
+          files: artifact/**/*.zip

@@ -8,13 +8,10 @@ includes("xmake-commonlib.lua")
 
 -- set project
 project_name = "race-compatibility"
-project_title = to_title(project_name)
-required_dir = "required/"
 plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.3.0", {build = "%Y-%m-%d"})
-patch_version = "2.1.3"
+set_version("2.3.1", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set defaults
@@ -36,8 +33,9 @@ add_requires("glaze")
 -- set encoding
 set_encodings("utf-8")
 
--- targets
+-- set toolchain
 set_toolchains("msvc")
+
 -- set configs
 set_configdir("$(projectdir)")
 -- project source
@@ -56,26 +54,27 @@ targettable = {
     ['vr']='commonlibvr'
 }
 
+-- dll
 for name, dep in pairs(targettable) do
     target(project_name .. "." .. name, function()
         add_deps(dep)
         set_targetdir("$(builddir)/main/" .. name)
         add_rules("race-compatibility")
     end)
-
-    -- -- compatible version
-    -- target(project_name .. ".compatible." .. name, function()
-    --     add_deps(dep)
-    --     set_targetdir("$(builddir)/compatible/" .. name)
-
-    --     -- placeholder for hook compatibility
-    --     add_defines("COMPATIBLE_BUILD=1")
-    --     add_rules("race-compatibility")
-    -- end)
 end
+
+-- papyrus
+target("papyrus", function()
+    add_rules("papyrus")
+    set_default(false)
+
+    add_files("res/scripts/source/**.psc")
+end)
 
 -- xpack
 -- fomod
+project_title = to_title(project_name)
+required_dir = "required/"
 set_configvar("PROJECT_TITLE", project_title)
 set_configvar("FOMOD_REQUIRED_DIR", required_dir)
 set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
@@ -84,27 +83,16 @@ set_configvar("FOMOD_AE_PLUGIN_DIR", "main/ae")
 set_configvar("FOMOD_VR_PLUGIN_DIR", "main/vr")
 add_configfiles("res/(**.xml.in)", {prefixdir = "res/"})
 
--- installation packs
+-- main pack
 xpack("main", function() 
     -- package
     set_formats("zip")
     -- set_outputdir("build/xpack") 
     set_basename(project_title .. "-$(version)")
     -- fomod info
-    add_installfiles("res/main/(fomod/**)|*.in")
+    add_installfiles("res/(fomod/**)|*.in")
     -- plugin files
     add_installfiles("build/(main/**.dll)")
     -- script files
-    add_installfiles("extern/res/main/(scripts/**)",  {prefixdir = required_dir})
-end)   
-
-set_configvar("PATCH_VERSION", patch_version)
-xpack("patch", function() 
-    -- package
-    set_formats("zip")
-    set_version(patch_version)
-    set_basename(project_title .. " - Patch Hub-" .. patch_version)
-    -- add fomod info and all files
-    add_installfiles("res/patch/(**)|**.in")
-    add_installfiles("extern/res/patch/(**)")
+    add_installfiles("res/(scripts/**)",  {prefixdir = required_dir})
 end)
