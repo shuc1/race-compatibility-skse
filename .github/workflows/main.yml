@@ -121,7 +121,9 @@ jobs:
       - name: List downloaded files
         run: |
           echo "💼 Artifact:"
-          ls -R artifact
+          for file in artifact/**/*.zip; do
+            sha256sum "$file"
+          done
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
