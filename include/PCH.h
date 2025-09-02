@@ -52,21 +52,6 @@ namespace stl
 			.disp = 0,
 			.addr = reinterpret_cast<std::uint64_t>(T::thunk)
 		};
-		//REL::safe_write(a_src, &assembly, sizeof(assembly));
-		const auto count = sizeof(assembly);
-
-		std::uint32_t old{ 0 };
-		auto          success = REX::W32::VirtualProtect(
-            reinterpret_cast<void*>(a_src), count, REX::W32::PAGE_EXECUTE_READWRITE, std::addressof(old));
-		if (success) {
-			std::memcpy(reinterpret_cast<void*>(a_src), &assembly, count);
-			success = REX::W32::VirtualProtect(
-				reinterpret_cast<void*>(a_src), count, old, std::addressof(old));
-#ifdef NDEBUG
-			// avoid unused code removal in release build
-			(void)success;
-#endif
-		}
-		assert(success);
+		REL::safe_write(a_src, &assembly, sizeof(assembly));
 	}
 }  // namespace stl

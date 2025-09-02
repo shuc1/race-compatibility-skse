@@ -336,5 +336,37 @@ If you are not going to do that, or if you have other mods that rewrite the same
             </optionalFileGroups>
         </installStep>
 
+        <installStep name="Miscellaneous">
+            <optionalFileGroups order="Explicit">
+                <group name="Ability/Quest" type="SelectAny">
+                    <plugins>
+                        <plugin name="Imperious v7.28.0">
+                            <description>Select this if you are using Imperious - Races of Skyrim</description>
+                            <image path="fomod/images/imperious.jpg" />
+                            <files>
+                                <folder source="quest/imperious"
+                                    destination="./" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies operator="And">
+                                                <fileDependency
+                                                    file="Imperious - Races of Skyrim.esp"
+                                                    state="Active" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
     </installSteps>
 </config>

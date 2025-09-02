@@ -28,6 +28,7 @@ add_rules("plugin.vsxmake.autoupdate")
 
 -- set policies
 set_policy("package.requires_lock", true)
+set_policy("build.optimization.lto", true)
 
 -- add requires
 add_requires("glaze")

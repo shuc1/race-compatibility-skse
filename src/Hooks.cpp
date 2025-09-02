@@ -38,7 +38,9 @@ namespace rcs::hook
 					// check if obj1 and obj2 are NPC
 					const auto npc1 = obj1->data.objectReference->As<RE::TESNPC>();
 					const auto npc2 = obj2->data.objectReference->As<RE::TESNPC>();
-					if (npc1 && npc2 && manager::GetIsRaceByProxy(npc1->race, npc2->race)) {
+					if (npc1 && npc2 &&
+						(manager::GetIsRaceByProxy(npc1->race, npc2->race) ||
+							manager::GetIsRaceByProxy(npc2->race, npc1->race))) {
 						result = 1.0;
 					}
 				}
