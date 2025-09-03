@@ -60,6 +60,8 @@ jobs:
 
       - name: Build
         run: |
+          xmake f -v -y -m release
+          xmake -vD -y
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
@@ -69,7 +71,7 @@ jobs:
           mkdir -p upload
           Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
             Copy-Item -Destination upload/
-          echo "🗃️ Uploaded artifact"
+          echo "🗃️ Uploaded artifacts"
 
       - name: Upload
         if: github.event_name == 'push'
@@ -116,12 +118,14 @@ jobs:
       - name: Download all ZIP artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifact
+          path: artifacts
 
       - name: List downloaded files
         run: |
-          echo "💼 Artifact:"
-          ls -R artifact
+          echo "💼 Artifacts:"
+          for file in artifacts/**/*.zip; do
+            sha256sum "$file"
+          done
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
@@ -131,4 +135,4 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag }}
           name: ${{ needs.build.outputs.tag }}
           body_path: CHANGELOG.md
-          files: artifact/**/*.zip
+          files: artifacts/**/*.zip

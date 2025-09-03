@@ -2,7 +2,6 @@
 set_xmakever("2.9.9")
 
 -- includes
-includes("@builtin/xpack")
 includes("xmake-rules.lua")
 includes("xmake-commonlib.lua")
 
@@ -11,7 +10,7 @@ project_name = "race-compatibility"
 plugin_dir = "skse/plugins/"
 
 set_project(project_name)
-set_version("2.3.1", {build = "%Y-%m-%d"})
+set_version("2.3.2", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- set defaults
@@ -20,12 +19,16 @@ set_warnings("allextra", "error")
 set_defaultmode("releasedbg")
 
 -- add rules
-add_rules("mode.debug", "mode.releasedbg")
+add_rules("mode.debug", "mode.releasedbg", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
 
 -- set policies
 set_policy("package.requires_lock", true)
-set_policy("build.optimization.lto", true)
+if is_mode("release", "releasedbg") then
+    -- Enable LTO (Link Time Optimization) only in release and releasedbg modes
+    -- This ensures that the releasedbg mode closely resembles the release mode
+    set_policy("build.optimization.lto", true)
+end
 
 -- add requires
 add_requires("glaze")
@@ -49,16 +52,16 @@ add_configfiles("res/Versions.h.in", {prefixdir = "include/"})
 -- builds
 targettable = {
     -- name, dep
-    ['se']='commonlibsse.se',
-    ['ae']='commonlibsse.ae',
-    ['vr']='commonlibvr'
+    ["se"]="commonlibsse.se",
+    ["ae"]="commonlibsse.ae",
+    ["vr"]="commonlibvr"
 }
 
 -- dll
 for name, dep in pairs(targettable) do
     target(project_name .. "." .. name, function()
         add_deps(dep)
-        set_targetdir("$(builddir)/main/" .. name)
+        set_targetdir(path.join("$(builddir)", "$(mode)", name))
         add_rules("race-compatibility")
     end)
 end
@@ -72,27 +75,36 @@ target("papyrus", function()
 end)
 
 -- xpack
--- fomod
+includes("@builtin/xpack")
+-- fomod vars
 project_title = to_title(project_name)
-required_dir = "required/"
 set_configvar("PROJECT_TITLE", project_title)
-set_configvar("FOMOD_REQUIRED_DIR", required_dir)
 set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
-set_configvar("FOMOD_SE_PLUGIN_DIR", "main/se")
-set_configvar("FOMOD_AE_PLUGIN_DIR", "main/ae")
-set_configvar("FOMOD_VR_PLUGIN_DIR", "main/vr")
-add_configfiles("res/(**.xml.in)", {prefixdir = "res/"})
+add_configfiles("res/(fomod/**.in)", {prefixdir = "res/"})
 
--- main pack
-xpack("main", function() 
-    -- package
-    set_formats("zip")
-    -- set_outputdir("build/xpack") 
-    set_basename(project_title .. "-$(version)")
-    -- fomod info
-    add_installfiles("res/(fomod/**)|*.in")
-    -- plugin files
-    add_installfiles("build/(main/**.dll)")
-    -- script files
-    add_installfiles("res/(scripts/**)",  {prefixdir = required_dir})
-end)
+pack_table = {
+    -- mode, basename
+    ["release"] = project_title .. "-$(version)",
+    ["releasedbg"] = project_title .. " - Debug Build" .. "-$(version)"
+}
+
+for mode, basename in pairs(pack_table) do
+    xpack(mode, function() 
+        -- package
+        set_formats("zip")
+        set_basename(basename)
+
+        add_installfiles("res/(**)|**.in|schema/*")
+        -- $(builddir) not working
+        -- add_installfiles(path.join("$(builddir)", mode, "(**.dll)"))
+        filedir = path.join("build", mode)
+        add_installfiles(path.join(filedir, "(**.dll)"))
+        add_installfiles(path.join(filedir, "(**/" .. project_name .. ".pdb)"))
+
+
+        after_package(function(package)
+            os.mv(package:outputfile(), "$(builddir)/xpack/")
+            os.rmdir(path.directory(package:outputfile()))
+        end)
+    end)
+end
