@@ -3,7 +3,7 @@
     xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
     <moduleName>${PROJECT_TITLE}</moduleName>
     <requiredInstallFiles>
-        <folder source="${FOMOD_REQUIRED_DIR}" destination="./" />
+        <folder source="scripts/" destination="scripts/" />
     </requiredInstallFiles>
     <installSteps order="Explicit">
         <installStep name="Main">
@@ -14,7 +14,7 @@
                             <description>Select this if you are using Skyrim Anniversary Edition v1.6.640 or higher.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
-                                <folder source="main/ae"
+                                <folder source="ae/"
                                     destination="${FOMOD_PLUGIN_DIR}" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -48,7 +48,7 @@
                             <description>Select this if you are using Skyrim Special Edition v1.5.97.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
-                                <folder source="main/se"
+                                <folder source="se/"
                                     destination="${FOMOD_PLUGIN_DIR}" priority="0" />
                             </files>
                             <typeDescriptor>
@@ -79,10 +79,10 @@
                         </plugin>
 
                         <plugin name="VR v1.4.15">
-                            <description>Select this if you are using Skyrim VR 1.4.15.</description>
+                            <description>Select this if you are using Skyrim VR 1.4.15.1.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
-                                <folder source="main/vr"
+                                <folder source="vr/"
                                     destination="${FOMOD_PLUGIN_DIR}" priority="0" />
                             </files>
                             <typeDescriptor>
