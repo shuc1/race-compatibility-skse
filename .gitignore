@@ -6,6 +6,5 @@ vs*/
 
 # files
 *.zip
-*.pex
 **/fomod/*.xml
 Versions.h
