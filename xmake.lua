@@ -78,9 +78,6 @@ required_dir = "required/"
 set_configvar("PROJECT_TITLE", project_title)
 set_configvar("FOMOD_REQUIRED_DIR", required_dir)
 set_configvar("FOMOD_PLUGIN_DIR", plugin_dir)
-set_configvar("FOMOD_SE_PLUGIN_DIR", "main/se")
-set_configvar("FOMOD_AE_PLUGIN_DIR", "main/ae")
-set_configvar("FOMOD_VR_PLUGIN_DIR", "main/vr")
 add_configfiles("res/(**.xml.in)", {prefixdir = "res/"})
 
 -- main pack

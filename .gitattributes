@@ -1,3 +1,4 @@
 res/**/*.xml.in linguist-language=XML
 res/Versions.h.in linguist-language=C++
 xmake*.lua linguist-language=Xmake
+res/**/*.psc linguist-vendored
