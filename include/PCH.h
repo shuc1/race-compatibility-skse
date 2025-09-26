@@ -23,22 +23,20 @@ namespace stl
 		T::thunk;
 	} && std::is_function_v<std::remove_pointer_t<decltype(T::thunk)>>;
 
-	// Incompatible with hooks at the same position, for ignoring the return value of write_call/write_branch
+	// Incompatible with hooks at the same position
 	template <HasThunk T>
 	void write_jump_to_thunk(std::uintptr_t a_src)
 	{
 #pragma pack(push, 1)
-		// FF /4
-		// JMP r/m64
 		struct TrampolineAssembly
 		{
-			// jmp [rip + 0]
-			// target
-			std::uint8_t  jmp;    // 0 - 0xFF
-			std::uint8_t  modrm;  // 1 - 0x25
-			std::int32_t  disp;   // 2 - 0x00000000
-			std::uint64_t addr;   // 6 - [rip + 0]/target
-		};
+			// 0x0: jmp [rip + 0]
+			// 0x6: target
+			std::uint8_t  jmp{ 0xFF };                                        // 0x0
+			std::uint8_t  modrm{ 0x25 };                                      // 0x1
+			std::int32_t  disp{ 0 };                                          // 0x2
+			std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::thunk) };  // 0x6
+		} const assembly{};
 		static_assert(offsetof(TrampolineAssembly, jmp) == 0x0);
 		static_assert(offsetof(TrampolineAssembly, modrm) == 0x1);
 		static_assert(offsetof(TrampolineAssembly, disp) == 0x2);
@@ -46,12 +44,6 @@ namespace stl
 		static_assert(sizeof(TrampolineAssembly) == 0xE);
 #pragma pack(pop)
 
-		const TrampolineAssembly assembly{
-			.jmp = 0xFFu,
-			.modrm = 0x25u,
-			.disp = 0,
-			.addr = reinterpret_cast<std::uint64_t>(T::thunk)
-		};
 		REL::safe_write(a_src, &assembly, sizeof(assembly));
 	}
 }  // namespace stl

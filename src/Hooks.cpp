@@ -104,17 +104,17 @@ namespace rcs::hook
 			// VR shared GetIsRace/IsValidRace ids with SE
 			InstallHook<GetIsRace>(RELOCATION_ID(21028, 21478));
 			InstallHook<SameRace>(RELOCATION_ID(20978, 21428));
-			logs::info("Installed hooks for GetIsRace and SameRace");
+			logs::info("Installed hooks for GetIsRace and SameRace"sv);
 
 #ifdef SKYRIM_SUPPORT_AE
 			InstallHook<GetPCIsRace>(REL::ID(21484));
-			logs::info("Installed hook for GetPCIsRace");
+			logs::info("Installed hook for GetPCIsRace"sv);
 #endif
 		}
 
 		if (!manager::armorRaceProxies.empty()) {
 			InstallHook<IsValidRace>(RELOCATION_ID(17359, 17757));
-			logs::info("Installed hook for TESObjectARMA::IsValidRace");
+			logs::info("Installed hook for TESObjectARMA::IsValidRace"sv);
 		}
 	}
 }  // namespace rcs::hook
