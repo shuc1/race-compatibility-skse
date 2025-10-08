@@ -87,7 +87,7 @@ namespace rcs::manager
 		logs::info("Added {} vampirism race pairs"sv, vampirismPairs.size());
 		logs::info("Proxied {} race(s)"sv, raceProxies.size());
 		logs::info("Proxied {} armor race(s)"sv, armorRaceProxies.size());
-		logs::info("Added {} race(s) to head part lists"sv, headPartMap.size());
+		logs::info("Recorded head part types for {} races"sv, headPartMap.size());
 	}
 
 	namespace headpart

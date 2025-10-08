@@ -192,16 +192,15 @@ namespace rcs::config
 				"default"sv,
 				{
 #define RCS_DEFAULT_RACE_RAW_ENTRY(NAME)                     \
-	RawConfigEntry                                           \
-	{                                                        \
+	RawConfigEntry{                                          \
 		.name = #NAME,                                       \
 		.race = RawConfigEntry::RaceProxy{                   \
 			.form = std::string_view(#NAME "Race"sv),        \
 		},                                                   \
-		.vampireRace = RawConfigEntry::RaceProxy             \
-		{                                                    \
+		.vampireRace = RawConfigEntry::RaceProxy{            \
 			.form = std::string_view(#NAME "RaceVampire"sv), \
-		}                                                    \
+		},                                                   \
+		.headPart = #NAME##sv                                \
 	}
 					RCS_DEFAULT_RACE_RAW_ENTRY(Argonian),
 					RCS_DEFAULT_RACE_RAW_ENTRY(Breton),
