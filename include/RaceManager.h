@@ -80,7 +80,7 @@ namespace rcs::manager
 	auto GetVampireRaceByRace(const RE::TESRace* race) -> const RE::TESRace*;
 	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;
 	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) -> bool;
-	auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) -> const RE::TESRace*;
+	auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) -> const RE::TESRace*;
 	auto GetHeadPartType(const RE::TESRace* race) -> HeadPartType;
 	// summary
 	void Summary();

@@ -6,7 +6,7 @@
         ["cmake#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "3ab578f7e656c1b73cbe7ab1431f6d696712665c",
+                commit = "9e18cb824a768c74d357d1a8e36b5fd12eea3db5",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "3.31.6-msvc6"
@@ -19,10 +19,18 @@
             },
             version = "v5.7.1"
         },
-        ["ninja#31fecfc4"] = {
+        ["microsoft-detours#31fecfc4"] = {
             repo = {
                 branch = "master",
                 commit = "3ab578f7e656c1b73cbe7ab1431f6d696712665c",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "2023.6.8"
+        },
+        ["ninja#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "9e18cb824a768c74d357d1a8e36b5fd12eea3db5",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "1.12.1"

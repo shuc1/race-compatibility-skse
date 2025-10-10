@@ -59,7 +59,7 @@ namespace rcs::manager
 		return it != raceProxies.end() && it->second.contains(target_race);
 	}
 
-	auto GetProxyArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
+	auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
 		-> const RE::TESRace*
 	{
 		if (const auto it = armorRaceProxies.find(race);
@@ -98,7 +98,7 @@ namespace rcs::manager
 			void AddRaceTo(RE::TESRace* race, Args... args)
 			{
 				if (race) {
-					(..., (args->HasForm(race) ? 0 : (args->AddForm(race), 1)));
+					((args->HasForm(race) ? void() : args->AddForm(race)), ...);
 				}
 			}
 		}

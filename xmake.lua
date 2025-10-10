@@ -9,12 +9,12 @@ includes("xmake-commonlib.lua")
 projectname = "race-compatibility"
 plugindir = "skse/plugins/"
 set_project(projectname)
-set_version("2.3.3", {build = "%Y-%m-%d"})
+set_version("2.4.0", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- add requires
 add_requires("glaze")
-add_rules("plugin.vsxmake.autoupdate")
+add_requires("microsoft-detours")
 set_policy("package.requires_lock", true)
 
 -- set compile options
@@ -23,6 +23,7 @@ set_languages("cxxlatest")
 set_warnings("allextra", "error")
 set_encodings("utf-8")
 -- set compile modes
+add_rules("plugin.vsxmake.autoupdate")
 add_rules("mode.debug", "mode.releasedbg", "mode.release")
 set_defaultmode("releasedbg")
 if is_mode("release", "releasedbg") then
@@ -57,6 +58,20 @@ for name, dep in pairs(targettable) do
         add_rules("race-compatibility")
     end)
 end
+-- detour build
+for name, dep in pairs(targettable) do
+    target(projectname .. "." .. name .. ".detours", function()
+        set_group("detours")
+        add_deps(dep)
+
+        -- add detours specific rules
+        add_packages("microsoft-detours")
+        add_defines("DETOURS", { public = false })
+            
+        set_targetdir(path.join("$(builddir)", "$(mode)", "detours", name))
+        add_rules("race-compatibility")
+    end)
+end
 
 -- papyrus
 target("papyrus", function()
@@ -75,9 +90,10 @@ set_configvar("FOMOD_PLUGIN_DIR", plugindir)
 add_configfiles("res/(fomod/**.in)", {prefixdir = "res/"})
 
 packtable = {
-    -- mode, basename
+    -- mode/path, basename
     ["release"] = projecttitle .. "-$(version)",
-    ["releasedbg"] = projecttitle .. " - Debug Build" .. "-$(version)"
+    ["releasedbg"] = projecttitle .. " - PDB Build" .. "-$(version)",
+    ["releasedbg/detours"] = projecttitle .. " - PDB Build with Detours" .. "-$(version)",
 }
 
 for mode, basename in pairs(packtable) do
@@ -90,8 +106,8 @@ for mode, basename in pairs(packtable) do
         -- $(builddir) not working
         -- add_installfiles(path.join("$(builddir)", mode, "(**.dll)"))
         filedir = path.join("build", mode)
-        add_installfiles(path.join(filedir, "(**.dll)"))
-        add_installfiles(path.join(filedir, "(**/" .. projectname .. ".pdb)"))
+        add_installfiles(path.join(filedir, "(*/*.dll)"))
+        add_installfiles(path.join(filedir, "(*/" .. projectname .. ".pdb)"))
 
 
         after_package(function(package)

@@ -47,3 +47,9 @@ namespace stl
 		REL::safe_write(a_src, &assembly, sizeof(assembly));
 	}
 }  // namespace stl
+
+#ifdef SKYRIM_SUPPORT_AE
+#	define ID(SE, AE) AE
+#else
+#	define ID(SE, AE) SE
+#endif
