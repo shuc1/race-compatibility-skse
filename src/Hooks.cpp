@@ -1,10 +1,78 @@
 #include "Hooks.h"
 #include "RaceManager.h"
 
+#ifdef DETOURS
+#	include <windows.h>
+#	include <detours.h>
+#endif
+
 namespace rcs::hook
 {
 	namespace
 	{
+		// forward declare thunk structs
+		struct GetIsRace;
+		struct SameRace;
+#ifdef SKYRIM_SUPPORT_AE
+		struct GetPCIsRace;
+#endif
+		struct IsValidRace;
+
+		// initialize ids
+		// VR shared GetIsRace/IsValidRace ids with SE
+		template <stl::HasThunk T>
+		constexpr std::uint64_t MakeID()
+		{
+			if constexpr (std::is_same_v<T, GetIsRace>)
+				return ID(21028, 21478);
+			else if constexpr (std::is_same_v<T, SameRace>)
+				return ID(20978, 21428);
+#ifdef SKYRIM_SUPPORT_AE
+			else if constexpr (std::is_same_v<T, GetPCIsRace>)
+				return 21484;
+#endif
+			else if constexpr (std::is_same_v<T, IsValidRace>)
+				return ID(17359, 17757);
+			else
+				static_assert(false, "Unknown thunk");
+		}
+
+#ifdef DETOURS
+		template <stl::HasThunk T>
+		struct FuncStorage
+		{
+			static inline decltype(&T::thunk) func{ nullptr };
+		};
+#endif
+
+		template <stl::HasThunk T>
+		void InstallHook()
+		{
+			const REL::Relocation target{ REL::ID{ MakeID<T>() }, 0 };
+#ifdef DETOURS
+			FuncStorage<T>::func = reinterpret_cast<decltype(&T::thunk)>(target.address());
+			DetourAttach(reinterpret_cast<PVOID*>(&FuncStorage<T>::func),
+				reinterpret_cast<PVOID>(T::thunk));
+#else
+			stl::write_jump_to_thunk<T>(target.address());
+#endif
+		}
+
+		template <stl::HasThunk... Ts>
+		void InstallHooks()
+		{
+#ifdef DETOURS
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			(InstallHook<Ts>(), ...);
+			if (auto error = DetourTransactionCommit(); error != NO_ERROR) {
+				logs::error("DetourTransactionCommit failed with error code: {}", error);
+			}
+#else
+			(InstallHook<Ts>(), ...);
+#endif
+		}
+
 #define LOG_TO_CONSOLE(a_name)                                               \
 	if (RE::GetStaticTLSData()->consoleMode) {                               \
 		RE::ConsoleLog::GetSingleton()->Print(#a_name " >> %0.2lf", result); \
@@ -24,11 +92,17 @@ namespace rcs::hook
 						result = 1.0;
 					}
 				}
+#ifdef DETOURS
+				if (result == 0.0) {
+					return FuncStorage<GetIsRace>::func(obj, race_form, unused, result);
+				}
+#endif
 				LOG_TO_CONSOLE(GetIsRace)
 				return true;
 			}
 		};
 
+		// thunk for SameRace
 		struct SameRace
 		{
 			static bool thunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
@@ -44,6 +118,11 @@ namespace rcs::hook
 						result = 1.0;
 					}
 				}
+#ifdef DETOURS
+				if (result == 0.0) {
+					return FuncStorage<SameRace>::func(obj1, obj2, unused, result);
+				}
+#endif
 				LOG_TO_CONSOLE(SameRace)
 				return true;
 			}
@@ -62,6 +141,11 @@ namespace rcs::hook
 						result = 1.0;
 					}
 				}
+#	ifdef DETOURS
+				if (result == 0.0) {
+					return FuncStorage<GetPCIsRace>::func(unused1, race_form, unused2, result);
+				}
+#	endif
 				LOG_TO_CONSOLE(GetIsRace)
 				return true;
 			}
@@ -79,42 +163,42 @@ namespace rcs::hook
 					return false;
 				}
 				// race not null
-				auto* armor_parent_race = manager::GetProxyArmorParentRace(armor_addon, race);
-				if (const auto* armor_race = armor_addon->race;
-					race == armor_race || armor_parent_race == armor_race) {
+				auto* armorParentRace = manager::GetArmorParentRaceProxy(armor_addon, race);
+				if (const auto* armorRace = armor_addon->race;
+					race == armorRace || armorParentRace == armorRace) {
 					return true;
 				}
-				return std::ranges::any_of(armor_addon->additionalRaces,
-					[&](const auto& target_race) { return race == target_race || armor_parent_race == target_race; });
+				const auto result = std::ranges::any_of(armor_addon->additionalRaces,
+					[&](const auto& target_race) { return race == target_race || armorParentRace == target_race; });
+#ifdef DETOURS
+				if (!result) {
+					return FuncStorage<IsValidRace>::func(armor_addon, race);
+				}
+#endif
+				return result;
 			}
 		};
-
-		template <typename T>
-		void InstallHook(const REL::ID id)
-		{
-			const REL::Relocation target{ id, 0 };
-			stl::write_jump_to_thunk<T>(target.address());
-		}
-
 	}
 
 	void TryInstall()
 	{
-		if (!manager::raceProxies.empty()) {
-			// VR shared GetIsRace/IsValidRace ids with SE
-			InstallHook<GetIsRace>(RELOCATION_ID(21028, 21478));
-			InstallHook<SameRace>(RELOCATION_ID(20978, 21428));
-			logs::info("Installed hooks for GetIsRace and SameRace");
+#ifdef DETOURS
+		logs::info("Using Detours"sv);
+#endif
 
+		if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
-			InstallHook<GetPCIsRace>(REL::ID(21484));
-			logs::info("Installed hook for GetPCIsRace");
+			InstallHooks<GetIsRace, SameRace, GetPCIsRace>();
+			logs::info("Installed hooks for GetIsRace, SameRace and GetPCIsRace"sv);
+#else
+			InstallHooks<GetIsRace, SameRace>();
+			logs::info("Installed hooks for GetIsRace and SameRace"sv);
 #endif
 		}
 
 		if (!manager::armorRaceProxies.empty()) {
-			InstallHook<IsValidRace>(RELOCATION_ID(17359, 17757));
-			logs::info("Installed hook for TESObjectARMA::IsValidRace");
+			InstallHooks<IsValidRace>();
+			logs::info("Installed hook for TESObjectARMA::IsValidRace"sv);
 		}
 	}
 }  // namespace rcs::hook

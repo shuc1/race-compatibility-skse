@@ -35,17 +35,17 @@ namespace rcs
 		static inline bool Bind(RE::BSScript::Internal::VirtualMachine* a_vm)
 		{
 			if (!a_vm) {
-				logs::error("Can't get VM state");
+				logs::error("Can't get VM state"sv);
 				return false;
 			}
 
-#define BIND(a_method) a_vm->RegisterFunction(#a_method##sv, rcs::PROJECT_NAME_CAMEL, a_method)
+#define BIND(METHOD) a_vm->RegisterFunction(#METHOD##sv, rcs::PROJECT_NAME_CAMEL, METHOD)
 			BIND(GetVampireRaceByRace);
 			BIND(GetRaceByVampireRace);
 			BIND(GetIsRaceByProxy);
 			BIND(GetHeadPartTypeByRace);
 #undef BIND
-			logs::info("Registered papyrus functions");
+			logs::info("Registered papyrus functions"sv);
 			return true;
 		}
 	}

@@ -28,41 +28,35 @@ namespace rcs::config
 		auto LookupRace(std::string_view form_str, RaceFormCache& cache)
 			-> RE::TESRace*
 		{
-			//auto* race = form::LookupCachedForm(form_str, cache);
-			// if (!race) {
-			// 	logs::warn("\t\tInvalid race form: {}"sv, form_str);
-			// }
 			return form_str.empty() ? nullptr : form::LookupCachedForm(form_str, cache);
 		}
 
 		auto ParseArmorProxy(const RawConfigEntry::RaceProxy::ArmorProxy& armor_proxy, RaceFormCache& form_cache)
 			-> ConfigEntry::RaceProxy::ArmorProxy
 		{
-			using BipedObjectSlot = RE::BGSBipedObjectForm::BipedObjectSlot;
-			using ArmorVariant = ConfigEntry::ArmorVariant;
-
 			ConfigEntry::RaceProxy::ArmorProxy result{
-				.race = armor_proxy.race.empty() ? nullptr : LookupRace(armor_proxy.race, form_cache),
-				.variants = std::vector<ArmorVariant>(armor_proxy.variants.size())
+				.race = LookupRace(armor_proxy.race, form_cache),
+				.variants{}
 			};
-			if (!armor_proxy.variants.empty()) {
-				size_t i = 0;
+			if (result.race && !armor_proxy.variants.empty()) {
+				// reserve space to avoid multiple allocations; similar to allocating all at once and then resizing
+				// refer to: https://godbolt.org/z/T9za7v1cb
+				result.variants.reserve(armor_proxy.variants.size());
 				for (const auto& [slots, proxy] : armor_proxy.variants) {
 					auto* race = LookupRace(proxy, form_cache);
 					if (!race || slots.empty()) {
 						continue;
 					}
+
+					using BipedObjectSlot = RE::BGSBipedObjectForm::BipedObjectSlot;
 					auto slotSet = REX::EnumSet<BipedObjectSlot, std::uint32_t>{};
-					for (const auto& slot :
-						slots | std::views::filter([](const auto& s) { return s >= 30 && s <= 61; })) {
-						slotSet.set(static_cast<BipedObjectSlot>(1 << (slot - 30)));
+					for (const auto& slot : slots) {
+						if (slot >= 30 && slot <= 61) {
+							slotSet.set(static_cast<BipedObjectSlot>(1u << (slot - 30)));
+						}
 					}
 					if (slotSet.underlying()) {
-						result.variants[i] = {
-							.proxy = race,
-							.slotMask = slotSet.get()
-						};
-						i++;
+						result.variants.emplace_back(race, slotSet.get());
 					}
 				}
 			}
@@ -74,7 +68,7 @@ namespace rcs::config
 		{
 			ConfigEntry::RaceProxy result{
 				.form = LookupRace(proxy_config.form, form_cache),
-				.proxies = std::set<const RE::TESRace*>{},
+				.proxies{},
 				.armor = ParseArmorProxy(proxy_config.armor, form_cache)
 			};
 
@@ -111,7 +105,7 @@ namespace rcs::config
 				manager::EmplaceVampirismRacePair(race, race_vamp);
 			}
 			// head part related, due to RE::BGSListForm::AddForm, race cannot be const
-			adder.AddRace(race, race_vamp, config.headPart);
+			adder.AddRacePair(race, race_vamp, config.headPart);
 		}
 
 		struct ParseCache
@@ -192,23 +186,22 @@ namespace rcs::config
 				ParseAndApplyRawConfig(filename, content.value().entries, parse_cache);
 			}
 
-#define RCS_DEFAULT_RACE_RAW_ENTRY(a_name)                   \
-	RawConfigEntry                                           \
-	{                                                        \
-		.name = #a_name,                                     \
-		.race = RawConfigEntry::RaceProxy{                   \
-			.form = std::string_view(#a_name "Race"),        \
-		},                                                   \
-		.vampireRace = RawConfigEntry::RaceProxy             \
-		{                                                    \
-			.form = std::string_view(#a_name "RaceVampire"), \
-		}                                                    \
-	}
 			// from vanilla game
-			logs::info("default:");
+			logs::info("default:"sv);
 			ParseAndApplyRawConfig(
-				"default",
+				"default"sv,
 				{
+#define RCS_DEFAULT_RACE_RAW_ENTRY(NAME)                     \
+	RawConfigEntry{                                          \
+		.name = #NAME,                                       \
+		.race = RawConfigEntry::RaceProxy{                   \
+			.form = std::string_view(#NAME "Race"sv),        \
+		},                                                   \
+		.vampireRace = RawConfigEntry::RaceProxy{            \
+			.form = std::string_view(#NAME "RaceVampire"sv), \
+		},                                                   \
+		.headPart = #NAME##sv                                \
+	}
 					RCS_DEFAULT_RACE_RAW_ENTRY(Argonian),
 					RCS_DEFAULT_RACE_RAW_ENTRY(Breton),
 					RCS_DEFAULT_RACE_RAW_ENTRY(DarkElf),
@@ -219,9 +212,9 @@ namespace rcs::config
 					RCS_DEFAULT_RACE_RAW_ENTRY(Orc),
 					RCS_DEFAULT_RACE_RAW_ENTRY(Redguard),
 					RCS_DEFAULT_RACE_RAW_ENTRY(WoodElf),
+#undef RCS_DEFAULT_RACE_RAW_ENTRY
 				},
 				parse_cache);
-#undef RCS_DEFAULT_RACE_RAW_ENTRY
 
 			// summary
 			manager::Summary();
@@ -231,7 +224,7 @@ namespace rcs::config
 
 	bool TryReadAndApplyConfigs()
 	{
-		logs::info("{:*^30}", "CONFIGS");
+		logs::info("{:*^30}"sv, "CONFIGS"sv);
 		if (!RE::TESDataHandler::GetSingleton()) {
 			logs::error("TESDataHandler is not initialized"sv);
 			return false;

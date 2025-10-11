@@ -33,7 +33,7 @@ namespace
 		switch (a_message->type) {
 		case SKSE::MessagingInterface::kDataLoaded:
 			{
-				logs::info("{:*^50}", "DEPENDENCIES");
+				logs::info("{:*^50}"sv, "DEPENDENCIES"sv);
 				const auto start = std::chrono::system_clock::now();
 				const auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
 				logs::info("Loaded configs in {} ms",
@@ -98,10 +98,10 @@ extern "C" __declspec(dllexport) bool SKSEAPI
 
 	SKSE::Init(a_skse);
 	SKSE::GetMessagingInterface()->RegisterListener(MessageHandler);
-	logs::info("Build: {}", rcs::VERSION_BUILD);
-	logs::info("Game version : {}", a_skse->RuntimeVersion().string());
+	logs::info("Build: {}"sv, rcs::VERSION_BUILD);
+	logs::info("Game version : {}"sv, a_skse->RuntimeVersion().string());
 
-	logs::info("{:*^50}", "PAPYRUS");
+	logs::info("{:*^50}"sv, "PAPYRUS"sv);
 	SKSE::GetPapyrusInterface()->Register(rcs::papyrus::Bind);
 
 	return true;

@@ -61,23 +61,20 @@ jobs:
       - name: Build
         run: |
           xmake f -v -y -m release
-          xmake -vD -y
+          xmake -vD -y -g default
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
       - name: Pack
         run: |
           xmake pack
-          mkdir -p upload
-          Get-ChildItem -Path build/xpack -Filter '*.zip' -Recurse |
-            Copy-Item -Destination upload/
-          echo "🗃️ Uploaded artifacts"
+          echo "🗃️ Packed artifacts"
 
       - name: Upload
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          path: upload/*.zip
+          path: build/xpack/*.zip
           if-no-files-found: error
 
   release:
