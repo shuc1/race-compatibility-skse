@@ -10,45 +10,18 @@ namespace rcs::hook
 {
 	namespace
 	{
-		// forward declare thunk structs
-		struct GetIsRace;
-		struct SameRace;
-#ifdef SKYRIM_SUPPORT_AE
-		struct GetPCIsRace;
-#endif
-		struct IsValidRace;
-
-		// initialize ids
-		// VR shared GetIsRace/IsValidRace ids with SE
-		template <stl::HasThunk T>
-		constexpr std::uint64_t MakeID()
-		{
-			if constexpr (std::is_same_v<T, GetIsRace>)
-				return ID(21028, 21478);
-			else if constexpr (std::is_same_v<T, SameRace>)
-				return ID(20978, 21428);
-#ifdef SKYRIM_SUPPORT_AE
-			else if constexpr (std::is_same_v<T, GetPCIsRace>)
-				return 21484;
-#endif
-			else if constexpr (std::is_same_v<T, IsValidRace>)
-				return ID(17359, 17757);
-			else
-				static_assert(false, "Unknown thunk");
-		}
-
 #ifdef DETOURS
-		template <stl::HasThunk T>
+		template <stl::Hookable T>
 		struct FuncStorage
 		{
 			static inline decltype(&T::thunk) func{ nullptr };
 		};
 #endif
 
-		template <stl::HasThunk T>
+		template <stl::Hookable T>
 		void InstallHook()
 		{
-			const REL::Relocation target{ REL::ID{ MakeID<T>() }, 0 };
+			const REL::Relocation target{ T::id, 0 };
 #ifdef DETOURS
 			FuncStorage<T>::func = reinterpret_cast<decltype(&T::thunk)>(target.address());
 			DetourAttach(reinterpret_cast<PVOID*>(&FuncStorage<T>::func),
@@ -58,7 +31,7 @@ namespace rcs::hook
 #endif
 		}
 
-		template <stl::HasThunk... Ts>
+		template <stl::Hookable... Ts>
 		void InstallHooks()
 		{
 #ifdef DETOURS
@@ -73,6 +46,10 @@ namespace rcs::hook
 #endif
 		}
 
+	}
+
+	namespace
+	{
 #define LOG_TO_CONSOLE(a_name)                                               \
 	if (RE::GetStaticTLSData()->consoleMode) {                               \
 		RE::ConsoleLog::GetSingleton()->Print(#a_name " >> %0.2lf", result); \
@@ -81,6 +58,9 @@ namespace rcs::hook
 		// thunk for GetIsRace
 		struct GetIsRace
 		{
+			// VR shared GetIsRace/IsValidRace ids with SE
+			static constexpr auto id = RELOCATION_ID(21028, 21478);
+
 			static bool thunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
 			{
 				result = 0.0;
@@ -105,6 +85,8 @@ namespace rcs::hook
 		// thunk for SameRace
 		struct SameRace
 		{
+			static constexpr auto id = RELOCATION_ID(20978, 21428);
+
 			static bool thunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
 			{
 				result = 0.0;
@@ -132,6 +114,8 @@ namespace rcs::hook
 		// thunk for GetPCIsRace
 		struct GetPCIsRace
 		{
+			static constexpr auto id = REL::ID(21484);
+
 			static bool thunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
 			{
 				result = 0.0;
@@ -156,6 +140,8 @@ namespace rcs::hook
 		// thunk for TESObjectARMA::IsValidRace
 		struct IsValidRace
 		{
+			static constexpr auto id = RELOCATION_ID(17359, 17757);
+
 			static bool thunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
 			{
 				//auto* source_race = !race || !race->armorParentRace ? race : race->armorParentRace;

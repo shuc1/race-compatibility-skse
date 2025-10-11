@@ -23,6 +23,14 @@ namespace stl
 		T::thunk;
 	} && std::is_function_v<std::remove_pointer_t<decltype(T::thunk)>>;
 
+	template <typename T>
+	concept HasID = requires {
+		T::id;
+	} && std::is_same_v<decltype(T::id), const REL::ID>;
+
+	template <typename T>
+	concept Hookable = HasThunk<T> && HasID<T>;
+
 	// Incompatible with hooks at the same position
 	template <HasThunk T>
 	void write_jump_to_thunk(std::uintptr_t a_src)
@@ -47,9 +55,3 @@ namespace stl
 		REL::safe_write(a_src, &assembly, sizeof(assembly));
 	}
 }  // namespace stl
-
-#ifdef SKYRIM_SUPPORT_AE
-#	define ID(SE, AE) AE
-#else
-#	define ID(SE, AE) SE
-#endif
