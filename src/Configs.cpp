@@ -40,7 +40,7 @@ namespace rcs::config
 			};
 			if (result.race && !armor_proxy.variants.empty()) {
 				// reserve space to avoid multiple allocations; similar to allocating all at once and then resizing
-				// refer to: https://godbolt.org/z/EqajPs6Wc
+				// refer to: https://godbolt.org/z/T9za7v1cb
 				result.variants.reserve(armor_proxy.variants.size());
 				for (const auto& [slots, proxy] : armor_proxy.variants) {
 					auto* race = LookupRace(proxy, form_cache);
