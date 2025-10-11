@@ -51,8 +51,10 @@ targettable = {
 }
 
 -- dll
+-- default build
 for name, dep in pairs(targettable) do
     target(projectname .. "." .. name, function()
+        set_group("default")
         add_deps(dep)
         set_targetdir(path.join("$(builddir)", "$(mode)", name))
         add_rules("race-compatibility")
@@ -63,12 +65,10 @@ for name, dep in pairs(targettable) do
     target(projectname .. "." .. name .. ".detours", function()
         set_group("detours")
         add_deps(dep)
-
         -- add detours specific rules
         add_packages("microsoft-detours")
         add_defines("DETOURS", { public = false })
-            
-        set_targetdir(path.join("$(builddir)", "$(mode)", "detours", name))
+        set_targetdir(path.join("$(builddir)", "detours", "$(mode)", name))
         add_rules("race-compatibility")
     end)
 end
@@ -93,7 +93,7 @@ packtable = {
     -- mode/path, basename
     ["release"] = projecttitle .. "-$(version)",
     ["releasedbg"] = projecttitle .. " - PDB Build" .. "-$(version)",
-    ["releasedbg/detours"] = projecttitle .. " - PDB Build with Detours" .. "-$(version)",
+    ["detours/releasedbg"] = projecttitle .. " - PDB Build with Detours" .. "-$(version)",
 }
 
 for mode, basename in pairs(packtable) do
@@ -111,8 +111,9 @@ for mode, basename in pairs(packtable) do
 
 
         after_package(function(package)
-            os.mv(package:outputfile(), "$(builddir)/xpack/")
-            os.rmdir(path.directory(package:outputfile()))
+            packdir = "build/xpack"
+            os.mv(package:outputfile(), packdir)
+            os.rmdir(path.join(packdir, path.split(mode)[1]))
         end)
     end)
 end
