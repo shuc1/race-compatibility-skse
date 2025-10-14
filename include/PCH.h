@@ -54,4 +54,48 @@ namespace stl
 
 		REL::safe_write(a_src, &assembly, sizeof(assembly));
 	}
+
+	template <typename T>
+	consteval auto get_signature()
+	{
+#if defined(_MSC_VER)
+		return std::string_view(__FUNCSIG__);
+#else
+		static_assert(false, "Unsupported compiler for type name extraction");
+#endif
+	}
+
+	// get struct raw/unqualified name
+	template <typename T>
+	consteval auto raw_struct_name()
+	{
+		constexpr auto probe = get_signature<int>();
+		constexpr auto marker = "int"sv;
+		constexpr auto mp = probe.find(marker);  // marker pos
+		static_assert(mp != std::string_view::npos);
+		constexpr auto suffix = probe.size() - mp - marker.size();
+
+		constexpr auto sig = get_signature<T>();
+		constexpr auto keyword = "struct "sv;
+		constexpr auto kp = sig.find(keyword);  // keyword pos
+		static_assert(kp != std::string_view::npos);
+		constexpr auto scope = "::"sv;
+		constexpr auto spr = sig.rfind(scope);  // scope resolution operator r-pos
+		constexpr auto prefix = [&] {
+			if constexpr (spr != std::string_view::npos) {
+				return spr + scope.size();
+			} else {
+				return kp + keyword.size();
+			}
+		}();
+
+		constexpr auto size = sig.size() - prefix - suffix + 1;
+		static_assert(size);
+
+		std::array<char, size> result{};
+		std::copy_n(std::next(sig.begin(), prefix), size - 1, result.begin());
+		// result[view.size()] = '\0'; // unnecessary, default initialized
+		return result;
+	}
+
 }  // namespace stl

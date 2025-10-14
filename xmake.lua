@@ -9,7 +9,7 @@ includes("xmake-commonlib.lua")
 projectname = "race-compatibility"
 plugindir = "skse/plugins/"
 set_project(projectname)
-set_version("2.4.0", {build = "%Y-%m-%d"})
+set_version("2.4.1", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 -- add requires

@@ -10,6 +10,38 @@ namespace rcs::hook
 {
 	namespace
 	{
+		template <typename... Ts>
+		consteval auto make_hook_message()
+		{
+			constexpr auto count = sizeof...(Ts);
+			static_assert(count);
+
+			constexpr auto prefix = [] {
+				if constexpr (count > 1) {
+					return std::array<char, 21>{ "Installed hooks for " };
+				} else {
+					return std::array<char, 20>{ "Installed hook for " };
+				}
+			}();
+			constexpr auto ps = prefix.size();
+			constexpr auto size = ps + (stl::raw_struct_name<Ts>().size() + ... + (count - 2));
+			auto           result = std::array<char, size>{};
+			std::copy_n(prefix.begin(), ps - 1, result.begin());
+
+			std::size_t pos = ps - 1;
+			([&] {
+				constexpr auto tn = stl::raw_struct_name<Ts>();
+				std::copy_n(tn.begin(), tn.size() - 1, std::next(result.begin(), pos));
+				pos += tn.size() - 1;
+				if (pos != size - 1) {
+					result[pos++] = ',';
+					result[pos++] = ' ';
+				}
+			}(),
+				...);
+			return result;
+		}
+
 #ifdef DETOURS
 		template <stl::Hookable T>
 		struct FuncStorage
@@ -40,10 +72,12 @@ namespace rcs::hook
 			(InstallHook<Ts>(), ...);
 			if (auto error = DetourTransactionCommit(); error != NO_ERROR) {
 				logs::error("DetourTransactionCommit failed with error code: {}", error);
+				return;
 			}
 #else
 			(InstallHook<Ts>(), ...);
 #endif
+			// logs::info(make_hook_message<Ts...>().data());
 		}
 
 	}
@@ -175,16 +209,16 @@ namespace rcs::hook
 		if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
 			InstallHooks<GetIsRace, SameRace, GetPCIsRace>();
-			logs::info("Installed hooks for GetIsRace, SameRace and GetPCIsRace"sv);
+			//logs::info("Installed hooks for GetIsRace, SameRace and GetPCIsRace"sv);
 #else
 			InstallHooks<GetIsRace, SameRace>();
-			logs::info("Installed hooks for GetIsRace and SameRace"sv);
+			//logs::info("Installed hooks for GetIsRace and SameRace"sv);
 #endif
 		}
 
 		if (!manager::armorRaceProxies.empty()) {
 			InstallHooks<IsValidRace>();
-			logs::info("Installed hook for TESObjectARMA::IsValidRace"sv);
+			//logs::info("Installed hook for TESObjectARMA::IsValidRace"sv);
 		}
 	}
 }  // namespace rcs::hook
