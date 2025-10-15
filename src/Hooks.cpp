@@ -43,6 +43,9 @@ namespace rcs::hook
 		}
 
 		template <typename... Ts>
+		inline constexpr auto hook_msg_array_for = make_hook_message<Ts...>();
+
+		template <typename... Ts>
 		constexpr auto MakeHookMessage()
 		{
 			static constexpr auto msg_array = make_hook_message<Ts...>();
