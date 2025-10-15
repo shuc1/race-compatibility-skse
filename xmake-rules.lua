@@ -29,6 +29,10 @@ rule("race-compatibility", function()
         -- for vs studio project
         target:add("headerfiles", "include/*.h")
         target:set("pcxxheader", "include/pch.h")
+
+        target:add("cxxflags",
+            "cl::/Zc:inline"
+        )
     end)
 end)
 

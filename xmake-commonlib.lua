@@ -119,7 +119,8 @@ rule("commonlib", function()
             "cl::/guard:cf-",
             "cl::/Zc:enumTypes",
             "cl::/Zc:preprocessor",
-            "cl::/Zc:templateScope"
+            "cl::/Zc:templateScope",
+            "cl::/Zc:inline"
         )
 
         -- add flags (cl: warnings -> errors)

@@ -42,6 +42,13 @@ namespace rcs::hook
 			return result;
 		}
 
+		template <typename... Ts>
+		constexpr auto MakeHookMessage()
+		{
+			static constexpr auto msg_array = make_hook_message<Ts...>();
+			return std::string_view{ msg_array.data(), msg_array.size() - 1 };
+		}
+
 #ifdef DETOURS
 		template <stl::Hookable T>
 		struct FuncStorage
@@ -77,7 +84,7 @@ namespace rcs::hook
 #else
 			(InstallHook<Ts>(), ...);
 #endif
-			// logs::info(make_hook_message<Ts...>().data());
+			logs::info(MakeHookMessage<Ts...>());
 		}
 
 	}
@@ -209,16 +216,13 @@ namespace rcs::hook
 		if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
 			InstallHooks<GetIsRace, SameRace, GetPCIsRace>();
-			//logs::info("Installed hooks for GetIsRace, SameRace and GetPCIsRace"sv);
 #else
 			InstallHooks<GetIsRace, SameRace>();
-			//logs::info("Installed hooks for GetIsRace and SameRace"sv);
 #endif
 		}
 
 		if (!manager::armorRaceProxies.empty()) {
 			InstallHooks<IsValidRace>();
-			//logs::info("Installed hook for TESObjectARMA::IsValidRace"sv);
 		}
 	}
 }  // namespace rcs::hook
