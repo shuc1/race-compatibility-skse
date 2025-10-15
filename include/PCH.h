@@ -65,37 +65,67 @@ namespace stl
 #endif
 	}
 
-	// get struct raw/unqualified name
+	// get struct name with scope, but without anonymous namespace (if any)
 	template <typename T>
-	consteval auto raw_struct_name()
+	consteval auto struct_name()
 	{
+		using sv = std::string_view;
+
 		constexpr auto probe = get_signature<int>();
 		constexpr auto marker = "int"sv;
-		constexpr auto mp = probe.find(marker);  // marker pos
-		static_assert(mp != std::string_view::npos);
-		constexpr auto suffix = probe.size() - mp - marker.size();
+		constexpr auto marker_start = probe.find(marker);
+		static_assert(marker_start != sv::npos);
+		constexpr auto suffix_size = probe.size() - (marker_start + marker.size());
 
 		constexpr auto sig = get_signature<T>();
 		constexpr auto keyword = "struct "sv;
-		constexpr auto kp = sig.find(keyword);  // keyword pos
-		static_assert(kp != std::string_view::npos);
-		constexpr auto scope = "::"sv;
-		constexpr auto spr = sig.rfind(scope);  // scope resolution operator r-pos
-		constexpr auto prefix = [&] {
-			if constexpr (spr != std::string_view::npos) {
-				return spr + scope.size();
-			} else {
-				return kp + keyword.size();
+		constexpr auto kw_start = sig.find(keyword);  // struct keyword pos
+		static_assert(kw_start != sv::npos);
+		constexpr auto prefix_size = kw_start + keyword.size();
+		static_assert(prefix_size + suffix_size < sig.size());
+
+		constexpr auto raw = sig.substr(prefix_size, sig.size() - (prefix_size + suffix_size));
+		// raw name with possible scope
+		struct NameParts
+		{
+			std::size_t                      raw_name_start;  // unqualified name position in raw
+			std::size_t                      scope_size;      // scope size
+			std::array<char, raw.size() + 1> scope{};         // scope, with null terminator
+		};
+		constexpr auto nameparts = []() constexpr {
+			constexpr auto op = "::"sv;  // scope resolution operator
+			NameParts      nameparts{};
+
+			// l,r for substr in raw, i for `scope` index
+			auto& [l, i, scope] = nameparts;
+			for (std::size_t r = raw.find(op, 0); r != sv::npos;
+				l = r + op.size(), r = raw.find(op, l)) {
+				// MSVC only
+				if (raw.substr(l).starts_with("`anonymous-namespace'"sv)) {
+					continue;
+				}
+				auto size = r + op.size() - l;  // inclusive of '::'
+				std::copy_n(std::next(raw.begin(), l), size,
+					std::next(scope.begin(), i));
+				i += size;
 			}
+			return nameparts;
 		}();
+		constexpr auto raw_name_size = raw.size() - nameparts.raw_name_start;
+		static_assert(raw_name_size);
 
-		constexpr auto size = sig.size() - prefix - suffix + 1;
-		static_assert(size);
-
-		std::array<char, size> result{};
-		std::copy_n(std::next(sig.begin(), prefix), size - 1, result.begin());
-		// result[view.size()] = '\0'; // unnecessary, default initialized
+		auto result = std::array<char, raw_name_size + nameparts.scope_size + 1>{};
+		// copy scope if any
+		if constexpr (nameparts.scope_size) {
+			std::copy_n(nameparts.scope.begin(), nameparts.scope_size, result.begin());
+		}
+		// copy unqualified name
+		std::copy_n(std::next(raw.begin(), nameparts.raw_name_start), raw_name_size,
+			std::next(result.begin(), nameparts.scope_size));
 		return result;
 	}
 
+	// for assisting, not direct use
+	template <typename T>
+	inline constexpr auto struct_name_for = struct_name<T>();
 }  // namespace stl
