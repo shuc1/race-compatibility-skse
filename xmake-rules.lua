@@ -22,7 +22,7 @@ rule("race-compatibility", function()
         target:set("kind", "shared")
         target:set("basename", "race-compatibility")
         
-        target:add("packages", "glaze")
+        target:add("packages", "glaze", { public = false })
 
         target:add("files", "src/*.cpp")
         target:add("includedirs", "include/")

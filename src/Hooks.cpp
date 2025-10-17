@@ -56,7 +56,7 @@ namespace
 		if constexpr (stl::HasPreInstall<T>) {
 			T::PreInstall();
 		}
-		constexpr auto offset = []() {
+		constexpr auto offset = [] {
 			if constexpr (stl::HasOffset<T>) {
 				return T::offset;
 			} else {
@@ -178,7 +178,7 @@ namespace
 #	ifdef DETOURS
 			static constexpr std::ptrdiff_t offset = 0x0;
 #	else
-			// after loading player character into RCX
+			// after loading player character into register
 			static constexpr std::ptrdiff_t offset = 0x7;
 
 			static void PreInstall()
@@ -188,11 +188,12 @@ namespace
 #		pragma pack(push, 1)
 				struct Assembly
 				{
-					// mov rcx,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
-					// 48 8b 0D c1 9f e5 02, for example in 1.6.1170
-					std::uint8_t rex{ 0x48 };    // 0x0
+					// mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
+					// 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
+					// rcs is marked [[maybe_unused]] but test shows still load a value into it
+					std::uint8_t rex{ 0x4c };    // 0x0
 					std::uint8_t mov{ 0x8b };    // 0x1
-					std::uint8_t modrm{ 0x0d };  // 0x2, rcx
+					std::uint8_t modrm{ 0x05 };  // 0x2, r8
 					std::int32_t disp;           // 0x3
 				} const assembly{
 					.disp = static_cast<std::int32_t>(pc - (src + offset))
@@ -215,7 +216,7 @@ namespace
 				const auto pc = RE::PlayerCharacter::GetSingleton();
 #	else
 				// used custom assembly to get PlayerCharacter*
-				const auto pc = reinterpret_cast<const RE::PlayerCharacter*>(unused1);
+				const auto pc = reinterpret_cast<const RE::PlayerCharacter*>(unused2);
 #	endif
 				if (pc && race_form) {
 					if (const auto race = race_form->As<RE::TESRace>();

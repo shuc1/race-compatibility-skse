@@ -102,7 +102,7 @@ namespace stl
 			std::size_t                      scope_size;      // scope size
 			std::array<char, raw.size() + 1> scope{};         // scope, with null terminator
 		};
-		constexpr auto nameparts = []() {
+		constexpr auto nameparts = [] {
 			constexpr auto op = "::"sv;  // scope resolution operator
 			NameParts      nameparts{};
 
