@@ -20,13 +20,23 @@ namespace stl
 
 	template <typename T>
 	concept HasThunk = requires {
-		T::thunk;
-	} && std::is_function_v<std::remove_pointer_t<decltype(T::thunk)>>;
+		T::Thunk;
+	} && std::is_function_v<std::remove_pointer_t<decltype(T::Thunk)>>;
+
+	template <typename T>
+	concept HasPreInstall = requires {
+		T::PreInstall;
+	} && std::is_function_v<std::remove_pointer_t<decltype(T::PreInstall)>>;
 
 	template <typename T>
 	concept HasID = requires {
 		T::id;
 	} && std::is_same_v<decltype(T::id), const REL::ID>;
+
+	template <typename T>
+	concept HasOffset = requires {
+		T::offset;
+	} && std::is_same_v<decltype(T::offset), const std::ptrdiff_t>;
 
 	template <typename T>
 	concept Hookable = HasThunk<T> && HasID<T>;
@@ -43,7 +53,7 @@ namespace stl
 			std::uint8_t  jmp{ 0xFF };                                        // 0x0
 			std::uint8_t  modrm{ 0x25 };                                      // 0x1
 			std::int32_t  disp{ 0 };                                          // 0x2
-			std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::thunk) };  // 0x6
+			std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::Thunk) };  // 0x6
 		} const assembly{};
 		static_assert(offsetof(TrampolineAssembly, jmp) == 0x0);
 		static_assert(offsetof(TrampolineAssembly, modrm) == 0x1);
@@ -92,7 +102,7 @@ namespace stl
 			std::size_t                      scope_size;      // scope size
 			std::array<char, raw.size() + 1> scope{};         // scope, with null terminator
 		};
-		constexpr auto nameparts = []() constexpr {
+		constexpr auto nameparts = []() {
 			constexpr auto op = "::"sv;  // scope resolution operator
 			NameParts      nameparts{};
 
