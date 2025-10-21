@@ -42,10 +42,8 @@ namespace
 	}
 
 	template <typename... Ts>
-	// consteval auto MakeHookMessage()
 	constexpr auto MakeHookMessage()
 	{
-		// constexpr auto& msg_array = hook_msg_array_for<Ts...>;
 		static constexpr auto msg_array = make_hook_message_array<Ts...>();
 		return std::string_view{ msg_array.data(), msg_array.size() - 1 };
 	}
@@ -175,9 +173,7 @@ namespace
 		struct GetPCIsRace
 		{
 			static constexpr auto id = REL::ID(21484);
-#	ifdef DETOURS
-			static constexpr std::ptrdiff_t offset = 0x0;
-#	else
+#	ifndef DETOURS
 			// after loading player character into register
 			static constexpr std::ptrdiff_t offset = 0x7;
 
@@ -190,7 +186,7 @@ namespace
 				{
 					// mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
 					// 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
-					// rcs is marked [[maybe_unused]] but test shows still load a value into it
+					// rcx is marked [[maybe_unused]], but the test shows that a value is still loaded into it.
 					std::uint8_t rex{ 0x4c };    // 0x0
 					std::uint8_t mov{ 0x8b };    // 0x1
 					std::uint8_t modrm{ 0x05 };  // 0x2, r8
