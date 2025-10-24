@@ -24,10 +24,10 @@ namespace rcs
 				t = data_handler ?
 				        data_handler->LookupForm<T>(
 							static_cast<RE::FormID>(std::stoul(std::string{ form_str.substr(split_loc + 1) }, nullptr, 16)),
-							std::string(form_str.substr(0, split_loc))) :
+							std::string{ form_str.substr(0, split_loc) }) :
 				        nullptr;
 			} else {  // "OhemsRahtRace"
-				t = RE::TESForm::LookupByEditorID<T>(std::string(form_str));
+				t = RE::TESForm::LookupByEditorID<T>(std::string{ form_str });
 			}
 			cache.emplace(form_str, t);
 			return t;

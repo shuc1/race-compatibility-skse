@@ -2,35 +2,35 @@
 
 namespace rcs::manager
 {
-	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race)
+	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept
 	{
 		if (race && vampire_race) {
 			vampirismPairs.emplace_back(std::make_pair(race, vampire_race));
 		}
 	}
 
-	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies)
+	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies) noexcept
 	{
 		if (race && !proxies.empty()) {
 			raceProxies.emplace(race, std::move(proxies));
 		}
 	}
 
-	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies)
+	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept
 	{
 		if (race && !proxies.empty()) {
 			armorRaceProxies.emplace(race, std::move(proxies));
 		}
 	}
 
-	void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type)
+	void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
 	{
 		if (race) {
 			headPartMap.emplace(race, type);
 		}
 	}
 
-	auto GetVampireRaceByRace(const RE::TESRace* race)
+	auto GetVampireRaceByRace(const RE::TESRace* race) noexcept
 		-> const RE::TESRace*
 	{
 		const auto it = std::ranges::find_if(vampirismPairs,
@@ -38,7 +38,7 @@ namespace rcs::manager
 		return (it == vampirismPairs.end()) ? nullptr : it->second;
 	}
 
-	auto GetRaceByVampireRace(const RE::TESRace* vampire_race)
+	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept
 		-> const RE::TESRace*
 	{
 		const auto it = std::ranges::find_if(vampirismPairs,
@@ -46,7 +46,7 @@ namespace rcs::manager
 		return (it == vampirismPairs.end()) ? nullptr : it->first;
 	}
 
-	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race)
+	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept
 		-> bool
 	{
 		if (source_race == target_race) {
@@ -59,7 +59,7 @@ namespace rcs::manager
 		return it != raceProxies.end() && it->second.contains(target_race);
 	}
 
-	auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
+	auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept
 		-> const RE::TESRace*
 	{
 		if (const auto it = armorRaceProxies.find(race);
@@ -74,7 +74,7 @@ namespace rcs::manager
 		return race->armorParentRace;
 	}
 
-	auto GetHeadPartType(const RE::TESRace* race)
+	auto GetHeadPartType(const RE::TESRace* race) noexcept
 		-> HeadPartType
 	{
 		const auto it = headPartMap.find(race);

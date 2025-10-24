@@ -72,16 +72,16 @@ namespace rcs::manager
 	inline std::unordered_map<const RE::TESRace*, HeadPartType>                 headPartMap{};
 
 	// emplace
-	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race);
-	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies);
-	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies);
-	void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type);
+	void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
+	void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies) noexcept;
+	void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
+	void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept;
 	// judge
-	auto GetVampireRaceByRace(const RE::TESRace* race) -> const RE::TESRace*;
-	auto GetRaceByVampireRace(const RE::TESRace* vampire_race) -> const RE::TESRace*;
-	auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) -> bool;
-	auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) -> const RE::TESRace*;
-	auto GetHeadPartType(const RE::TESRace* race) -> HeadPartType;
+	[[nodiscard]] auto GetVampireRaceByRace(const RE::TESRace* race) noexcept -> const RE::TESRace*;
+	[[nodiscard]] auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept -> const RE::TESRace*;
+	[[nodiscard]] auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept -> bool;
+	[[nodiscard]] auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
+	[[nodiscard]] auto GetHeadPartType(const RE::TESRace* race) noexcept -> HeadPartType;
 	// summary
 	void Summary();
 
@@ -95,8 +95,8 @@ namespace rcs::manager
 		{
 		public:
 			HeadPartFormIdListAdder();
-			auto IsInitialized() const -> bool;
-			void AddRacePair(ADD_RACE_ARGS, HeadPartType type) const;
+			[[nodiscard]] bool IsInitialized() const;
+			void               AddRacePair(ADD_RACE_ARGS, HeadPartType type) const;
 
 		private:
 #define X(LIST) RE::BGSListForm*(LIST){ nullptr };
