@@ -6,7 +6,7 @@
         ["cmake#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "bcabfafe9fd663ba02e3c071627e15ebb3ce2036",
+                commit = "af8977ca231b7913e39d8a60c95368e50182f769",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "3.31.6-msvc6"
@@ -14,10 +14,10 @@
         ["glaze#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "9ed5fdcb93e9b2ef3648e1803b99d167d59c2448",
+                commit = "1cf18a91672c409989195c10b23ac9a0d5f582de",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "v6.0.0"
+            version = "v6.0.1"
         },
         ["microsoft-detours#f56260b5"] = {
             repo = {
@@ -30,7 +30,7 @@
         ["ninja#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "bcabfafe9fd663ba02e3c071627e15ebb3ce2036",
+                commit = "af8977ca231b7913e39d8a60c95368e50182f769",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "1.12.1"
@@ -46,10 +46,18 @@
         ["spdlog#09c8c173"] = {
             repo = {
                 branch = "master",
-                commit = "bcabfafe9fd663ba02e3c071627e15ebb3ce2036",
+                commit = "c6c3577e2ef635a3625bb36f7f7da43988798e85",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.16.0"
+        },
+        ["xbyak#f56260b5"] = {
+            repo = {
+                branch = "master",
+                commit = "1cf18a91672c409989195c10b23ac9a0d5f582de",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v7.06"
         }
     }
 }
