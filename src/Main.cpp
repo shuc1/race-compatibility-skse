@@ -1,5 +1,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+#ifndef NDEBUG
+#	include <spdlog/sinks/msvc_sink.h>
+#endif
 
 #include "Configs.h"
 #include "Hooks.h"
@@ -17,7 +19,9 @@ namespace
 
 		spdlog::sinks_init_list sinks{
 			std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
+#ifndef NDEBUG
 			std::make_shared<spdlog::sinks::msvc_sink_mt>()
+#endif
 		};
 
 		auto logger = std::make_shared<spdlog::logger>("global", sinks);
@@ -35,7 +39,7 @@ namespace
 			{
 				logs::info("{:*^50}"sv, "DEPENDENCIES"sv);
 				const auto start = std::chrono::system_clock::now();
-				const auto should_install_hooks{ rcs::config::TryReadAndApplyConfigs() };
+				const auto should_install_hooks{ rcs::config::TryProcessConfigs() };
 				logs::info("Loaded configs in {} ms",
 					std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
 				if (should_install_hooks) {
@@ -81,7 +85,6 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 #	else
 		< SKSE::RUNTIME_SSE_1_5_39
 #	endif
-
 	) {
 		SKSE::log::critical("Unsupported runtime version {}", ver.string());
 		return false;

@@ -1,18 +1,21 @@
 #pragma once
 
-#define HEAD_PART_TYPES \
-	X(Argonian)         \
-	X(Elf)              \
-	X(DarkElf)          \
-	X(HighElf)          \
-	X(WoodElf)          \
-	X(Human)            \
-	X(Breton)           \
-	X(Imperial)         \
-	X(Nord)             \
-	X(Redguard)         \
-	X(Khajiit)          \
+#define VANILLA_RACES \
+	X(Argonian)       \
+	X(DarkElf)        \
+	X(HighElf)        \
+	X(WoodElf)        \
+	X(Breton)         \
+	X(Imperial)       \
+	X(Nord)           \
+	X(Redguard)       \
+	X(Khajiit)        \
 	X(Orc)
+
+#define HEAD_PART_TYPES \
+	VANILLA_RACES       \
+	X(Elf)              \
+	X(Human)
 
 #define HEAD_PART_LISTS           \
 	/* normal races */            \
@@ -62,7 +65,7 @@ namespace rcs::manager
 
 	struct ArmorProxyEntry
 	{
-		RE::TESRace*                            proxy;
+		const RE::TESRace*                      proxy;
 		RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
 	};
 
