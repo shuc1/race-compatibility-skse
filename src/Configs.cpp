@@ -105,7 +105,7 @@ namespace rcs::config
 			ApplyConfigEntry(entry);
 
 			// add to visited map
-			std::string_view info{ appliedEntryInfo.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
+			std::string_view info{ entryInfoPool.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
 			visitedMap.emplace(race, info);
 			if (vampireRace) {
 				visitedMap.emplace(vampireRace, info);

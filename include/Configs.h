@@ -84,11 +84,11 @@ namespace rcs::config
 		void        ApplyConfigEntry(ConfigEntry& entry) const;
 		static void ApplyRaceProxy(RaceProxy& proxy);
 
-		std::filesystem::path                               configDir;
-		manager::headpart::HeadPartFormIdListAdder          adder;
-		RaceFormCache                                       formCache;
-		std::deque<std::string>                             appliedEntryInfo;  // make sure alive during processing
-		std::unordered_map<const RE::TESRace*, std::string> visitedMap;
+		std::filesystem::path                                    configDir;
+		manager::headpart::HeadPartFormIdListAdder               adder;
+		RaceFormCache                                            formCache;
+		std::deque<std::string>                                  entryInfoPool;  // make sure alive during processing
+		std::unordered_map<const RE::TESRace*, std::string_view> visitedMap;
 	};
 
 	bool TryProcessConfigs();
