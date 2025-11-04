@@ -170,6 +170,7 @@ namespace rcs::hook
 {
 	void TryInstall()
 	{
+		logs::info("{:*^30}", "HOOKS");
 #ifdef DETOURS
 		logs::info("Using Detours"sv);
 #endif

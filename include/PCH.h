@@ -16,7 +16,6 @@ using namespace std::literals;
 
 namespace stl
 {
-
 	template <typename T>
 	consteval auto get_signature()
 	{
@@ -31,59 +30,57 @@ namespace stl
 	template <typename T>
 	consteval auto struct_name()
 	{
-		using sv = std::string_view;
+		constexpr auto npos = std::string_view::npos;
 
 		constexpr auto probe = get_signature<int>();
 		constexpr auto marker = "int"sv;
-		constexpr auto marker_start = probe.find(marker);
-		static_assert(marker_start != sv::npos);
-		constexpr auto suffix_size = probe.size() - (marker_start + marker.size());
+		constexpr auto markerStart = probe.find(marker);
+		static_assert(markerStart != npos);
+		constexpr auto suffixSize = probe.size() - (markerStart + marker.size());
 
 		constexpr auto sig = get_signature<T>();
 		constexpr auto keyword = "struct "sv;
-		constexpr auto kw_start = sig.find(keyword);  // struct keyword pos
-		static_assert(kw_start != sv::npos);
-		constexpr auto prefix_size = kw_start + keyword.size();
-		static_assert(prefix_size + suffix_size < sig.size());
+		constexpr auto keywordStart = sig.find(keyword);  // struct keyword pos
+		static_assert(keywordStart != npos);
+		constexpr auto prefixSize = keywordStart + keyword.size();
+		static_assert(prefixSize + suffixSize < sig.size());
 
-		constexpr auto raw = sig.substr(prefix_size, sig.size() - (prefix_size + suffix_size));
+		constexpr auto qualified = sig.substr(prefixSize, sig.size() - (prefixSize + suffixSize));
 		// raw name with possible scope
 		struct NameParts
 		{
-			std::size_t                      raw_name_start;  // unqualified name position in raw
-			std::size_t                      scope_size;      // scope size
-			std::array<char, raw.size() + 1> scope{};         // scope, with null terminator
+			std::size_t                            rawNameStart;  // unqualified name position in raw
+			std::size_t                            scopeSize;     // scope size
+			std::array<char, qualified.size() + 1> scopeData{};   // scope, with null terminator
 		};
-		constexpr auto nameparts = [] {
+		constexpr auto nameParts = [] {
+			// remove anonymous namespace(s) if any
 			constexpr auto op = "::"sv;  // scope resolution operator
-			NameParts      nameparts{};
-
-			// l,r for substr in raw, i for `scope` index
-			auto& [l, i, scope] = nameparts;
-			for (std::size_t r = raw.find(op, 0); r != sv::npos;
-				l = r + op.size(), r = raw.find(op, l)) {
+			NameParts      nameParts{};
+			auto& [l, i, data] = nameParts;  // l,r for substr in raw, i for `scope` index
+			for (auto r = qualified.find(op, 0); r != npos;
+				l = r + op.size(), r = qualified.find(op, l)) {
 				// MSVC only
-				if (raw.substr(l).starts_with("`anonymous-namespace'"sv)) {
+				if (qualified.substr(l).starts_with("`anonymous-namespace'"sv)) {
 					continue;
 				}
 				auto size = r + op.size() - l;  // inclusive of '::'
-				std::copy_n(std::next(raw.begin(), l), size,
-					std::next(scope.begin(), i));
+				std::copy_n(std::next(qualified.begin(), l), size,
+					std::next(data.begin(), i));
 				i += size;
 			}
-			return nameparts;
+			return nameParts;
 		}();
-		constexpr auto raw_name_size = raw.size() - nameparts.raw_name_start;
-		static_assert(raw_name_size);
-
-		auto result = std::array<char, raw_name_size + nameparts.scope_size + 1>{};
+		constexpr auto rawNameSize = qualified.size() - nameParts.rawNameStart;
+		static_assert(rawNameSize);
+		auto result = std::array<char, rawNameSize + nameParts.scopeSize + 1>{};
 		// copy scope if any
-		if constexpr (nameparts.scope_size) {
-			std::copy_n(nameparts.scope.begin(), nameparts.scope_size, result.begin());
+		if constexpr (nameParts.scopeSize) {
+			std::copy_n(nameParts.scopeData.begin(), nameParts.scopeSize, result.begin());
 		}
 		// copy unqualified name
-		std::copy_n(std::next(raw.begin(), nameparts.raw_name_start), raw_name_size,
-			std::next(result.begin(), nameparts.scope_size));
+		std::copy_n(std::next(qualified.begin(), nameParts.rawNameStart), rawNameSize,
+			std::next(result.begin(), nameParts.scopeSize));
 		return result;
 	}
 

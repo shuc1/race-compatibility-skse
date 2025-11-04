@@ -4,6 +4,7 @@ namespace rcs::config
 {
 	bool ConfigProcessor::Run()
 	{
+		// check initialization
 		if (!adder.IsInitialized()) {
 			logs::error("HeadPartFormIdListAdder is not initialized"sv);
 			return false;
@@ -12,26 +13,18 @@ namespace rcs::config
 			logs::error("Data handler is not initialized"sv);
 			return false;
 		}
-		const auto configDirString{ configDir.string() };
-		if (!std::filesystem::exists(configDir)) {
-			logs::warn("Folder {} does not exist"sv, configDirString);
-			return false;
-		}
-
+		// list and process config files
 		auto files = ListConfigFiles();
 		if (files.empty()) {
-			logs::warn("No config files found in {}"sv, configDirString);
+			logs::warn("{} does not exist or contains no config files"sv, configDir.string());
 		}
 		// sort files in descending order to have higher priority files processed first
 		std::ranges::sort(files, std::ranges::greater{});
 		for (const auto& path : files) {
 			ProcessConfigFile(path);
 		}
-
 		// vanilla game config entries
-		logs::info("default:"sv);
-		ProcessFileEntries(
-			"default"sv,
+		ProcessFileEntries("default"sv,
 			{
 #define X(NAME)                                             \
 	RawConfigEntry{                                         \
@@ -49,6 +42,9 @@ namespace rcs::config
 	std::vector<std::filesystem::path> ConfigProcessor::ListConfigFiles() const
 	{
 		std::vector<std::filesystem::path> result{};
+		if (!std::filesystem::exists(configDir)) {
+			return result;
+		}
 		// there should not be that many config files
 		result.reserve(4);
 		for (const auto& entry : std::filesystem::directory_iterator(configDir)) {
@@ -62,11 +58,10 @@ namespace rcs::config
 	void ConfigProcessor::ProcessConfigFile(const std::filesystem::path& path)
 	{
 		const auto filename{ path.filename().string() };
-		logs::info("{}:"sv, filename);
 		auto       buffer = glz::file_to_buffer(path.string());
 		const auto content = glz::read_json<RawConfigFileContent>(buffer);
 		if (!content) {
-			logs::error("Failed to read file for \"{}\""sv, glz::format_error(content));
+			logs::error("Failed to read {} for \"{}\""sv, filename, glz::format_error(content));
 			return;
 		}
 		ProcessFileEntries(filename, content.value().entries);
@@ -74,6 +69,7 @@ namespace rcs::config
 
 	void ConfigProcessor::ProcessFileEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries)
 	{
+		logs::info("{}:"sv, filename);
 		for (const auto& [entryName, raceString, vampireRaceString, headPartString] :
 			entries | std::views::reverse) {
 			logs::info("\t{}: {}, {}"sv, entryName, raceString.form,
@@ -92,14 +88,12 @@ namespace rcs::config
 				logs::warn("\t\t[SKIP] Race not found"sv);
 				continue;
 			}
-			if (auto itRace = visitedMap.find(race);
-				itRace != visitedMap.end()) {
+			if (auto itRace = visitedMap.find(race); itRace != visitedMap.end()) {
 				logs::warn("\t\t[SKIP] Race already used in {}"sv, itRace->second);
 				continue;
 			}
 			if (vampireRace) {
-				if (auto itRaceVamp = visitedMap.find(vampireRace);
-					itRaceVamp != visitedMap.end()) {
+				if (auto itRaceVamp = visitedMap.find(vampireRace); itRaceVamp != visitedMap.end()) {
 					logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, itRaceVamp->second);
 					continue;
 				}
@@ -180,6 +174,7 @@ namespace rcs::config
 		if (auto* armorRace = proxy.armor.race) {
 			proxy.form->armorParentRace = armorRace;
 		}
+
 		manager::EmplaceArmorRaceProxies(proxy.form, std::move(proxy.armor.variants));
 	}
 
@@ -187,6 +182,12 @@ namespace rcs::config
 	{
 		logs::info("{:*^30}"sv, "CONFIGS"sv);
 		ConfigProcessor processor{};
-		return processor.Run();
+		const auto      start = std::chrono::system_clock::now();
+		const auto      result = processor.Run();
+		const auto      end = std::chrono::system_clock::now();
+		const auto      ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		logs::info("Processed configs and wrote logs in {}ms"sv, ms);
+		manager::Summary();
+		return result;
 	}
 }  // namespace rcs::config

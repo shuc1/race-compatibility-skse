@@ -38,12 +38,7 @@ namespace
 		case SKSE::MessagingInterface::kDataLoaded:
 			{
 				logs::info("{:*^50}"sv, "DEPENDENCIES"sv);
-				const auto start = std::chrono::system_clock::now();
-				const auto should_install_hooks{ rcs::config::TryProcessConfigs() };
-				logs::info("Loaded configs in {} ms",
-					std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count());
-				if (should_install_hooks) {
-					logs::info("{:*^30}", "HOOKS");
+				if (rcs::config::TryProcessConfigs()) {
 					rcs::hook::TryInstall();
 				}
 				break;

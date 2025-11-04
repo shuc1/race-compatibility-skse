@@ -114,8 +114,8 @@ namespace rcs::hook
 	template <typename... Ts>
 	constexpr auto MakeHookMessage()
 	{
-		static constexpr auto message = make_hook_message_array<Ts...>();
-		return std::string_view{ message.data(), message.size() - 1 };
+		static constexpr auto MESSAGE = make_hook_message_array<Ts...>();
+		return std::string_view{ MESSAGE.data(), MESSAGE.size() - 1 };
 	}
 
 #ifdef DETOURS
