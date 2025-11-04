@@ -31,7 +31,7 @@ namespace
 				}
 #ifdef DETOURS
 				if (result == 0.0) {
-					return FuncStorage<GetIsRace>::func(obj, race_form, unused, result);
+					return hook::FuncStorage<GetIsRace>::func(obj, race_form, unused, result);
 				}
 #endif
 				LOG_TO_CONSOLE(GetIsRace)
@@ -59,7 +59,7 @@ namespace
 				}
 #ifdef DETOURS
 				if (result == 0.0) {
-					return FuncStorage<SameRace>::func(obj1, obj2, unused, result);
+					return hook::FuncStorage<SameRace>::func(obj1, obj2, unused, result);
 				}
 #endif
 				LOG_TO_CONSOLE(SameRace)
@@ -123,7 +123,7 @@ namespace
 				}
 #	ifdef DETOURS
 				if (result == 0.0) {
-					return FuncStorage<GetPCIsRace>::func(unused1, race_form, unused2, result);
+					return hook::FuncStorage<GetPCIsRace>::func(unused1, race_form, unused2, result);
 				}
 #	endif
 				LOG_TO_CONSOLE(GetIsRace)
@@ -157,7 +157,7 @@ namespace
 					[&](const auto& target_race) { return race == target_race || armorParentRace == target_race; });
 #ifdef DETOURS
 				if (!result) {
-					return FuncStorage<IsValidRace>::func(armor_addon, race);
+					return hook::FuncStorage<IsValidRace>::func(armor_addon, race);
 				}
 #endif
 				return result;
