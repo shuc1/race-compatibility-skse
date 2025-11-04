@@ -8,6 +8,10 @@ namespace rcs::config
 			logs::error("HeadPartFormIdListAdder is not initialized"sv);
 			return false;
 		}
+		if (!formCache.dataHandler) {
+			logs::error("Data handler is not initialized"sv);
+			return false;
+		}
 		const auto configDirString{ configDir.string() };
 		if (!std::filesystem::exists(configDir)) {
 			logs::warn("Folder {} does not exist"sv, configDirString);
@@ -85,7 +89,7 @@ namespace rcs::config
 			// check for duplicate
 			const auto *race = entry.race.form, *vampireRace = entry.vampireRace.form;
 			if (!race) {
-				logs::warn("\t\t[SKIP] Invalid race field"sv);
+				logs::warn("\t\t[SKIP] Race not found"sv);
 				continue;
 			}
 			if (auto itRace = visitedMap.find(race);
