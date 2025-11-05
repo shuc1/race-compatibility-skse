@@ -14,16 +14,16 @@ namespace rcs::config
 			{
 				struct ArmorVariant
 				{
-					std::vector<uint8_t> slots{};
+					std::vector<uint8_t> slots;
 					std::string_view     proxy;
 				};
 
 				std::string_view          race;
-				std::vector<ArmorVariant> variants{};
+				std::vector<ArmorVariant> variants;
 			};
 
 			std::string_view              form;
-			std::vector<std::string_view> proxies{};
+			std::vector<std::string_view> proxies;
 			ArmorProxy                    armor;
 		};
 
@@ -36,7 +36,7 @@ namespace rcs::config
 	struct RawConfigFileContent
 	{
 		std::string_view            schema;
-		std::vector<RawConfigEntry> entries{};
+		std::vector<RawConfigEntry> entries;
 	};
 
 	struct ConfigEntry
@@ -49,11 +49,11 @@ namespace rcs::config
 			struct ArmorProxy
 			{
 				RE::TESRace*              race;
-				std::vector<ArmorVariant> variants{};
+				std::vector<ArmorVariant> variants;
 			};
 
 			RE::TESRace*                 form;
-			std::set<const RE::TESRace*> proxies{};
+			std::set<const RE::TESRace*> proxies;
 			ArmorProxy                   armor;
 		};
 
@@ -69,7 +69,6 @@ namespace rcs::config
 		using RaceProxy = ConfigEntry::RaceProxy;
 
 	public:
-		explicit ConfigProcessor() : configDir{ CONFIG_DIR } {}
 		[[nodiscard]] bool Run();
 
 	private:
@@ -84,7 +83,7 @@ namespace rcs::config
 		void        ApplyConfigEntry(ConfigEntry& entry) const;
 		static void ApplyRaceProxy(RaceProxy& proxy);
 
-		std::filesystem::path                                    configDir;
+		std::filesystem::path                                    configDir{ CONFIG_DIR };
 		manager::headpart::HeadPartFormIdListAdder               adder;
 		RaceFormCache                                            formCache;
 		std::deque<std::string>                                  entryInfoPool;  // make sure alive during processing

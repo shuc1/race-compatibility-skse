@@ -6,7 +6,7 @@ namespace rcs::form
 	struct FormCache
 	{
 		RE::TESDataHandler*                    dataHandler{ RE::TESDataHandler::GetSingleton() };
-		std::map<std::string, T*, std::less<>> map{};
+		std::map<std::string, T*, std::less<>> map;
 	};
 
 	template <typename T>
