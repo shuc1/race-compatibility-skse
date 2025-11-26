@@ -6,18 +6,18 @@
         ["cmake#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "0e66618e9b0b46850233cc0232738c32d4c7e9e3",
+                commit = "4347b9bb34a7222aac78fcc33972cf8df28f600d",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "3.31.6-msvc6"
+            version = "4.1.1-msvc1"
         },
         ["glaze#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "34d5e5609b5da950d320e06887810e23589bb0a1",
+                commit = "4347b9bb34a7222aac78fcc33972cf8df28f600d",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "v6.0.1"
+            version = "v6.1.0"
         },
         ["microsoft-detours#f56260b5"] = {
             repo = {
@@ -30,7 +30,7 @@
         ["ninja#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "0e66618e9b0b46850233cc0232738c32d4c7e9e3",
+                commit = "4347b9bb34a7222aac78fcc33972cf8df28f600d",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "1.12.1"
