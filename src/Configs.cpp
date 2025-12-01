@@ -186,7 +186,7 @@ namespace rcs::config
 		const auto      result = processor.Run();
 		const auto      end = std::chrono::system_clock::now();
 		const auto      ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		logs::info("Processed configs and wrote logs in {}ms"sv, ms);
+		logs::info("Processed configs in {}ms"sv, ms);
 		manager::Summary();
 		return result;
 	}

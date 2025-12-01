@@ -86,8 +86,8 @@ namespace rcs::config
 		std::filesystem::path                                    configDir{ CONFIG_DIR };
 		manager::headpart::HeadPartFormIdListAdder               adder;
 		RaceFormCache                                            formCache;
-		std::deque<std::string>                                  entryInfoPool;  // make sure alive during processing
-		std::unordered_map<const RE::TESRace*, std::string_view> visitedMap;
+		std::deque<std::string>                                  entryInfoPool{};  // make sure alive during processing
+		std::unordered_map<const RE::TESRace*, std::string_view> visitedMap{};
 	};
 
 	bool TryProcessConfigs();

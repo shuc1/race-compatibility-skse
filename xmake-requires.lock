@@ -6,7 +6,11 @@
         ["cmake#f56260b5"] = {
             repo = {
                 branch = "master",
+<<<<<<< HEAD
                 commit = "4347b9bb34a7222aac78fcc33972cf8df28f600d",
+=======
+                commit = "8db28952eee7ce7af8715ade24c0ea65ed75e303",
+>>>>>>> 2dffa6f (chore: update to Visual Studio 2026)
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "4.1.1-msvc1"
@@ -14,7 +18,11 @@
         ["glaze#f56260b5"] = {
             repo = {
                 branch = "master",
+<<<<<<< HEAD
                 commit = "4347b9bb34a7222aac78fcc33972cf8df28f600d",
+=======
+                commit = "8db28952eee7ce7af8715ade24c0ea65ed75e303",
+>>>>>>> 2dffa6f (chore: update to Visual Studio 2026)
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v6.1.0"
@@ -46,7 +54,7 @@
         ["spdlog#09c8c173"] = {
             repo = {
                 branch = "master",
-                commit = "bcabfafe9fd663ba02e3c071627e15ebb3ce2036",
+                commit = "c6c3577e2ef635a3625bb36f7f7da43988798e85",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.16.0"
