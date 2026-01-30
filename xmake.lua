@@ -1,5 +1,5 @@
 -- set minimum xmake version
-set_xmakever("2.9.9")
+set_xmakever("3.0.6")
 
 -- includes
 includes("xmake-rules.lua")
