@@ -98,7 +98,7 @@ namespace
             static void PreInstall()
             {
                 const auto src = REL::Relocation{ id, 0 }.address();
-                const auto pc = REL::Relocation{ RE::Offset::PlayerCharacter::Singleton, 0 }.address();
+                const auto pc = REL::Relocation{ RELOCATION_ID(517014, 403521), 0 }.address();
                 const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
 
                 REL::safe_write(src, &assembly, sizeof(assembly));
