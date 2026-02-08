@@ -27,10 +27,10 @@ namespace rcs::config
             ArmorProxy                    armor;
         };
 
-        std::string_view name;
-        RaceProxy        race;
-        RaceProxy        vampireRace;
-        std::string_view headPart;
+        std::string_view                                              name;
+        RaceProxy                                                     race;
+        RaceProxy                                                     vampireRace;
+        std::variant<std::string_view, std::vector<std::string_view>> headPart;
     };
 
     struct RawConfigFileContent
@@ -57,9 +57,9 @@ namespace rcs::config
             ArmorProxy                   armor;
         };
 
-        RaceProxy    race;
-        RaceProxy    vampireRace;
-        HeadPartType headPart;
+        RaceProxy                 race;
+        RaceProxy                 vampireRace;
+        std::vector<HeadPartType> headPartTypes;
     };
 
     class ConfigProcessor
