@@ -4,21 +4,51 @@
     },
     ["windows|x64"] = {
         ["cmake#f56260b5"] = {
-            version = "4.1.1-msvc1"
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "4.2.3"
         },
         ["glaze#f56260b5"] = {
-            version = "v7.0.0"
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v7.0.2"
         },
         ["microsoft-detours#f56260b5"] = {
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
             version = "2023.6.8"
         },
         ["ninja#f56260b5"] = {
-            version = "1.12.1"
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v1.13.1"
         },
         ["rsm-binary-io#f56260b5"] = {
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
             version = "2.0.6"
         },
         ["spdlog#09c8c173"] = {
+            repo = {
+                branch = "master",
+                commit = "e0009940fa1db79e18548db0390e50e03dc91a71",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
             version = "v1.17.0"
         }
     }
