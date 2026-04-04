@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #define WIN32_LEAN_AND_MEAN
 
 #include <RE/Skyrim.h>
@@ -16,6 +17,7 @@ using namespace std::literals;
 
 namespace stl
 {
+    // godbolt: https://godbolt.org/z/vc8hnjcrb
     template <typename T>
     consteval auto get_signature()
     {
@@ -30,57 +32,49 @@ namespace stl
     template <typename T>
     consteval auto struct_name()
     {
-        constexpr auto npos = std::string_view::npos;
+        constexpr auto sig = []() {
+            constexpr auto probe = get_signature<int>();
+            constexpr auto sig_raw = get_signature<T>();
 
-        constexpr auto probe = get_signature<int>();
-        constexpr auto marker = "int"sv;
-        constexpr auto markerStart = probe.find(marker);
-        static_assert(markerStart != npos);
-        constexpr auto suffixSize = probe.size() - (markerStart + marker.size());
+            constexpr auto pre_size = probe.find("int"sv);
+            constexpr auto suf_size = probe.size() - pre_size - "int"sv.size();
 
-        constexpr auto sig = get_signature<T>();
-        constexpr auto keyword = "struct "sv;
-        constexpr auto keywordStart = sig.find(keyword);  // struct keyword pos
-        static_assert(keywordStart != npos);
-        constexpr auto prefixSize = keywordStart + keyword.size();
-        static_assert(prefixSize + suffixSize < sig.size());
-
-        constexpr auto qualified = sig.substr(prefixSize, sig.size() - (prefixSize + suffixSize));
-        // raw name with possible scope
-        struct NameParts
-        {
-            std::size_t                            rawNameStart;  // unqualified name position in raw
-            std::size_t                            scopeSize;     // scope size
-            std::array<char, qualified.size() + 1> scopeData{};   // scope, with null terminator
-        };
-        constexpr auto nameParts = [] {
-            // remove anonymous namespace(s) if any
-            constexpr auto op = "::"sv;  // scope resolution operator
-            NameParts      nameParts{};
-            auto& [l, i, data] = nameParts;  // l,r for substr in raw, i for `scope` index
-            for (auto r = qualified.find(op, 0); r != npos;
-                l = r + op.size(), r = qualified.find(op, l)) {
-                // MSVC only
-                if (qualified.substr(l).starts_with("`anonymous-namespace'"sv)) {
-                    continue;
-                }
-                auto size = r + op.size() - l;  // inclusive of '::'
-                std::copy_n(std::next(qualified.begin(), l), size,
-                    std::next(data.begin(), i));
-                i += size;
-            }
-            return nameParts;
+            auto s = sig_raw.substr(pre_size, sig_raw.size() - pre_size - suf_size);
+            if (s.starts_with("struct "sv))
+                s.remove_prefix(7);
+            else if (s.starts_with("class "sv))
+                s.remove_prefix(6);
+            return s;
         }();
-        constexpr auto rawNameSize = qualified.size() - nameParts.rawNameStart;
-        static_assert(rawNameSize);
-        auto result = std::array<char, rawNameSize + nameParts.scopeSize + 1>{};
-        // copy scope if any
-        if constexpr (nameParts.scopeSize) {
-            std::copy_n(nameParts.scopeData.begin(), nameParts.scopeSize, result.begin());
-        }
-        // copy unqualified name
-        std::copy_n(std::next(qualified.begin(), nameParts.rawNameStart), rawNameSize,
-            std::next(result.begin(), nameParts.scopeSize));
+
+        constexpr auto len = sig.size();
+        struct NameBuffer
+        {
+            std::array<char, len + 1> value{};    // +1 for null terminator
+            size_t                    count = 0;  // actual length without anonymous namespace parts
+        } constexpr name_buffer = [&]() {
+            NameBuffer                buffer{};
+            auto                      it = buffer.value.begin();
+            size_t                    pos = 0;
+            while (pos < len) {
+                auto next_op = sig.find("::"sv, pos);
+                auto part = (next_op == std::string_view::npos) ? sig.substr(pos) : sig.substr(pos, next_op - pos);
+                // remove anonymous namespace if any, MSVC only
+                if (part != "`anonymous-namespace'"sv) {
+                    it = std::copy_n(part.begin(), part.size(), it);
+                    if (next_op != std::string_view::npos) {
+                        *it++ = ':';
+                        *it++ = ':';
+                    }
+                }
+                pos = (next_op == std::string_view::npos) ? sig.size() : next_op + 2;
+            }
+            buffer.count = static_cast<size_t>(std::distance(buffer.value.begin(), it));
+            return buffer;
+        }();
+
+        std::array<char, name_buffer.count + 1> result{};
+        std::copy_n(name_buffer.value.begin(), name_buffer.count, result.begin());
         return result;
     }
 

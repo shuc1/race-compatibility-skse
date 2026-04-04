@@ -86,7 +86,7 @@ namespace rcs::manager
         logs::info("{:*^30}"sv, "SUMMARY"sv);
         logs::info("Recorded 10 vanilla vampirism race pairs"sv);
         logs::info("Added {} custom vampirism race pair(s)"sv, vampirismPairs.size() - 10);
-        logs::info("Recorded custom head part types) for {} races"sv, headPartMap.size() - 20);
+        logs::info("Recorded custom head part types for {} races"sv, headPartMap.size() - 20);
         logs::info("Created {} race proxies"sv, raceProxies.size());
         logs::info("Overridden {} ArmorRace values"sv, armorRaceProxies.size());
     }
