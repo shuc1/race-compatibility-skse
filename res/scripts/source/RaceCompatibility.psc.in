@@ -1,4 +1,4 @@
-Scriptname RaceCompatibility Hidden
+Scriptname ${PAPYRUS_NAME} Hidden
 
 ; return: if akRace is managed by RCS as a vampire race, return the correspond normal race; else return None
 Race Function GetRaceByVampireRace(Race akRace) global native

@@ -39,7 +39,7 @@ namespace rcs
                 return false;
             }
 
-#define BIND(METHOD) a_vm->RegisterFunction(#METHOD##sv, rcs::PROJECT_NAME_CAMEL, METHOD)
+#define BIND(METHOD) a_vm->RegisterFunction(#METHOD##sv, rcs::PAPYRUS_NAME, METHOD)
             BIND(GetVampireRaceByRace);
             BIND(GetRaceByVampireRace);
             BIND(GetIsRaceByProxy);
