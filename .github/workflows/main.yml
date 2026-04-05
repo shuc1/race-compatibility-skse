@@ -8,14 +8,15 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     outputs:
       version: ${{ steps.extract_version.outputs.version }}
       tag: ${{ steps.extract_version.outputs.tag }}
+      matrix: ${{ steps.pack.outputs.matrix }}
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           submodules: recursive
@@ -65,15 +66,35 @@ jobs:
           xmake f -v -y -m releasedbg
           xmake -vD -y
 
-      - name: Pack
+      - name: Pack and Extract Matrix for Publishing
+        id: pack
         run: |
-          xmake pack
-          echo "🗃️ Packed artifacts"
+          $output = xmake pack 2>&1
+          $packageList = @()
+          foreach ($line in ($output -split '\r?\n')) {
+              if ($line -match '\[package\]:\s*(.*)') {
+                  $jsonStr = $matches[1].Trim()
+                  $packageList += ConvertFrom-Json $jsonStr
+              }
+          }
 
-      - name: Upload
+          if ($packageList.Count -eq 0) {
+              Write-Error "❗ No packages found! Aborting workflow."
+              exit 1
+          }
+
+          $matrixObject = @{ include = @($packageList) }
+          $matrixJson = $matrixObject | ConvertTo-Json -Compress
+
+          echo "matrix=$matrixJson" >> $env:GITHUB_OUTPUT
+          echo "🗃️ Packed artifacts"
+          echo "📊 Matrix: $matrixJson"
+
+      - name: Upload Artifacts
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
+          name: artifact-${{ steps.extract_version.outputs.version }}
           path: build/xpack/*.zip
           if-no-files-found: error
 
@@ -87,7 +108,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -112,15 +133,16 @@ jobs:
             echo "**Full Changelog**: ${url}/compare/${prev_tag}...${{ needs.build.outputs.tag }}"
           } > CHANGELOG.md
 
-      - name: Download all ZIP Artifacts
-        uses: actions/download-artifact@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
         with:
-          path: artifacts
+          name: artifact-${{ needs.build.outputs.version }}
+          path: artifact
 
-      - name: List Downloaded Files
+      - name: Move and List Downloaded Files
         run: |
           echo "💼 Artifacts:"
-          for file in artifacts/**/*.zip; do
+          for file in artifact/*/*.zip; do
             sha256sum "$file"
           done
 
@@ -132,4 +154,44 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag }}
           name: ${{ needs.build.outputs.tag }}
           body_path: CHANGELOG.md
-          files: artifacts/**/*.zip
+          files: artifact/*/*.zip
+
+  publish:
+    if: github.event_name == 'push'
+    needs:
+      - build
+      - release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.build.outputs.matrix) }}
+    steps:
+      - name: Download Asset from Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p downloads
+          gh release download "${{ needs.build.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ matrix.filename }}" \
+            --dir ./downloads
+
+      - name: Publish to Nexus Mods
+        id: publish_nexusmods
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.3
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: ${{ matrix.group_id }}
+          filename: downloads/${{ matrix.filename }}
+          display_name: ${{ matrix.name }}
+          version: ${{ needs.build.outputs.version }}
+          file_category: ${{ matrix.category }}
+          description: ${{ matrix.description }}
+
+      - name: List Uploaded Files
+        shell: bash
+        run: |
+          echo "✅ Uploaded ${{ matrix.filename }} to Nexus Mods"
+          echo "📑 File UID: ${{ steps.publish_nexusmods.outputs.file_uid }}"
+          echo "📂 Group ID: ${{ matrix.group_id }}"
+          echo " SHA256: $(sha256sum "downloads/${{ matrix.filename }}" | awk '{print $1}')"
