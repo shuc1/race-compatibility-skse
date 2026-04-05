@@ -90,10 +90,11 @@ jobs:
           echo "🗃️ Packed artifacts"
           echo "📊 Matrix: $matrixJson"
 
-      - name: Upload
+      - name: Upload Artifacts
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
+          name: artifact-${{ steps.extract_version.outputs.version }}
           path: build/xpack/*.zip
           if-no-files-found: error
 
@@ -104,9 +105,6 @@ jobs:
       pull-requests: read
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.build.outputs.matrix) }}
 
     steps:
       - name: Checkout Repository
@@ -129,19 +127,22 @@ jobs:
           echo "prev_tag=$prev_tag" >> $GITHUB_OUTPUT
           {
             echo "## What's Changed"
-            echo "* release: version ${{ needs.build.outputs.version }} by @${GITHUB_ACTOR}"
+            echo "* release: version ${{ needs.build.outputs.version }} by @${ GITHUB_ACTOR }"
             echo
             echo
-            echo "**Full Changelog**: ${url}/compare/${prev_tag}...${{ needs.build.outputs.tag }}"
+            echo "**Full Changelog**: ${ url }/compare/${ prev_tag }...${{ needs.build.outputs.tag }}"
           } > CHANGELOG.md
 
-      - name: Download all ZIP Artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v8
+        with:
+          name: artifact-${{ needs.build.outputs.version }}
+          path: artifact
 
-      - name: List Downloaded Files
+      - name: Move and List Downloaded Files
         run: |
           echo "💼 Artifacts:"
-          for file in artifact/*.zip; do
+          for file in artifact/**/*.zip; do
             sha256sum "$file"
           done
 
@@ -153,7 +154,27 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag }}
           name: ${{ needs.build.outputs.tag }}
           body_path: CHANGELOG.md
-          files: artifact/*.zip
+          files: artifact/**/*.zip
+
+  publish:
+    if: github.event_name == 'push'
+    needs:
+      - build
+      - release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.build.outputs.matrix) }}
+    steps:
+      - name: Download Asset from Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p downloads
+          gh release download "${{ needs.build.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ matrix.filename }}" \
+            --dir ./downloads
 
       - name: Publish to Nexus Mods
         id: publish_nexusmods
@@ -161,7 +182,7 @@ jobs:
         with:
           api_key: ${{ secrets.NEXUSMODS_API_KEY }}
           file_group_id: ${{ matrix.group_id }}
-          filename: artifact/${{ matrix.filename }}
+          filename: downloads/${{ matrix.filename }}
           display_name: ${{ matrix.name }}
           version: ${{ needs.build.outputs.version }}
           file_category: ${{ matrix.category }}
@@ -173,4 +194,4 @@ jobs:
           echo "✅ Uploaded ${{ matrix.filename }} to Nexus Mods"
           echo "📑 File UID: ${{ steps.publish_nexusmods.outputs.file_uid }}"
           echo "📂 Group ID: ${{ matrix.group_id }}"
-          echo " SHA256: $(sha256sum "artifact/${{ matrix.filename }}" | awk '{print $1}')"
+          echo " SHA256: $(sha256sum "downloads/${{ matrix.filename }}" | awk '{print $1}')"
