@@ -139,12 +139,10 @@ jobs:
           name: artifact-${{ needs.build.outputs.version }}
           path: artifact
 
-      - name: Move and List Downloaded Files
+      - name: List Downloaded Files
         run: |
           echo "💼 Artifacts:"
-          for file in artifact/**/*.zip; do
-            sha256sum "$file"
-          done
+          find artifact -type f -name "*.zip" -print -exec sha256sum {} \;
 
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
