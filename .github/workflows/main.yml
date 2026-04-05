@@ -142,7 +142,7 @@ jobs:
       - name: Move and List Downloaded Files
         run: |
           echo "💼 Artifacts:"
-          for file in artifact/*/*.zip; do
+          for file in artifact/**/*.zip; do
             sha256sum "$file"
           done
 
@@ -154,7 +154,7 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag }}
           name: ${{ needs.build.outputs.tag }}
           body_path: CHANGELOG.md
-          files: artifact/*/*.zip
+          files: artifact/**/*.zip
 
   publish:
     if: github.event_name == 'push'
