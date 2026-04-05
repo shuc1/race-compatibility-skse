@@ -69,6 +69,24 @@
                     "$ref": "#/$defs/armor"
                 }
             }
+        },
+        "headPartType": {
+            "type": "string",
+            "description": "The head part preset for injecting race into FormID lists",
+            "enum": [
+                "Elf",
+                "Human",
+                "Orc",
+                "Argonian",
+                "Khajiit",
+                "Breton",
+                "Imperial",
+                "Nord",
+                "Redguard",
+                "DarkElf",
+                "HighElf",
+                "WoodElf"
+            ]
         }
     },
     "type": "object",
@@ -99,21 +117,17 @@
                         "$ref": "#/$defs/race"
                     },
                     "headPart": {
-                        "type": "string",
-                        "description": "The head part preset for injecting race into form lists",
-                        "enum": [
-                            "Elf",
-                            "Human",
-                            "Orc",
-                            "Argonian",
-                            "Khajiit",
-                            "Breton",
-                            "Imperial",
-                            "Nord",
-                            "Redguard",
-                            "DarkElf",
-                            "HighElf",
-                            "WoodElf"
+                        "description": "The head part preset(s) for injecting race into FormID lists",
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/headPartType"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/$defs/headPartType"
+                                }
+                            }
                         ]
                     }
                 }

@@ -1,13 +1,13 @@
 -- v2025-5-1
 -- set minimum xmake version
-set_xmakever("2.8.2")
+-- set_xmakever("2.8.2")
 
 -- set project
-set_project("commonlib")
-set_arch("x64")
-set_languages("c++23")
-set_warnings("allextra")
-set_encodings("utf-8")
+-- set_project("commonlib")
+-- set_arch("x64")
+-- set_languages("c++23")
+-- set_warnings("allextra")
+-- set_encodings("utf-8")
 
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")
@@ -62,6 +62,11 @@ end
 
 rule("commonlib", function()
     on_load(function(target)
+        target:set("arch", "x64")
+        target:set("languages", "c++23")
+        target:set("warnings", "allextra")
+        target:set("encodings", "utf-8")
+
         -- set target group
         target:set("group", "commonlib")
 
@@ -119,7 +124,8 @@ rule("commonlib", function()
             "cl::/guard:cf-",
             "cl::/Zc:enumTypes",
             "cl::/Zc:preprocessor",
-            "cl::/Zc:templateScope"
+            "cl::/Zc:templateScope",
+            "cl::/Zc:inline"
         )
 
         -- add flags (cl: warnings -> errors)
@@ -201,21 +207,23 @@ rule("commonlib", function()
     end)
 end)
 
+
+local currentdir = os.scriptdir()
 -- define targets
 target("commonlibsse.se", function()
     set_values("build_ver", "se")
-    set_values("lib_dir", "extern/commonlibsse")
+    set_values("lib_dir", path.join(currentdir, "commonlibsse"))
     add_rules("commonlib")
 end)
 
 target("commonlibsse.ae", function()
     set_values("build_ver", "ae")
-    set_values("lib_dir", "extern/commonlibsse")
+    set_values("lib_dir", path.join(currentdir, "commonlibsse"))
     add_rules("commonlib")
 end)
 
 target("commonlibvr", function()
     set_values("build_ver", "vr")
-    set_values("lib_dir", "extern/commonlibvr")
+    set_values("lib_dir", path.join(currentdir, "commonlibvr"))
     add_rules("commonlib")
 end)

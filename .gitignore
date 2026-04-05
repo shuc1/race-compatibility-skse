@@ -6,5 +6,8 @@ vs*/
 
 # files
 *.zip
-**/fomod/*.xml
-Versions.h
+
+# generated files
+res/fomod/*.xml
+res/scripts/source/RaceCompatibility.psc
+rcs/include/Versions.h

@@ -6,8 +6,8 @@
 Plugin for race compatibility in dialogue, vampirism, armor and more.
 
 ## Requirements
-* [XMake](https://xmake.io) [2.9.9+]
-* [Visual Studio Community 2022](https://visualstudio.microsoft.com/) [Desktop development with C++]
+* [XMake](https://xmake.io) [3.0.6+]
+* [Visual Studio Community 2026](https://visualstudio.microsoft.com/) [Desktop development with C++]
 
 ## Getting Started
 Clone the repository and its submodules:

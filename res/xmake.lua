@@ -1,47 +1,15 @@
-function to_camel(a_name)
-    local result = ""
-    for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1, 1):upper() .. s:sub(2)
-    end
-    return result
-end
 
-function to_title(a_name)
-    local result = ""
-    for i, s in ipairs(a_name:split("-")) do
-        result = result .. s:sub(1, 1):upper() .. s:sub(2) .. " "
-    end
-    result = result .. "SKSE"
-    return result
-end
+local prefixdir = path.basename(os.scriptdir())
 
-rule("race-compatibility", function()
-    on_load(function(target)
-        target:set("default", true)
-        target:set("arch", "x64")
-        target:set("kind", "shared")
-        target:set("basename", "race-compatibility")
-        
-        target:add("packages", "glaze")
+-- generate files
+-- fomod info files
+set_configvar("PROJECT_TITLE", projecttitle)
+set_configvar("FOMOD_PLUGIN_DIR", plugindir)
+add_configfiles("(fomod/**.in)", {prefixdir = prefixdir})
+-- papyrus
+set_configvar("PAPYRUS_NAME", papyrusname)
+add_configfiles("(scripts/source/RaceCompatibility.psc.in)", {prefixdir = prefixdir})
 
-        target:add("files", "src/*.cpp")
-        target:add("includedirs", "include/")
-        -- for vs studio project
-        target:add("headerfiles", "include/*.h")
-        target:set("pcxxheader", "include/pch.h")
-    end)
-end)
-
-function get_papyrus_source_subdirs(dir)
-    local subdirs = {}
-    for _, file in ipairs(os.files(path.join(dir, "**.psc"))) do
-        local dir = path.directory(file)
-        if subdirs[dir] == nil then
-            subdirs[dir] = true
-        end
-    end
-    return subdirs
-end
 
 rule("papyrus", function()
     set_extensions(".psc")
@@ -101,4 +69,11 @@ rule("papyrus", function()
         -- add deps
         batchcmds:add_depfiles(sourcebatch.sourcefiles)
     end)
+end)
+
+target("papyrus", function()
+    add_rules("papyrus")
+    set_default(false)
+
+    add_files("scripts/source/**.psc")
 end)

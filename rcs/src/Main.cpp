@@ -1,0 +1,106 @@
+#include <spdlog/sinks/basic_file_sink.h>
+#ifndef NDEBUG
+#	include <spdlog/sinks/msvc_sink.h>
+#endif
+
+#include "Configs.h"
+#include "Hooks.h"
+#include "Papyrus.h"
+
+namespace
+{
+    void InitLogging()
+    {
+        auto path = SKSE::log::log_directory();
+        if (!path)
+            return;
+
+        *path /= std::format("{}.log", rcs::PROJECT_NAME);
+
+        spdlog::sinks_init_list sinks{
+            std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
+#ifndef NDEBUG
+            std::make_shared<spdlog::sinks::msvc_sink_mt>()
+#endif
+        };
+
+        auto logger = std::make_shared<spdlog::logger>("global", sinks);
+        logger->set_level(spdlog::level::info);
+        logger->flush_on(spdlog::level::info);
+
+        spdlog::set_default_logger(std::move(logger));
+        spdlog::set_pattern("[%^%L%$] %v");
+    }
+
+    void MessageHandler(SKSE::MessagingInterface::Message* a_message)
+    {
+        switch (a_message->type) {
+        case SKSE::MessagingInterface::kDataLoaded:
+            {
+                logs::info("{:*^50}"sv, "DEPENDENCIES"sv);
+                if (rcs::config::TryProcessConfigs()) {
+                    rcs::hook::TryInstall();
+                }
+                break;
+            }
+        default:
+            break;
+        }
+    }
+}
+
+#ifdef SKYRIM_SUPPORT_AE
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
+    SKSE::PluginVersionData v;
+    v.PluginVersion({ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 });
+    v.PluginName(rcs::PROJECT_NAME);
+    v.AuthorName("shuc");
+    v.UsesAddressLibrary();
+    v.UsesUpdatedStructs();
+    v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
+    return v;
+}();
+#else
+extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+{
+    a_info->infoVersion = SKSE::PluginInfo::kVersion;
+    a_info->name = rcs::PROJECT_NAME.data();
+    a_info->version = REL::Version{ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 }.pack();
+
+    if (a_skse->IsEditor()) {
+        SKSE::log::critical("Loaded in editor, marking as incompatible");
+        return false;
+    }
+
+    const auto ver = a_skse->RuntimeVersion();
+
+    if (ver
+#	ifdef SKYRIMVR
+        != SKSE::RUNTIME_VR_1_4_15_1
+#	else
+        < SKSE::RUNTIME_SSE_1_5_39
+#	endif
+    ) {
+        SKSE::log::critical("Unsupported runtime version {}", ver.string());
+        return false;
+    }
+
+    return true;
+}
+#endif
+
+extern "C" __declspec(dllexport) bool SKSEAPI
+    SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+{
+    InitLogging();
+
+    SKSE::Init(a_skse);
+    SKSE::GetMessagingInterface()->RegisterListener(MessageHandler);
+    logs::info("Build: {}"sv, rcs::VERSION_BUILD);
+    logs::info("Game version : {}"sv, a_skse->RuntimeVersion().string());
+
+    logs::info("{:*^50}"sv, "PAPYRUS"sv);
+    SKSE::GetPapyrusInterface()->Register(rcs::papyrus::Bind);
+
+    return true;
+}
