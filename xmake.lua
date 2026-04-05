@@ -17,6 +17,15 @@ set_policy("package.requires_lock", true)
 add_rules("plugin.vsxmake.autoupdate")
 set_configdir("./")
 
+-- set compile modes
+add_rules("mode.debug", "mode.releasedbg", "mode.release")
+set_defaultmode("releasedbg")
+if is_mode("release", "releasedbg") then
+    -- Enable LTO (Link Time Optimization) only in release and releasedbg modes
+    -- This ensures that the releasedbg mode closely resembles the release mode
+    set_policy("build.optimization.lto", true)
+end
+
 -- includes
 includes("*/xmake.lua")
 includes("xpack.lua")

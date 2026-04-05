@@ -8,15 +8,6 @@ set_languages("cxxlatest")
 set_warnings("allextra", "error")
 set_encodings("utf-8")
 
--- set compile modes
-add_rules("mode.debug", "mode.releasedbg", "mode.release")
-set_defaultmode("releasedbg")
-if is_mode("release", "releasedbg") then
-    -- Enable LTO (Link Time Optimization) only in release and releasedbg modes
-    -- This ensures that the releasedbg mode closely resembles the release mode
-    set_policy("build.optimization.lto", true)
-end
-
 local currentdir = os.scriptdir()
 -- generate Version.h
 set_configvar("PROJECT_NAME", projectname)
