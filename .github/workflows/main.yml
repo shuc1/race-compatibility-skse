@@ -161,8 +161,9 @@ jobs:
       - release
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      max-parallel: 1
       matrix: ${{ fromJson(needs.build.outputs.matrix) }}
+      fail-fast: false
     steps:
       - name: Download Asset from Release
         env:
