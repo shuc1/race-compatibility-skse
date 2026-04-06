@@ -31,7 +31,7 @@ for _, pack in ipairs(packtable) do
             package:set("basename", pack.name:gsub("%s+", "-") .. "-" .. project.version())
 
             -- res files
-            package:add("installfiles", "res/(**)|**.in|schema/*")
+            package:add("installfiles", "res/(**)|**.in|**.lua|schema/*")
             -- main files
             local filedir = path.join(config.builddir(), pack.mode)
             package:add("installfiles", path.join(filedir, "(*/*.dll)"))

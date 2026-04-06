@@ -66,7 +66,6 @@ xmake project -k vsxmake
 ### Upgrading Packages (Optional)
 To upgrade the project's dependencies, run:
 ```bash
-xmake repo --update
 xmake require --upgrade
 ```
 
