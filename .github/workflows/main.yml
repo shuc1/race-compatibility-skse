@@ -169,11 +169,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p downloads
           gh release download "${{ needs.build.outputs.tag }}" \
             --repo "${{ github.repository }}" \
             --pattern "${{ matrix.filename }}" \
-            --dir ./downloads
+            --dir ./
 
       - name: Publish to Nexus Mods
         id: publish_nexusmods
@@ -181,7 +180,7 @@ jobs:
         with:
           api_key: ${{ secrets.NEXUSMODS_API_KEY }}
           file_group_id: ${{ matrix.group_id }}
-          filename: downloads/${{ matrix.filename }}
+          filename: ${{ matrix.filename }}
           display_name: ${{ matrix.name }}
           version: ${{ needs.build.outputs.version }}
           file_category: ${{ matrix.category }}
@@ -193,4 +192,4 @@ jobs:
           echo "✅ Uploaded ${{ matrix.filename }} to Nexus Mods"
           echo "📑 File UID: ${{ steps.publish_nexusmods.outputs.file_uid }}"
           echo "📂 Group ID: ${{ matrix.group_id }}"
-          echo " SHA256: $(sha256sum "downloads/${{ matrix.filename }}" | awk '{print $1}')"
+          echo " SHA256: $(sha256sum "${{ matrix.filename }}" | awk '{print $1}')"

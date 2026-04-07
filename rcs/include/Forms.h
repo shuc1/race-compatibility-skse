@@ -20,20 +20,20 @@ namespace rcs::form
             // do not support lookup by id, "0x800" will be treated as editor id
             // // BSFixedString(std::string_view) will copy the original string other than the span
             // // must alloc a new string before passing to LookupByEditorID/LookupForm
-
-            // "OhmesRaht.esp|800" or "OhmesRaht.esp|0x800"
-            if (const auto splitLoc = form.find('|'); splitLoc != std::string::npos) {
+            if (const auto splitLoc = form.find('|'); splitLoc != std::string_view::npos) {
+                // "OhmesRaht.esp|800" or "OhmesRaht.esp|0x800"
                 const auto namePart = form.substr(0, splitLoc);
                 auto       idPart = form.substr(splitLoc + 1);
                 if (idPart[0] == '0' && (idPart[1] == 'x' || idPart[1] == 'X')) {
                     idPart = idPart.substr(2);
                 }
                 RE::FormID id{};
-                std::from_chars(idPart.data(), idPart.data() + idPart.size(), id);
+                std::from_chars(idPart.data(), idPart.data() + idPart.size(), id, 16);
                 return cache.dataHandler->template LookupForm<T>(id, std::string{ namePart });
+            } else {
+                // "OhmesRahtRace"
+                return RE::TESForm::LookupByEditorID<T>(std::string{ form });
             }
-            // "OhmesRahtRace"
-            return RE::TESForm::LookupByEditorID<T>(std::string{ form });
         }();
 
         cache.map.emplace(form, t);
