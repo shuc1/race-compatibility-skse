@@ -57,7 +57,13 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     v.AuthorName("shuc");
     v.UsesAddressLibrary();
     v.UsesUpdatedStructs();
+#    ifdef SKYRIM_AE_1_6_1170
+    v.CompatibleVersions({ SKSE::RUNTIME_SSE_1_6_1170, SKSE::RUNTIME_SSE_1_6_1179 });
+    v.MinimumRequiredXSEVersion({ 2, 2, 5, 0 });
+#    else
     v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
+    v.MinimumRequiredXSEVersion({ 2, 3, 0, 0 });
+#    endif
     return v;
 }();
 #else

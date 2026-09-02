@@ -211,6 +211,12 @@ target("commonlibsse.ae", function()
     add_rules("commonlib")
 end)
 
+target("commonlibsse.ae1170", function()
+    set_values("build_ver", "ae")
+    set_values("lib_dir", path.join(currentdir, "commonlibsse-1170"))
+    add_rules("commonlib")
+end)
+
 target("commonlibvr", function()
     set_values("build_ver", "vr")
     set_values("lib_dir", path.join(currentdir, "commonlibvr"))

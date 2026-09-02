@@ -9,3 +9,8 @@
 [submodule "extern/commonlib-shared"]
 	path = extern/commonlib-shared
 	url = https://github.com/powerof3/commonlib-shared.git
+[submodule "extern/commonlibsse-1170"]
+	path = extern/commonlibsse-1170
+	url = https://github.com/powerof3/CommonLibSSE.git
+	branch = dev-1.6.1170
+	shallow = true

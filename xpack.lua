@@ -5,7 +5,7 @@ includes("@builtin/xpack")
 local packtable = {
     -- main file
     {mode="release", name=projecttitle, file_id=3210595, category="main",description=[[
-Main file, supports Skyrim SE 1.5.97, AE 1.6.640 and higher version, and VR 1.4.15.1.
+Main file, supports Skyrim SE 1.5.97, AE 1.6.1170/1.6.1179(GOG), AE 1.7.99+, and VR 1.4.15.1.
 
 The .dll files are built using GitHub Actions, and their integrity and build provenance can be verified using file hashes and GitHub Artifact Attestations.]]},
 
