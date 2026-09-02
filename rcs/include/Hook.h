@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef DETOURS
-#	include <windows.h>
-#	include <detours.h>
+#    include <windows.h>
+#    include <detours.h>
 #endif
 
 namespace rcs::hook
@@ -50,31 +50,14 @@ namespace rcs::hook
         static_assert(offsetof(Assembly, addr) == 0x6);
         static_assert(sizeof(Assembly) == 0xE);
 #pragma pack(pop)
-        REL::WriteSafe(a_src, &assembly, sizeof(assembly));
-    }
 
-    template <HasThunk T>
-    void write_call_to_thunk(std::uintptr_t a_src)
-    {
-#pragma pack(push, 1)
-        struct Assembly
-        {
-            // 0x0: mov rax, addr
-            // 0xA: call rax
-            std::uint8_t  rex{ 0x48 };                                        // 0x0
-            std::uint8_t  mov{ 0xB8 };                                        // 0x1
-            std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::Thunk) };  // 0x2
-            std::uint8_t  call{ 0xFF };                                       // 0xA
-            std::uint8_t  modrm{ 0xD0 };                                      // 0xB
-        } const assembly{};
-        static_assert(offsetof(Assembly, rex) == 0x0);
-        static_assert(offsetof(Assembly, mov) == 0x1);
-        static_assert(offsetof(Assembly, addr) == 0x2);
-        static_assert(offsetof(Assembly, call) == 0xA);
-        static_assert(offsetof(Assembly, modrm) == 0xB);
-        static_assert(sizeof(Assembly) == 0xC);
-#pragma pack(pop)
+#ifdef SKYRIMVR
+#    define WriteSafe safe_write
+#endif
         REL::WriteSafe(a_src, &assembly, sizeof(assembly));
+#ifdef SKYRIMVR
+#    undef WriteSafe
+#endif
     }
 
     template <typename... Ts>

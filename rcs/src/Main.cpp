@@ -61,6 +61,11 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     return v;
 }();
 #else
+#    ifdef SKYRIMVR
+#        define LOG_CRITICAL SKSE::log::critical
+#    else
+#        define LOG_CRITICAL REX::CRITICAL
+#    endif
 extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
     a_info->infoVersion = SKSE::PluginInfo::kVersion;
@@ -68,7 +73,7 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
     a_info->version = REL::Version{ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 }.pack();
 
     if (a_skse->IsEditor()) {
-        SKSE::log::critical("Loaded in editor, marking as incompatible");
+        LOG_CRITICAL("Loaded in editor, marking as incompatible");
         return false;
     }
 
@@ -81,12 +86,13 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
         < SKSE::RUNTIME_SSE_1_5_39
 #    endif
     ) {
-        SKSE::log::critical("Unsupported runtime version {}", ver.string());
+        LOG_CRITICAL("Unsupported runtime version {}", ver.string());
         return false;
     }
 
     return true;
 }
+#    undef LOG_CRITICAL
 #endif
 
 extern "C" __declspec(dllexport) bool __cdecl

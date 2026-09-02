@@ -101,8 +101,13 @@ namespace
                 const auto src = REL::Relocation{ id, 0 }.address();
                 const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
                 const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
-
+#        ifdef SKYRIMVR
+#            define WriteSafe safe_write
+#        endif
                 REL::WriteSafe(src, &assembly, sizeof(assembly));
+#        ifdef SKYRIMVR
+#            undef WriteSafe
+#        endif
             }
 #    endif
 
@@ -143,8 +148,13 @@ namespace
                 const auto src = REL::Relocation{ id, 0 }.address();
                 const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
                 const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
-
+#        ifdef SKYRIMVR
+#            define WriteSafe safe_write
+#        endif
                 REL::WriteSafe(src, &assembly, sizeof(assembly));
+#        ifdef SKYRIMVR
+#            undef WriteSafe
+#        endif
             }
 #    endif
 
