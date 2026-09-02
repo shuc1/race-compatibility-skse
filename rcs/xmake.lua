@@ -14,7 +14,7 @@ set_configvar("PROJECT_NAME", projectname)
 set_configvar("PAPYRUS_NAME", papyrusname)
 set_configvar("CONFIG_KEY", projectabbr)
 set_configvar("CONFIG_DIR", path.join("data", plugindir, string.lower(projectabbr)))
-add_configfiles("(include/Versions.h.in)", {prefixdir = path.basename(currentdir)})
+add_configfiles("(include/Version.h.in)", {prefixdir = path.basename(currentdir)})
 
 -- add build configs
 rule("rcs", function()
@@ -29,10 +29,10 @@ rule("rcs", function()
         target:add("packages", "glaze", { public = false })
 
         target:add("files", path.join(currentdir, "src/*.cpp"))
-        target:add("includedirs", path.join(currentdir, "include/"))
+        target:add("includedirs", path.join(currentdir, "include/"), { public = false })
         -- for vs studio project
-        target:add("headerfiles", path.join(currentdir, "include/*.h"))
-        target:set("pcxxheader", path.join(currentdir, "include/pch.h"))
+        target:add("headerfiles", path.join(currentdir, "include/*.h"), { public = false })
+        target:set("pcxxheader", path.join(currentdir, "include/PCH.h"), { public = false })
 
         target:add("cxxflags",
             "cl::/Zc:inline"

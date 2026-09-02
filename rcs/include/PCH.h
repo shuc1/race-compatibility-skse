@@ -7,13 +7,14 @@
 #include <SKSE/SKSE.h>
 
 #ifdef NDEBUG
+#include <spdlog/spdlog.h>
 namespace logs = spdlog;
 #else
 namespace logs = SKSE::log;
 #endif
 using namespace std::literals;
 
-#include "Versions.h"
+#include "Version.h"
 
 namespace stl
 {

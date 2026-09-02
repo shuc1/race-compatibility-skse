@@ -6,3 +6,6 @@
 	path = extern/commonlibvr
 	url = https://github.com/alandtse/CommonLibVR.git
 	shallow = true
+[submodule "extern/commonlib-shared"]
+	path = extern/commonlib-shared
+	url = https://github.com/powerof3/commonlib-shared.git

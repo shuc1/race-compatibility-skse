@@ -1,4 +1,4 @@
-#include "Hooks.h"
+#include "Hook.h"
 #include "RaceManager.h"
 
 namespace
@@ -68,40 +68,41 @@ namespace
         };
 
 #ifdef SKYRIM_SUPPORT_AE
+#    ifndef DETOURS
+#        pragma pack(push, 1)
+        // custom assembly to get PlayerCharacter*
+        struct Assembly
+        {
+            // mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
+            // 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
+            // r8 is unused for GetPCIsRace and SameRaceAsPC
+            std::uint8_t rex{ 0x4c };    // 0x0
+            std::uint8_t mov{ 0x8b };    // 0x1
+            std::uint8_t modrm{ 0x05 };  // 0x2, r8
+            std::int32_t disp;           // 0x3
+        };
+        static_assert(offsetof(Assembly, rex) == 0x0);
+        static_assert(offsetof(Assembly, mov) == 0x1);
+        static_assert(offsetof(Assembly, modrm) == 0x2);
+        static_assert(offsetof(Assembly, disp) == 0x3);
+        static_assert(sizeof(Assembly) == 0x7);
+#        pragma pack(pop)
+#    endif
+
         // thunk for GetPCIsRace
         struct GetPCIsRace
         {
             static constexpr auto id = REL::ID(21484);
-
 #    ifndef DETOURS
-#        pragma pack(push, 1)
-            // custom assembly to get PlayerCharacter*
-            struct Assembly
-            {
-                // mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
-                // 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
-                // rcx is unused, but the test shows that a value is still loaded into it.
-                std::uint8_t rex{ 0x4c };    // 0x0
-                std::uint8_t mov{ 0x8b };    // 0x1
-                std::uint8_t modrm{ 0x05 };  // 0x2, r8
-                std::int32_t disp;           // 0x3
-            };
-            static_assert(offsetof(Assembly, rex) == 0x0);
-            static_assert(offsetof(Assembly, mov) == 0x1);
-            static_assert(offsetof(Assembly, modrm) == 0x2);
-            static_assert(offsetof(Assembly, disp) == 0x3);
-            static_assert(sizeof(Assembly) == 0x7);
-#        pragma pack(pop)
-
             static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
 
             static void PreInstall()
             {
                 const auto src = REL::Relocation{ id, 0 }.address();
-                const auto pc = REL::Relocation{ RELOCATION_ID(517014, 403521), 0 }.address();
+                const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
                 const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
 
-                REL::safe_write(src, &assembly, sizeof(assembly));
+                REL::WriteSafe(src, &assembly, sizeof(assembly));
             }
 #    endif
 
@@ -127,6 +128,48 @@ namespace
                 }
 #    endif
                 LOG_TO_CONSOLE(GetIsRace)
+                return true;
+            }
+        };
+
+        struct SameRaceAsPC
+        {
+            static constexpr auto id = REL::ID(21431);
+#    ifndef DETOURS
+            static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
+
+            static void PreInstall()
+            {
+                const auto src = REL::Relocation{ id, 0 }.address();
+                const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
+                const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
+
+                REL::WriteSafe(src, &assembly, sizeof(assembly));
+            }
+#    endif
+
+            static bool Thunk(const RE::TESObjectREFR* obj, [[maybe_unused]] const RE::TESObjectREFR* unused1, [[maybe_unused]] void* unused2, double& result)
+            {
+                result = 0.0;
+#    ifdef DETOURS
+                const auto pc = RE::PlayerCharacter::GetSingleton();
+#    else
+                // used custom assembly to get PlayerCharacter*
+                const auto pc = static_cast<const RE::PlayerCharacter*>(unused2);
+#    endif
+                if (pc && obj) {
+                    const auto npc = obj->data.objectReference->As<RE::TESNPC>();
+                    if (npc && (manager::GetIsRaceByProxy(pc->race, npc->race) ||
+                                   manager::GetIsRaceByProxy(npc->race, pc->race))) {
+                        result = 1.0;
+                    }
+                }
+#    ifdef DETOURS
+                if (result == 0.0) {
+                    return hook::FuncStorage<SameRaceAsPC>::func(obj, unused1, unused2, result);
+                }
+#    endif
+                LOG_TO_CONSOLE(SameRace)
                 return true;
             }
         };
@@ -177,7 +220,7 @@ namespace rcs::hook
 
         if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
-            InstallHooks<GetIsRace, SameRace, GetPCIsRace>();
+            InstallHooks<GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
 #else
             InstallHooks<GetIsRace, SameRace>();
 #endif

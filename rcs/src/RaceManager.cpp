@@ -1,4 +1,5 @@
 #include "RaceManager.h"
+#include "RE/T/TESRace.h"
 
 namespace rcs::manager
 {
@@ -26,7 +27,7 @@ namespace rcs::manager
     void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
     {
         if (race) {
-            headPartMap.emplace(race, type);
+            headPartMap[race].set(std::to_underlying(type));
         }
     }
 
@@ -74,21 +75,31 @@ namespace rcs::manager
         return race->armorParentRace;
     }
 
-    auto GetHeadPartType(const RE::TESRace* race) noexcept
-        -> HeadPartType
+    // auto GetHeadPartType(const RE::TESRace* race) noexcept
+    //     -> HeadPartType
+    // {
+    //     const auto it = headPartMap.find(race);
+    //     return it != headPartMap.end() && !it->second.empty() ? *it->second.begin() : kNone;
+    // }
+
+    auto GetIsHeadPartTypeByRace(const RE::TESRace* race, HeadPartType type) noexcept
+        -> bool
     {
         const auto it = headPartMap.find(race);
-        return it != headPartMap.end() ? it->second : kNone;
+        if (it == headPartMap.end()) {
+            return false;
+        }
+        return it->second.test(std::to_underlying(type));
     }
 
     void Summary()
     {
         logs::info("{:*^30}"sv, "SUMMARY"sv);
-        logs::info("Recorded 10 vanilla vampirism race pairs"sv);
-        logs::info("Added {} custom vampirism race pair(s)"sv, vampirismPairs.size() - 10);
-        logs::info("Recorded custom head part types for {} races"sv, headPartMap.size() - 20);
-        logs::info("Created {} race proxies"sv, raceProxies.size());
-        logs::info("Overridden {} ArmorRace values"sv, armorRaceProxies.size());
+        logs::info("Vanilla vampirism race pairs recorded: 10"sv);
+        logs::info("Custom vampirism race pairs added: {}"sv, vampirismPairs.size() - 10);
+        logs::info("Custom races with head part types: {}"sv, headPartMap.size() - 20);
+        logs::info("Race proxies created: {}"sv, raceProxies.size());
+        logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
     }
 
     namespace headpart

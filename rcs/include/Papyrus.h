@@ -25,10 +25,19 @@ namespace rcs
             return manager::GetIsRaceByProxy(a_source_race, a_target_race);
         }
 
-        [[nodiscard]] static auto GetHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race)
-            -> int
+        // [[nodiscard]] static auto GetHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race)
+        //     -> int
+        // {
+        //     return std::to_underlying(manager::GetHeadPartType(a_race));
+        // }
+
+        [[nodiscard]] static auto GetIsHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race, int a_type_id)
+            -> bool
         {
-            return std::to_underlying(manager::GetHeadPartType(a_race));
+            if (!a_race || a_type_id < 0 || a_type_id > 12) {
+                return false;
+            }
+            return manager::GetIsHeadPartTypeByRace(a_race, static_cast<manager::HeadPartType>(a_type_id));
         }
 #undef STATIC_ARGS
 
@@ -43,7 +52,8 @@ namespace rcs
             BIND(GetVampireRaceByRace);
             BIND(GetRaceByVampireRace);
             BIND(GetIsRaceByProxy);
-            BIND(GetHeadPartTypeByRace);
+            // BIND(GetHeadPartTypeByRace);
+            BIND(GetIsHeadPartTypeByRace);
 #undef BIND
             logs::info("Registered papyrus functions"sv);
             return true;

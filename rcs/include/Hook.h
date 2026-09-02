@@ -50,8 +50,7 @@ namespace rcs::hook
         static_assert(offsetof(Assembly, addr) == 0x6);
         static_assert(sizeof(Assembly) == 0xE);
 #pragma pack(pop)
-
-        REL::safe_write(a_src, &assembly, sizeof(assembly));
+        REL::WriteSafe(a_src, &assembly, sizeof(assembly));
     }
 
     template <HasThunk T>
@@ -75,7 +74,7 @@ namespace rcs::hook
         static_assert(offsetof(Assembly, modrm) == 0xB);
         static_assert(sizeof(Assembly) == 0xC);
 #pragma pack(pop)
-        REL::safe_write(a_src, &assembly, sizeof(assembly));
+        REL::WriteSafe(a_src, &assembly, sizeof(assembly));
     }
 
     template <typename... Ts>

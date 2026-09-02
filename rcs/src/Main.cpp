@@ -1,10 +1,10 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #ifndef NDEBUG
-#	include <spdlog/sinks/msvc_sink.h>
+#    include <spdlog/sinks/msvc_sink.h>
 #endif
 
-#include "Configs.h"
-#include "Hooks.h"
+#include "Config.h"
+#include "Hook.h"
 #include "Papyrus.h"
 
 namespace
@@ -75,11 +75,11 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
     const auto ver = a_skse->RuntimeVersion();
 
     if (ver
-#	ifdef SKYRIMVR
+#    ifdef SKYRIMVR
         != SKSE::RUNTIME_VR_1_4_15_1
-#	else
+#    else
         < SKSE::RUNTIME_SSE_1_5_39
-#	endif
+#    endif
     ) {
         SKSE::log::critical("Unsupported runtime version {}", ver.string());
         return false;
@@ -89,7 +89,7 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 }
 #endif
 
-extern "C" __declspec(dllexport) bool SKSEAPI
+extern "C" __declspec(dllexport) bool __cdecl
     SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
     InitLogging();

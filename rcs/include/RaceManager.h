@@ -55,9 +55,9 @@
 
 namespace rcs::manager
 {
-    enum HeadPartType : char
+    enum HeadPartType : std::uint8_t
     {
-        kNone,
+        kNone = 0,
 #define X(TYPE) k##TYPE,
         HEAD_PART_TYPES
 #undef X
@@ -72,7 +72,7 @@ namespace rcs::manager
     inline std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>>       vampirismPairs{};
     inline std::unordered_map<const RE::TESRace*, std::set<const RE::TESRace*>> raceProxies{};
     inline std::unordered_map<const RE::TESRace*, std::vector<ArmorProxyEntry>> armorRaceProxies{};
-    inline std::unordered_map<const RE::TESRace*, HeadPartType>                 headPartMap{};
+    inline std::unordered_map<const RE::TESRace*, std::bitset<13>>              headPartMap{};
 
     // emplace
     void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
@@ -84,7 +84,8 @@ namespace rcs::manager
     [[nodiscard]] auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept -> bool;
     [[nodiscard]] auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
-    [[nodiscard]] auto GetHeadPartType(const RE::TESRace* race) noexcept -> HeadPartType;
+    // DEPRECATED // [[nodiscard]] auto GetHeadPartType(const RE::TESRace* race) noexcept -> HeadPartType;
+    [[nodiscard]] auto GetIsHeadPartTypeByRace(const RE::TESRace* race, HeadPartType type) noexcept -> bool;
     // summary
     void Summary();
 
