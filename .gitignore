@@ -10,4 +10,4 @@ vs*/
 # generated files
 res/fomod/*.xml
 res/scripts/source/RaceCompatibility.psc
-rcs/include/Versions.h
+rcs/include/Version.h

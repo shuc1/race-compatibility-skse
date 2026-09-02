@@ -41,32 +41,34 @@ rule("rcs", function()
 end)
 
 -- builds
-local deptable = {
-    -- ver, dep
-    ["se"]="commonlibsse.se",
-    ["ae"]="commonlibsse.ae",
-    ["vr"]="commonlibvr"
+local buildtable = {
+    { ver = "se", dep = "commonlibsse.se", def = {} },
+    { ver = "ae", dep = "commonlibsse.ae", def = {} },
+    { ver = "ae1170", dep = "commonlibsse.ae1170", def = { "SKYRIM_AE_1_6_1170" } },
+    { ver = "vr", dep = "commonlibvr", def = {} }
 }
 
 -- dll
 -- default build
-for ver, dep in pairs(deptable) do
-    target(string.lower(projectabbr) .. "." .. ver, function()
+for _, build in ipairs(buildtable) do
+    target(string.lower(projectabbr) .. "." .. build.ver, function()
         set_group("default")
-        add_deps(dep)
-        set_targetdir(path.join("$(builddir)", "$(mode)", ver))
+        add_deps(build.dep)
+        add_defines(build.def)
+        set_targetdir(path.join("$(builddir)", "$(mode)", build.ver))
         add_rules("rcs")
     end)
 end
 -- detour build
-for ver, dep in pairs(deptable) do
-    target(string.lower(projectabbr) .. "." .. ver .. ".detours", function()
+for _, build in ipairs(buildtable) do
+    target(string.lower(projectabbr) .. "." .. build.ver .. ".detours", function()
         set_group("detours")
-        add_deps(dep)
+        add_deps(build.dep)
         -- add detours specific rules
         add_packages("microsoft-detours")
         add_defines("DETOURS", { public = false })
-        set_targetdir(path.join("$(builddir)", "detours", "$(mode)", ver))
+        add_defines(build.def)
+        set_targetdir(path.join("$(builddir)", "detours", "$(mode)", build.ver))
         add_rules("rcs")
     end)
 end

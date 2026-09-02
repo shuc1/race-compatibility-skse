@@ -10,8 +10,8 @@
             <optionalFileGroups order="Explicit">
                 <group name="DLL" type="SelectExactlyOne">
                     <plugins order="Explicit">
-                        <plugin name="SSE v1.6.640+ (&quot;Anniversary Edition&quot;)">
-                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.640 or higher.</description>
+                        <plugin name="SSE v1.7.99+ (&quot;Anniversary Edition&quot;)">
+                            <description>Select this if you are using Skyrim Anniversary Edition v1.7.99 or higher.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
                                 <folder source="ae/"
@@ -23,9 +23,61 @@
                                     <patterns>
                                         <pattern>
                                             <dependencies>
-                                                <gameDependency version="1.6" />
+                                                <gameDependency version="1.7" />
                                             </dependencies>
                                             <type name="Recommended" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.6" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.5" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.4" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                    </patterns>
+                                </dependencyType>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="SSE v1.6.1170/1.6.1179(GOG) (&quot;Anniversary Edition&quot;)">
+                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.1170(Steam) or v1.6.1179(GOG).</description>
+                            <image path="fomod/images/cover.png" />
+                            <files>
+                                <folder source="ae1170/"
+                                    destination="${FOMOD_PLUGIN_DIR}" priority="0" />
+                            </files>
+                            <typeDescriptor>
+                                <dependencyType>
+                                    <defaultType name="Optional" />
+                                    <patterns>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.7" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.6.1170" />
+                                            </dependencies>
+                                            <type name="Recommended" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.6" />
+                                            </dependencies>
+                                            <type name="Optional" />
                                         </pattern>
                                         <pattern>
                                             <dependencies>
@@ -57,6 +109,12 @@
                                     <patterns>
                                         <pattern>
                                             <dependencies>
+                                                <gameDependency version="1.7" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
+                                        <pattern>
+                                            <dependencies>
                                                 <gameDependency version="1.6" />
                                             </dependencies>
                                             <type name="Optional" />
@@ -78,7 +136,7 @@
                             </typeDescriptor>
                         </plugin>
 
-                        <plugin name="VR v1.4.15">
+                        <plugin name="VR v1.4.15.1">
                             <description>Select this if you are using Skyrim VR 1.4.15.1.</description>
                             <image path="fomod/images/cover.png" />
                             <files>
@@ -89,6 +147,12 @@
                                 <dependencyType>
                                     <defaultType name="Optional" />
                                     <patterns>
+                                        <pattern>
+                                            <dependencies>
+                                                <gameDependency version="1.7" />
+                                            </dependencies>
+                                            <type name="Optional" />
+                                        </pattern>
                                         <pattern>
                                             <dependencies>
                                                 <gameDependency version="1.6" />
