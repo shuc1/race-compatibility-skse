@@ -8,7 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2025-vs2026
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     outputs:
       version: ${{ steps.extract_version.outputs.version }}
       tag: ${{ steps.extract_version.outputs.tag }}
@@ -16,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: recursive
@@ -90,6 +94,12 @@ jobs:
           echo "🗃️ Packed artifacts"
           echo "📊 Matrix: $matrixJson"
 
+      - name: Generate Artifact Attestation
+        if: github.event_name == 'push'
+        uses: actions/attest@v4
+        with:
+          subject-path: build/xpack/*.zip
+
       - name: Upload Artifacts
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
@@ -142,10 +152,10 @@ jobs:
       - name: List Downloaded Files
         run: |
           echo "💼 Artifacts:"
-          find artifact -type f -name "*.zip" -print -exec sha256sum {} \;
+          find artifact -type f -name "*.zip" -exec sha256sum {} \;
 
       - name: Create GitHub Release and Upload Assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -164,6 +174,8 @@ jobs:
       max-parallel: 1
       matrix: ${{ fromJson(needs.build.outputs.matrix) }}
       fail-fast: false
+    name: publish (${{ matrix.name }})
+
     steps:
       - name: Download Asset from Release
         env:
@@ -176,20 +188,25 @@ jobs:
 
       - name: Publish to Nexus Mods
         id: publish_nexusmods
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.3
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.10
         with:
           api_key: ${{ secrets.NEXUSMODS_API_KEY }}
-          file_group_id: ${{ matrix.group_id }}
+          file_id: ${{ matrix.file_id }}
           filename: ${{ matrix.filename }}
-          display_name: ${{ matrix.name }}
           version: ${{ needs.build.outputs.version }}
-          file_category: ${{ matrix.category }}
+          display_name: ${{ matrix.name }}
           description: ${{ matrix.description }}
+          category: ${{ matrix.category }}
+          archive_existing_version: true
+          primary_mod_manager_download: ${{ matrix.category == 'main' }}
+          allow_mod_manager_download: true
+          show_requirements_pop_up: ${{ matrix.category == 'main' }}
+          update_mod_version: ${{ matrix.category == 'main' }}
 
       - name: List Uploaded Files
         shell: bash
         run: |
           echo "✅ Uploaded ${{ matrix.filename }} to Nexus Mods"
-          echo "📑 File UID: ${{ steps.publish_nexusmods.outputs.file_uid }}"
-          echo "📂 Group ID: ${{ matrix.group_id }}"
+          echo "📑 File UID: ${{ steps.publish_nexusmods.outputs.version_id }}"
+          echo "📂 Group ID: ${{ matrix.file_id }}"
           echo " SHA256: $(sha256sum "${{ matrix.filename }}" | awk '{print $1}')"

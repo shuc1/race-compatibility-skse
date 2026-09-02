@@ -12,53 +12,42 @@
 -- add rules
 add_rules("mode.debug", "mode.releasedbg")
 
--- make custom rules available
--- includes("xmake-rules.lua")
-
 -- define options
-option("rex_ini", function()
+option("commonlib_ini", function()
     set_default(false)
-    set_description("Enable ini config support for REX")
-    add_defines("REX_OPTION_INI=1")
+    set_description("enable REX::INI settings support")
 end)
 
-option("rex_json", function()
+option("commonlib_json", function()
     set_default(false)
-    set_description("Enable json config support for REX")
-    add_defines("REX_OPTION_JSON=1")
+    set_description("enable REX::JSON settings support")
 end)
 
-option("rex_toml", function()
+option("commonlib_toml", function()
     set_default(false)
-    set_description("Enable toml config support for REX")
-    add_defines("REX_OPTION_TOML=1")
+    set_description("enable REX::TOML settings support")
 end)
 
-option("skse_xbyak", function()
+option("commonlib_xbyak", function()
     set_default(false)
-    set_description("Enable trampoline support for Xbyak")
-    add_defines("SKSE_SUPPORT_XBYAK=1")
+    set_description("enable xbyak support for Trampoline")
+end)
+
+option("commonlib_random", function ()
+    set_default(false)
+    set_description("enable REX::TRandom support")
 end)
 
 -- require packages
 add_requires("rsm-binary-io")
 add_requires("spdlog", { configs = { header_only = false, wchar = true, std_format = true } })
+if has_config("commonlib_ini") then add_requires("simpleini") end
+if has_config("commonlib_json") then add_requires("glaze") end
+if has_config("commonlib_toml") then add_requires("toml11") end
+if has_config("commonlib_xbyak") then add_requires("xbyak") end
+if has_config("commonlib_random") then add_requires("xoshiro-cpp 2021.08.04") end
 
-if has_config("rex_ini") then
-    add_requires("simpleini")
-end
-
-if has_config("rex_json") then
-    add_requires("nlohmann_json")
-end
-
-if has_config("rex_toml") then
-    add_requires("toml11")
-end
-
-if has_config("skse_xbyak") then
-    add_requires("xbyak")
-end
+local currentdir = os.scriptdir()
 
 rule("commonlib", function()
     on_load(function(target)
@@ -80,18 +69,31 @@ rule("commonlib", function()
         target:add("packages", "rsm-binary-io", "spdlog", { public = true })
         
         -- add options
-        target:add("options", "rex_ini", "rex_json", "rex_toml", "skse_xbyak", { public = true })
+        target:add("options", "commonlib_ini", "commonlib_json", "commonlib_toml", "commonlib_xbyak", "commonlib_random", { public = true })
         
         -- add system links
-        target:add("syslinks", "advapi32", "bcrypt", "d3d11", "d3dcompiler", "dbghelp", "dxgi", "ole32", "shell32", "user32", "version")
+        target:add("syslinks", "advapi32", "bcrypt", "d3d11", "d3dcompiler", "dbghelp", "dxgi", "ole32", "shell32", "user32", "version", "ws2_32")
         
         -- add files and headers
         local libdir = target:values("lib_dir")
+        local shareddir = path.join(currentdir, "commonlib-shared")
         local build_ver = target:values("build_ver")
         if build_ver == "se" then
             target:add("undefines", "SKYRIM_SUPPORT_AE", { public = true })
+            target:add("files", shareddir .. "/src/**.cpp")
+            target:add("includedirs", shareddir .. "/include", { public = true })
+            target:add("headerfiles",
+                shareddir .. "/include/(REL/**.h)",
+                shareddir .. "/include/(REX/**.h)",
+                { public = true })
         elseif build_ver == "ae" then
             target:add("defines", "SKYRIM_SUPPORT_AE", { public = true })
+            target:add("files", shareddir .. "/src/**.cpp")
+            target:add("includedirs", shareddir .. "/include", { public = true })
+            target:add("headerfiles",
+                shareddir .. "/include/(REL/**.h)",
+                shareddir .. "/include/(REX/**.h)",
+                { public = true })
         elseif build_ver == "vr" then
             target:add("undefines", "SKYRIM_SUPPORT_AE", { public = true })
             target:add("defines", "SKYRIMVR", { public = true })
@@ -101,8 +103,6 @@ rule("commonlib", function()
         target:add("includedirs", libdir .. "/include", { public = true })
         target:add("headerfiles",
             libdir .. "/include/(RE/**.h)",
-            libdir .. "/include/(REL/**.h)",
-            libdir .. "/include/(REX/**.h)",
             libdir .. "/include/(SKSE/**.h)",
             { public = true }
         )
@@ -125,42 +125,22 @@ rule("commonlib", function()
             "cl::/Zc:enumTypes",
             "cl::/Zc:preprocessor",
             "cl::/Zc:templateScope",
-            "cl::/Zc:inline"
+            "cl::/Zc:inline",
+            { public = true }
         )
 
         -- add flags (cl: warnings -> errors)
-        target:add("cxxflags", "cl::/we4715") -- `function` : not all control paths return a value
+        target:add("cxxflags", 
+            "cl::/we4715", -- not all control paths return a value
+            { public = true }
+        )
 
         -- add flags (cl: disable warnings)
         target:add("cxxflags",
-            "cl::/wd4005", -- macro redefinition
-            "cl::/wd4061", -- enumerator `identifier` in switch of enum `enumeration` is not explicitly handled by a case label
-            "cl::/wd4068", -- unknown pragma 'clang'
             "cl::/wd4200", -- nonstandard extension used : zero-sized array in struct/union
             "cl::/wd4201", -- nonstandard extension used : nameless struct/union
-            "cl::/wd4264", -- 'virtual_function' : no override available for virtual member function from base 'class'; function is hidden
-            "cl::/wd4265", -- 'type': class has virtual functions, but its non-trivial destructor is not virtual; instances of this class may not be destructed correctly
-            "cl::/wd4266", -- 'function' : no override available for virtual member function from base 'type'; function is hidden
-            "cl::/wd4324", -- 'struct_name' : structure was padded due to __declspec(align())
-            "cl::/wd4371", -- 'classname': layout of class may have changed from a previous version of the compiler due to better packing of member 'member'
-            "cl::/wd4514", -- 'function' : unreferenced inline function has been removed
-            "cl::/wd4582", -- 'type': constructor is not implicitly called
-            "cl::/wd4583", -- 'type': destructor is not implicitly called
-            "cl::/wd4623", -- 'derived class' : default constructor was implicitly defined as deleted because a base class default constructor is inaccessible or deleted
-            "cl::/wd4625", -- 'derived class' : copy constructor was implicitly defined as deleted because a base class copy constructor is inaccessible or deleted
-            "cl::/wd4626", -- 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
-            "cl::/wd4686", -- 'user-defined type' : possible change in behavior, change in UDT return calling convention
-            "cl::/wd4710", -- 'function' : function not inlined
-            "cl::/wd4711", -- function 'function' selected for inline expansion
-            "cl::/wd4820", -- 'bytes' bytes padding added after construct 'member_name'
-            "cl::/wd5082", -- second argument to 'va_start' is not the last named parameter
-            "cl::/wd5026", -- 'type': move constructor was implicitly defined as deleted
-            "cl::/wd5027", -- 'type': move assignment operator was implicitly defined as deleted
-            "cl::/wd5045", -- compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
-            "cl::/wd5053", -- support for 'explicit(<expr>)' in C++17 and earlier is a vendor extension
-            "cl::/wd5105", -- macro expansion producing 'defined' has undefined behavior (workaround for older msvc bug)
-            "cl::/wd5204", -- 'type-name': class has virtual functions, but its trivial destructor is not virtual; instances of objects derived from this class may not be destructed correctly
-            "cl::/wd5220"  -- 'member': a non-static data member with a volatile qualified type no longer implies that compiler generated copy / move constructors and copy / move assignment operators are not trivial
+            "cl::/wd4324", -- structure was padded due to alignment specifier
+            { public = true }
         )
 
         -- add flags (clang-cl)
@@ -182,6 +162,7 @@ rule("commonlib", function()
             "clang_cl::-Wno-pragma-system-header-outside-header",
             "clang_cl::-Wno-reinterpret-base-class",
             "clang_cl::-Wno-switch",
+            "clang_cl::-Wno-unused-local-typedef",
             "clang_cl::-Wno-unused-private-field",
             { public = true }
         )
@@ -189,26 +170,34 @@ rule("commonlib", function()
 
     on_config(function(target)
         -- add configs
-        if has_config("rex_ini") then
-            target:add("packages", "simpleini", { public = true })
+        if has_config("commonlib_ini") then
+            add_packages("simpleini", { public = true })
+            add_defines("COMMONLIB_OPTION_INI=1", { public = true })
         end
 
-        if has_config("rex_json") then
-            target:add("packages", "nlohmann_json", { public = true })
+        if has_config("commonlib_json") then
+            add_packages("glaze", { public = true })
+            add_defines("COMMONLIB_OPTION_JSON=1", { public = true })
         end
 
-        if has_config("rex_toml") then
-            target:add("packages", "toml11", { public = true })
+        if has_config("commonlib_toml") then
+            add_packages("toml11", { public = true })
+            add_defines("COMMONLIB_OPTION_TOML=1", { public = true })
         end
 
-        if has_config("skse_xbyak") then
-            target:add("packages", "xbyak", { public = true })
+        if has_config("commonlib_xbyak") then
+            add_packages("xbyak", { public = true })
+            add_defines("COMMONLIB_OPTION_XBYAK=1", { public = true })
+        end
+
+        if has_config("commonlib_random") then
+            add_packages("xoshiro-cpp", { public = true })
+            add_defines("COMMONLIB_OPTION_RANDOM=1", { public = true })
         end
     end)
 end)
 
 
-local currentdir = os.scriptdir()
 -- define targets
 target("commonlibsse.se", function()
     set_values("build_ver", "se")

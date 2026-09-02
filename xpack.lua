@@ -4,17 +4,17 @@ includes("@builtin/xpack")
 
 local packtable = {
     -- main file
-    {mode="release", name=projecttitle, group_id=3210595, category="main",description=[[
-Main file, compatible with game versions 1.5.x, 1.6.x and VR(1.4.15.1).
+    {mode="release", name=projecttitle, file_id=3210595, category="main",description=[[
+Main file, supports Skyrim SE 1.5.97, AE 1.6.640 and higher version, and VR 1.4.15.1.
 
-The .dll files are built using GitHub Actions, their authenticity can be verified using file hashes.]]},
+The .dll files are built using GitHub Actions, and their integrity and build provenance can be verified using file hashes and GitHub Artifact Attestations.]]},
 
     -- pdb build
-    {mode="releasedbg", name=projecttitle .. "-PDB Build", group_id=3210601, category="miscellaneous", description=[[
+    {mode="releasedbg", name=projecttitle .. "-PDB Build", file_id=3210601, category="miscellaneous", description=[[
 Main file built in releasedbg mode with .pdb files included for debugging or CrashLogger.]]},
 
     -- pdb build with detours
-    {mode="detours/releasedbg", name=projecttitle .. "-PDB Build with Detours", group_id=6184117, category="miscellaneous", description=[[
+    {mode="detours/releasedbg", name=projecttitle .. "-PDB Build with Detours", file_id=6184117, category="miscellaneous", description=[[
 Main file built in releasedbg mode with .pdb files included, uses Detours for hooking to achieve max compatibility with other plugins that modify the same functions.
 
 Do not use this version unless explicitly instructed.]]},
@@ -51,7 +51,7 @@ for _, pack in ipairs(packtable) do
             print("[package]: " .. json.encode({
                 filename = package:basename() .. package:extension(),
                 name = pack.name,
-                group_id = pack.group_id,
+                file_id = pack.file_id,
                 category = pack.category,
                 description = pack.description,
             }))

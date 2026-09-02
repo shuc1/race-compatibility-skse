@@ -6,23 +6,23 @@
         ["cmake#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "4.2.3"
+            version = "4.3.4"
         },
         ["glaze#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "v7.0.2"
+            version = "v7.9.0"
         },
         ["microsoft-detours#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "2023.6.8"
@@ -30,15 +30,15 @@
         ["ninja#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
-            version = "v1.13.1"
+            version = "v1.13.2"
         },
         ["rsm-binary-io#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "2.0.6"
@@ -46,7 +46,7 @@
         ["spdlog#09c8c173"] = {
             repo = {
                 branch = "master",
-                commit = "487d90d507c2bc17beac0210e2084a197d60b0a7",
+                commit = "f4bd58a9ad8c6a9b4e373d21fd46b6b54d40c168",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.17.0"

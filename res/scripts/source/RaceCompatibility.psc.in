@@ -1,19 +1,32 @@
 Scriptname ${PAPYRUS_NAME} Hidden
 
-; return: if akRace is managed by RCS as a vampire race, return the correspond normal race; else return None
+; return: if akRace is managed by RCS as a vampire race, return its corresponding normal race; otherwise, return None
 Race Function GetRaceByVampireRace(Race akRace) global native
 
-; return: if akRace is managed by RCS as a normal race, return the correspond vampire race; else return None
+; return: if akRace is managed by RCS as a normal race, return its corresponding vampire race; otherwise, return None
 Race Function GetVampireRaceByRace(Race akRace) global native
 
-; return: if akSourceRace equals akTargetRace, OR proxies for akSourceRace contains akTargetRace, return true, else false
+; return: if akSourceRace equals akTargetRace, or akTargetRace is included in the proxies of akSourceRace, return true; otherwise, return false
 Bool Function GetIsRaceByProxy(Race akSourceRace, Race akTargetRace) global native
 
-; return: return head part type id(from 0 ot 12)
-; None: 0, Argonian: 1,
-; Elf: 2, Dark Elf: 3, High Elf: 4, Wood Elf: 5
-; Human: 6, Breton: 7, Imperial: 8, Nord: 9, Redguard: 10
-; Khajiit: 11, Orc: 12
-; CAUTION: Human means generic human type,
-; CAUTION: e.g. if head part of a race is Breton type, it does NOT mean it's Human type!
-Int Function GetHeadPartTypeByRace(Race akRace) global native
+; ** DEPRECATED **
+; A race may have multiple head part types.
+; This function returns only the first type in the ordered set and should not be used
+; to determine whether a race belongs to a specific head part type.
+; Use GetIsHeadPartTypeByRace() instead.
+; Int Function GetHeadPartTypeByRace(Race akRace) global native
+; ** DEPRECATED **
+
+; Head part type IDs are as follows (from 0 to 12):
+; - None: 0
+; - Argonian: 1
+; - Dark Elf: 2, High Elf: 3, Wood Elf: 4
+; - Breton: 5, Imperial: 6, Nord: 7, Redguard: 8
+; - Khajiit: 9
+; - Orc: 10
+; - Elf: 11, Human: 12
+; CAUTION: Human and Elf are generic types; Breton, Imperial, Nord, Redguard, etc. are more specific types.
+; CAUTION: A race marked as Breton is not automatically marked as Human, and vice versa; each type is tracked independently.
+;
+; return: if akRace is marked as the head part type specified by akTypeId, return true; otherwise, return false
+Bool Function GetIsHeadPartTypeByRace(Race akRace, Int akTypeId) global native

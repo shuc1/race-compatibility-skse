@@ -1,10 +1,10 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #ifndef NDEBUG
-#	include <spdlog/sinks/msvc_sink.h>
+#    include <spdlog/sinks/msvc_sink.h>
 #endif
 
-#include "Configs.h"
-#include "Hooks.h"
+#include "Config.h"
+#include "Hook.h"
 #include "Papyrus.h"
 
 namespace
@@ -61,6 +61,11 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     return v;
 }();
 #else
+#    ifdef SKYRIMVR
+#        define LOG_CRITICAL SKSE::log::critical
+#    else
+#        define LOG_CRITICAL REX::CRITICAL
+#    endif
 extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
     a_info->infoVersion = SKSE::PluginInfo::kVersion;
@@ -68,28 +73,29 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
     a_info->version = REL::Version{ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 }.pack();
 
     if (a_skse->IsEditor()) {
-        SKSE::log::critical("Loaded in editor, marking as incompatible");
+        LOG_CRITICAL("Loaded in editor, marking as incompatible");
         return false;
     }
 
     const auto ver = a_skse->RuntimeVersion();
 
     if (ver
-#	ifdef SKYRIMVR
+#    ifdef SKYRIMVR
         != SKSE::RUNTIME_VR_1_4_15_1
-#	else
+#    else
         < SKSE::RUNTIME_SSE_1_5_39
-#	endif
+#    endif
     ) {
-        SKSE::log::critical("Unsupported runtime version {}", ver.string());
+        LOG_CRITICAL("Unsupported runtime version {}", ver.string());
         return false;
     }
 
     return true;
 }
+#    undef LOG_CRITICAL
 #endif
 
-extern "C" __declspec(dllexport) bool SKSEAPI
+extern "C" __declspec(dllexport) bool __cdecl
     SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
     InitLogging();
