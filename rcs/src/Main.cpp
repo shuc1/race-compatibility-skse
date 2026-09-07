@@ -57,13 +57,12 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     v.AuthorName("shuc");
     v.UsesAddressLibrary();
     v.UsesUpdatedStructs();
-#    ifdef SKYRIM_AE_1_6_1170
-    v.CompatibleVersions({ SKSE::RUNTIME_SSE_1_6_1170, SKSE::RUNTIME_SSE_1_6_1179 });
-    v.MinimumRequiredXSEVersion({ 2, 2, 5, 0 });
-#    else
     v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
-    v.MinimumRequiredXSEVersion({ 2, 3, 0, 0 });
-#    endif
+    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_ADDRESS_LIBRARY) {
+        v.MinimumRequiredXSEVersion(REL::Version{ 2, 2, 5 });
+    } else {
+        v.MinimumRequiredXSEVersion(REL::Version{ 2, 3, 0 });
+    }
     return v;
 }();
 #else
@@ -87,7 +86,7 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterfac
 
     if (ver
 #    ifdef SKYRIMVR
-        != SKSE::RUNTIME_VR_1_4_15_1
+        > SKSE::RUNTIME_VR_1_4_15_1
 #    else
         < SKSE::RUNTIME_SSE_1_5_39
 #    endif
@@ -107,6 +106,20 @@ extern "C" __declspec(dllexport) bool __cdecl
     InitLogging();
 
     SKSE::Init(a_skse);
+
+#ifdef SKYRIM_SUPPORT_AE
+    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_ADDRESS_LIBRARY) {
+        const auto runtime = a_skse->RuntimeVersion();
+        if (runtime >= MIN_ADDRESS_LIBRARY) {
+            REX::FAIL(
+                "You are using a newer game version...\n"
+                "Runtime: {}\n"
+                "Supported: 1.6.1170 / 1.6.1179",
+                runtime);
+        }
+    }
+#endif
+
     SKSE::GetMessagingInterface()->RegisterListener(MessageHandler);
     logs::info("Build: {}"sv, rcs::VERSION_BUILD);
     logs::info("Game version : {}"sv, a_skse->RuntimeVersion().string());

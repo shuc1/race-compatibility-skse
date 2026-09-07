@@ -43,8 +43,8 @@ end)
 -- builds
 local buildtable = {
     { ver = "se", dep = "commonlibsse.se", def = {} },
-    { ver = "ae", dep = "commonlibsse.ae", def = {} },
-    { ver = "ae1170", dep = "commonlibsse.ae1170", def = { "SKYRIM_AE_1_6_1170" } },
+    { ver = "ae", dep = "commonlibsse.ae", def = {"MIN_ADDRESS_LIBRARY=REL::Version{1,7,99,0}"} },
+    { ver = "ae1170", dep = "commonlibsse.ae1170", def = {"MIN_ADDRESS_LIBRARY=REL::Version{1,7,99,0}"} },
     { ver = "vr", dep = "commonlibvr", def = {} }
 }
 
