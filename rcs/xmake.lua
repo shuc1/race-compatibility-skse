@@ -42,10 +42,10 @@ end)
 
 -- builds
 local buildtable = {
-    { ver = "se", dep = "commonlibsse.se", def = {} },
-    { ver = "ae", dep = "commonlibsse.ae", def = {"MIN_ADDRESS_LIBRARY=REL::Version{1,7,99,0}"} },
-    { ver = "ae1170", dep = "commonlibsse.ae1170", def = {"MIN_ADDRESS_LIBRARY=REL::Version{1,7,99,0}"} },
-    { ver = "vr", dep = "commonlibvr", def = {} }
+    { ver = "se", dep = "commonlibsse.se" },
+    { ver = "ae", dep = "commonlibsse.ae" },
+    { ver = "ae1170", dep = "commonlibsse.ae1170" },
+    { ver = "vr", dep = "commonlibvr" }
 }
 
 -- dll
@@ -54,7 +54,6 @@ for _, build in ipairs(buildtable) do
     target(string.lower(projectabbr) .. "." .. build.ver, function()
         set_group("default")
         add_deps(build.dep)
-        add_defines(build.def)
         set_targetdir(path.join("$(builddir)", "$(mode)", build.ver))
         add_rules("rcs")
     end)
@@ -67,7 +66,6 @@ for _, build in ipairs(buildtable) do
         -- add detours specific rules
         add_packages("microsoft-detours")
         add_defines("DETOURS", { public = false })
-        add_defines(build.def)
         set_targetdir(path.join("$(builddir)", "detours", "$(mode)", build.ver))
         add_rules("rcs")
     end)

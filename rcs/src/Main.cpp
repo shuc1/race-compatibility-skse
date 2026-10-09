@@ -26,7 +26,7 @@ namespace
 
         auto logger = std::make_shared<spdlog::logger>("global", sinks);
         logger->set_level(spdlog::level::info);
-        logger->flush_on(spdlog::level::info);
+        logger->flush_on(spdlog::level::warn);
 
         spdlog::set_default_logger(std::move(logger));
         spdlog::set_pattern("[%^%L%$] %v");
@@ -41,6 +41,7 @@ namespace
                 if (rcs::config::TryProcessConfigs()) {
                     rcs::hook::TryInstall();
                 }
+                spdlog::default_logger()->flush();
                 break;
             }
         default:
@@ -50,6 +51,8 @@ namespace
 }
 
 #ifdef SKYRIM_SUPPORT_AE
+constexpr REL::Version MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5{ 1, 7, 99, 0 };
+
 extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     SKSE::PluginVersionData v;
     v.PluginVersion({ rcs::VERSION_MAJOR, rcs::VERSION_MINOR, rcs::VERSION_ALTER, 0 });
@@ -58,7 +61,7 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     v.UsesAddressLibrary();
     v.UsesUpdatedStructs();
     v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
-    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_ADDRESS_LIBRARY) {
+    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5) {
         v.MinimumRequiredXSEVersion(REL::Version{ 2, 2, 5 });
     } else {
         v.MinimumRequiredXSEVersion(REL::Version{ 2, 3, 0 });
@@ -108,9 +111,9 @@ extern "C" __declspec(dllexport) bool __cdecl
     SKSE::Init(a_skse);
 
 #ifdef SKYRIM_SUPPORT_AE
-    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_ADDRESS_LIBRARY) {
+    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5) {
         const auto runtime = a_skse->RuntimeVersion();
-        if (runtime >= MIN_ADDRESS_LIBRARY) {
+        if (runtime >= MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5) {
             REX::FAIL(
                 "You are using a newer game version...\n"
                 "Runtime: {}\n"

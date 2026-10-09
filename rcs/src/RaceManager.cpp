@@ -10,17 +10,17 @@ namespace rcs::manager
         }
     }
 
-    void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies) noexcept
+    void EmplaceRaceProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept
     {
         if (race && !proxies.empty()) {
-            raceProxies.emplace(race, std::move(proxies));
+            raceProxies.try_emplace(race, std::move(proxies));
         }
     }
 
     void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept
     {
         if (race && !proxies.empty()) {
-            armorRaceProxies.emplace(race, std::move(proxies));
+            armorRaceProxies.try_emplace(race, std::move(proxies));
         }
     }
 
@@ -57,7 +57,7 @@ namespace rcs::manager
             return false;
         }
         const auto it = raceProxies.find(source_race);
-        return it != raceProxies.end() && it->second.contains(target_race);
+        return it != raceProxies.end() && std::ranges::contains(it->second, target_race);
     }
 
     auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept

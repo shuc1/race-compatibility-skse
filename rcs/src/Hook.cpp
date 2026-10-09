@@ -196,14 +196,15 @@ namespace
 
             static bool Thunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
             {
-                //auto* source_race = !race || !race->armorParentRace ? race : race->armorParentRace;
                 if (!race) {
                     return false;
                 }
-                // race not null
-                auto* armorParentRace = manager::GetArmorParentRaceProxy(armor_addon, race);
-                if (const auto* armorRace = armor_addon->race;
-                    race == armorRace || armorParentRace == armorRace) {
+                const auto* armorRace = armor_addon->race;
+                if (race == armorRace) {
+                    return true;
+                }
+                const auto* armorParentRace = manager::GetArmorParentRaceProxy(armor_addon, race);
+                if (armorParentRace == armorRace) {
                     return true;
                 }
                 const auto result = std::ranges::any_of(armor_addon->additionalRaces,

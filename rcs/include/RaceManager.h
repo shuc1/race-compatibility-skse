@@ -69,14 +69,14 @@ namespace rcs::manager
         RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
     };
 
-    inline std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>>       vampirismPairs{};
-    inline std::unordered_map<const RE::TESRace*, std::set<const RE::TESRace*>> raceProxies{};
-    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorProxyEntry>> armorRaceProxies{};
-    inline std::unordered_map<const RE::TESRace*, std::bitset<13>>              headPartMap{};
+    inline std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>>          vampirismPairs{};
+    inline std::unordered_map<const RE::TESRace*, std::vector<const RE::TESRace*>> raceProxies{};
+    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorProxyEntry>>    armorRaceProxies{};
+    inline std::unordered_map<const RE::TESRace*, std::bitset<13>>                 headPartMap{};
 
     // emplace
     void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
-    void EmplaceRaceProxies(const RE::TESRace* race, std::set<const RE::TESRace*>&& proxies) noexcept;
+    void EmplaceRaceProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept;
     void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
     void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept;
     // judge
