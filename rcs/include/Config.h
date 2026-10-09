@@ -4,7 +4,6 @@
 #include "RaceManager.h"
 #include <glaze/glaze.hpp>
 
-
 namespace rcs::config
 {
     struct RawConfigEntry
@@ -53,9 +52,9 @@ namespace rcs::config
                 std::vector<ArmorVariant> variants;
             };
 
-            RE::TESRace*                 form;
-            std::set<const RE::TESRace*> proxies;
-            ArmorProxy                   armor;
+            RE::TESRace*                    form;
+            std::vector<const RE::TESRace*> proxies;
+            ArmorProxy                      armor;
         };
 
         RaceProxy                 race;
