@@ -3,6 +3,9 @@ Scriptname ${PAPYRUS_NAME} Hidden
 ; return: the actor's current race without proxy substitution, including any active transformation; None if akActor is None
 Race Function GetActualRace(Actor akActor) global native
 
+; return: the actor's recorded race before entering an alternate form, without proxy substitution; None if no record exists or akActor is None
+Race Function GetOriginRace(Actor akActor) global native
+
 ; Head part type IDs are as follows (from 0 to 12):
 ; - None: 0
 ; - Argonian: 1
