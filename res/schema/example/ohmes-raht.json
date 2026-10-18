@@ -5,9 +5,7 @@
             "name": "Ohmes-Raht",
             "race": {
                 "form": "OhmesRahtRace",
-                "proxies": [
-                    "KhajiitRace"
-                ],
+                "proxy": "KhajiitRace",
                 "armor": {
                     "race": "KhajiitRace",
                     "variants": [
@@ -24,9 +22,7 @@
             },
             "vampireRace": {
                 "form": "OhmesRahtRaceVampire",
-                "proxies": [
-                    "KhajiitRaceVampire"
-                ],
+                "proxy": "KhajiitRaceVampire",
                 "armor": {
                     "race": "KhajiitRaceVampire",
                     "variants": [

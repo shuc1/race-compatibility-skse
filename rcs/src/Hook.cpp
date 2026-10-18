@@ -5,6 +5,35 @@ namespace
 {
     using namespace rcs;
 
+    struct SetRace
+    {
+        static constexpr auto           id = RELOCATION_ID(53934, 54758);
+        static constexpr std::ptrdiff_t offset = 0x23;
+
+        static void CallThunk(RE::Actor* actor, RE::TESRace* race, bool is_player)
+        {
+            if (!actor) {
+                return;
+            }
+
+            const auto  actorID = actor->GetFormID();
+            const auto* currentRace = actor->race;
+            const auto* originRace = manager::GetOriginRace(actorID);
+            const auto* targetRace = manager::ResolveTargetRace(originRace ? originRace : currentRace, race);
+
+#ifdef DETOURS
+            hook::FuncStorage<SetRace>::func(actor, const_cast<RE::TESRace*>(targetRace), is_player);
+#else
+            actor->SwitchRace(const_cast<RE::TESRace*>(targetRace), is_player);
+#endif
+            // SwitchRace can return without changing the actor's race.
+            if (actor->race != targetRace) {
+                return;
+            }
+            manager::UpdateOriginRace(actorID, currentRace, targetRace, originRace != nullptr);
+        }
+    };
+
     namespace
     {
 #define LOG_TO_CONSOLE(a_name)                                               \
@@ -18,7 +47,7 @@ namespace
             // VR shared GetIsRace/IsValidRace ids with SE
             static constexpr auto id = RELOCATION_ID(21028, 21478);
 
-            static bool Thunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
+            static bool JmpThunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
             {
                 result = 0.0;
                 // check if obj is an NPC and has the same race
@@ -44,7 +73,7 @@ namespace
         {
             static constexpr auto id = RELOCATION_ID(20978, 21428);
 
-            static bool Thunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
+            static bool JmpThunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
             {
                 result = 0.0;
                 if (obj1 && obj2) {
@@ -111,7 +140,7 @@ namespace
             }
 #    endif
 
-            static bool Thunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
+            static bool JmpThunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
             {
                 result = 0.0;
 
@@ -158,7 +187,7 @@ namespace
             }
 #    endif
 
-            static bool Thunk(const RE::TESObjectREFR* obj, [[maybe_unused]] const RE::TESObjectREFR* unused1, [[maybe_unused]] void* unused2, double& result)
+            static bool JmpThunk(const RE::TESObjectREFR* obj, [[maybe_unused]] const RE::TESObjectREFR* unused1, [[maybe_unused]] void* unused2, double& result)
             {
                 result = 0.0;
 #    ifdef DETOURS
@@ -194,7 +223,7 @@ namespace
         {
             static constexpr auto id = RELOCATION_ID(17359, 17757);
 
-            static bool Thunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
+            static bool JmpThunk(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race)
             {
                 if (!race) {
                     return false;
@@ -203,7 +232,7 @@ namespace
                 if (race == armorRace) {
                     return true;
                 }
-                const auto* armorParentRace = manager::GetArmorParentRaceProxy(armor_addon, race);
+                const auto* armorParentRace = manager::ResolveArmorParentRace(armor_addon, race);
                 if (armorParentRace == armorRace) {
                     return true;
                 }
@@ -222,7 +251,7 @@ namespace
 
 namespace rcs::hook
 {
-    void TryInstall()
+    void Install()
     {
         logs::info("{:*^30}", "HOOKS");
 #ifdef DETOURS
@@ -231,9 +260,9 @@ namespace rcs::hook
 
         if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
-            InstallHooks<GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
+            InstallHooks<SetRace, GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
 #else
-            InstallHooks<GetIsRace, SameRace>();
+            InstallHooks<SetRace, GetIsRace, SameRace>();
 #endif
         }
 

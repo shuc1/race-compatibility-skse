@@ -47,6 +47,7 @@ namespace rcs::config
             ProcessConfigFile(path);
         }
         // vanilla game config entries
+        logs::info("default:"sv);
         ProcessFileEntries("default"sv,
             {
 #define X(NAME)                                             \
@@ -59,6 +60,10 @@ namespace rcs::config
                 VANILLA_RACES
 #undef X
             });
+        ProcessAlternateForms(
+            { "WerewolfBeastRace"sv,
+                "DLC1VampireBeastRace"sv,
+                "DLC2WerebearBeastRace"sv });
         return true;
     }
 
@@ -91,18 +96,41 @@ namespace rcs::config
     void ConfigProcessor::ProcessConfigFile(const std::filesystem::path& path)
     {
         const auto filename{ path.filename().string() };
+        logs::info("{}:"sv, filename);
         auto       buffer = glz::file_to_buffer(path.string());
         const auto content = glz::read_json<RawConfigFileContent>(buffer);
         if (!content) {
             logs::error("Failed to read {} for \"{}\""sv, filename, glz::format_error(content));
             return;
         }
-        ProcessFileEntries(filename, content.value().entries);
+        std::visit([&](const auto& entries) {
+            using T = std::decay_t<decltype(entries)>;
+            if constexpr (std::is_same_v<T, RawConfigFileContent::RaceEntries>) {
+                ProcessFileEntries(filename, entries);
+            } else {
+                ProcessAlternateForms(entries);
+            }
+        },
+            content.value().entries);
+    }
+
+    void ConfigProcessor::ProcessAlternateForms(const std::vector<std::string_view>& forms)
+    {
+        logs::info("\tAlternate forms:"sv);
+        for (const auto& form : forms) {
+            const auto* race = LookupRace(form);
+            if (!race) {
+                logs::warn("\t\t[SKIP] Alternate form {} not found"sv, form);
+                continue;
+            }
+            if (manager::AddAlternateForm(race)) {
+                logs::info("\t\t{}"sv, form);
+            }
+        }
     }
 
     void ConfigProcessor::ProcessFileEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries)
     {
-        logs::info("{}:"sv, filename);
         for (const auto& [entryName, raceString, vampireRaceString, headPartVariant] :
             entries | std::views::reverse) {
             logs::info("\t{}: {}, {}"sv, entryName, raceString.form,
@@ -146,7 +174,7 @@ namespace rcs::config
     {
         RaceProxy result{
             .form = LookupRace(raw.form),
-            .proxies{},
+            .proxy{},
             .armor = {
                 .race = LookupRace(raw.armor.race),
                 .variants{} },
@@ -156,13 +184,7 @@ namespace rcs::config
             return result;
         }
         // race proxy
-        result.proxies.reserve(raw.proxies.size());
-        for (const auto& proxy : raw.proxies) {
-            if (const auto* race = LookupRace(proxy);
-                race && !std::ranges::contains(result.proxies, race)) {
-                result.proxies.push_back(race);
-            }
-        }
+        result.proxy = LookupRace(raw.proxy);
         // race armor proxy
         if (!raw.armor.variants.empty()) {
             auto& variants = result.armor.variants;
@@ -218,7 +240,7 @@ namespace rcs::config
 
     void ConfigProcessor::ApplyRaceProxy(RaceProxy& proxy)
     {
-        manager::EmplaceRaceProxies(proxy.form, std::move(proxy.proxies));
+        manager::EmplaceRaceProxy(proxy.form, proxy.proxy);
         if (auto* armorRace = proxy.armor.race) {
             proxy.form->armorParentRace = armorRace;
         }
@@ -226,7 +248,7 @@ namespace rcs::config
         manager::EmplaceArmorRaceProxies(proxy.form, std::move(proxy.armor.variants));
     }
 
-    bool TryProcessConfigs()
+    bool ProcessConfigs()
     {
         logs::info("{:*^30}"sv, "CONFIGS"sv);
         ConfigProcessor processor{};
@@ -235,7 +257,7 @@ namespace rcs::config
         const auto      end = std::chrono::system_clock::now();
         const auto      ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         logs::info("Processed configs in {}ms"sv, ms);
-        manager::Summary();
+        manager::LogSummary();
         return result;
     }
 }  // namespace rcs::config

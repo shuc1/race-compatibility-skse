@@ -22,9 +22,9 @@ namespace rcs::config
                 std::vector<ArmorVariant> variants;
             };
 
-            std::string_view              form;
-            std::vector<std::string_view> proxies;
-            ArmorProxy                    armor;
+            std::string_view form;
+            std::string_view proxy;
+            ArmorProxy       armor;
         };
 
         std::string_view                                              name;
@@ -35,8 +35,11 @@ namespace rcs::config
 
     struct RawConfigFileContent
     {
-        std::string_view            schema;
-        std::vector<RawConfigEntry> entries;
+        using RaceEntries = std::vector<RawConfigEntry>;
+        using AlternateForms = std::vector<std::string_view>;
+
+        std::string_view                          schema;
+        std::variant<RaceEntries, AlternateForms> entries;
     };
 
     struct ConfigEntry
@@ -52,9 +55,9 @@ namespace rcs::config
                 std::vector<ArmorVariant> variants;
             };
 
-            RE::TESRace*                    form;
-            std::vector<const RE::TESRace*> proxies;
-            ArmorProxy                      armor;
+            RE::TESRace*       form;
+            const RE::TESRace* proxy;
+            ArmorProxy         armor;
         };
 
         RaceProxy                 race;
@@ -76,6 +79,7 @@ namespace rcs::config
         [[nodiscard]] std::vector<std::filesystem::path> ListConfigFiles() const;
         void                                             ProcessConfigFile(const std::filesystem::path& path);
         void                                             ProcessFileEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries);
+        void                                             ProcessAlternateForms(const std::vector<std::string_view>& forms);
         // parse
         RaceProxy    ParseRaceProxy(const RawRaceProxy& raw);
         RE::TESRace* LookupRace(std::string_view form);
@@ -90,20 +94,38 @@ namespace rcs::config
         std::unordered_map<const RE::TESRace*, std::string_view> visitedMap{};
     };
 
-    bool TryProcessConfigs();
+    bool ProcessConfigs();
 }
+
+template <>
+struct glz::meta<rcs::config::RawConfigEntry::RaceProxy>
+{
+    using T = rcs::config::RawConfigEntry::RaceProxy;
+
+    static constexpr auto ReadProxies = [](T& config, const std::vector<std::string_view>& proxies) {
+        logs::warn("\tproxies is deprecated; only the first item is used. Use proxy instead"sv);
+        config.proxy = proxies.front();
+    };
+
+    static constexpr auto value = glz::object(
+        "form", &T::form,
+        "proxy", &T::proxy,
+        "proxies", glz::custom<ReadProxies, glz::skip{}>,
+        "armor", &T::armor);
+};
 
 template <>
 struct glz::meta<rcs::config::RawConfigFileContent>
 {
-    static constexpr std::string_view rename_key(const std::string_view key)
-    {
-        if (key == "schema"sv) {
-            return "$schema"sv;
-        }
-        if (key == "entries"sv) {
-            return rcs::CONFIG_KEY;
-        }
-        return key;
-    }
+    using T = rcs::config::RawConfigFileContent;
+
+    template <typename Entries>
+    static constexpr auto ReadEntries = [](T& config, Entries entries) {
+        config.entries = std::move(entries);
+    };
+
+    static constexpr auto value = glz::object(
+        "$schema", &T::schema,
+        rcs::CONFIG_KEY, glz::custom<ReadEntries<T::RaceEntries>, glz::skip{}>,
+        "AlternateForms", glz::custom<ReadEntries<T::AlternateForms>, glz::skip{}>);
 };

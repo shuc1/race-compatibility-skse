@@ -8,41 +8,49 @@
 namespace rcs::hook
 {
     template <typename T>
-    concept HasThunk = requires {
-        T::Thunk;
-    } && std::is_function_v<std::remove_pointer_t<decltype(T::Thunk)>>;
+    concept HasJmpThunk = requires {
+        T::JmpThunk;
+        requires std::is_function_v<std::remove_pointer_t<decltype(T::JmpThunk)>>;
+    };
+
+    template <typename T>
+    concept HasCallThunk = requires {
+        T::CallThunk;
+        requires std::is_function_v<std::remove_pointer_t<decltype(T::CallThunk)>>;
+    };
 
     template <typename T>
     concept HasPreInstall = requires {
         T::PreInstall;
-    } && std::is_function_v<std::remove_pointer_t<decltype(T::PreInstall)>>;
+        requires std::is_function_v<std::remove_pointer_t<decltype(T::PreInstall)>>;
+    };
 
     template <typename T>
     concept HasID = requires {
-        T::id;
-    } && std::is_same_v<decltype(T::id), const REL::ID>;
+        requires std::same_as<decltype(T::id), const REL::ID>;
+    };
 
     template <typename T>
     concept HasOffset = requires {
-        T::offset;
-    } && std::is_same_v<decltype(T::offset), const std::ptrdiff_t>;
+        requires std::same_as<decltype(T::offset), const std::ptrdiff_t>;
+    };
 
     template <typename T>
-    concept Hookable = HasThunk<T> && HasID<T>;
+    concept Hookable = (HasJmpThunk<T> || HasCallThunk<T>) && HasID<T>;
 
     // Incompatible with hooks at the same position
-    template <HasThunk T>
-    void write_jump_to_thunk(std::uintptr_t a_src)
+    template <HasJmpThunk T>
+    void WriteJumpToThunk(std::uintptr_t a_src)
     {
 #pragma pack(push, 1)
         struct Assembly
         {
             // 0x0: jmp [rip + 0]
             // 0x6: target
-            std::uint8_t  jmp{ 0xFF };                                        // 0x0
-            std::uint8_t  modrm{ 0x25 };                                      // 0x1
-            std::int32_t  disp{ 0 };                                          // 0x2
-            std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::Thunk) };  // 0x6
+            std::uint8_t  jmp{ 0xFF };                                           // 0x0
+            std::uint8_t  modrm{ 0x25 };                                         // 0x1
+            std::int32_t  disp{ 0 };                                             // 0x2
+            std::uint64_t addr{ reinterpret_cast<std::uint64_t>(T::JmpThunk) };  // 0x6
         } const assembly{};
         static_assert(offsetof(Assembly, jmp) == 0x0);
         static_assert(offsetof(Assembly, modrm) == 0x1);
@@ -60,8 +68,20 @@ namespace rcs::hook
 #endif
     }
 
+    template <HasCallThunk T>
+    auto WriteCallToThunk(std::uintptr_t a_src) -> std::uintptr_t
+    {
+#ifdef SKYRIMVR
+        static SKSE::Trampoline trampoline;
+#else
+        static REL::Trampoline trampoline;
+#endif
+        trampoline.create(14);
+        return trampoline.write_call<5>(a_src, T::CallThunk);
+    }
+
     template <typename... Ts>
-    consteval auto make_hook_message_array()
+    consteval auto MakeHookMessageArray()
     {
         constexpr auto count = sizeof...(Ts);
         static_assert(count);
@@ -96,7 +116,7 @@ namespace rcs::hook
     template <typename... Ts>
     constexpr auto MakeHookMessage()
     {
-        static constexpr auto MESSAGE = make_hook_message_array<Ts...>();
+        static constexpr auto MESSAGE = MakeHookMessageArray<Ts...>();
         return std::string_view{ MESSAGE.data(), MESSAGE.size() - 1 };
     }
 
@@ -104,7 +124,13 @@ namespace rcs::hook
     template <Hookable T>
     struct FuncStorage
     {
-        static inline decltype(&T::Thunk) func{ nullptr };
+        static inline auto func = [] {
+            if constexpr (HasCallThunk<T>) {
+                return static_cast<decltype(&T::CallThunk)>(nullptr);
+            } else {
+                return static_cast<decltype(&T::JmpThunk)>(nullptr);
+            }
+        }();
     };
 #endif
 
@@ -123,10 +149,18 @@ namespace rcs::hook
         }();
         const REL::Relocation src{ T::id, offset };
 #ifdef DETOURS
-        FuncStorage<T>::func = reinterpret_cast<decltype(&T::Thunk)>(src.address());
-        DetourAttach(reinterpret_cast<PVOID*>(&FuncStorage<T>::func), reinterpret_cast<PVOID>(T::Thunk));
+        if constexpr (HasCallThunk<T>) {
+            FuncStorage<T>::func = reinterpret_cast<decltype(FuncStorage<T>::func)>(WriteCallToThunk<T>(src.address()));
+        } else {
+            FuncStorage<T>::func = reinterpret_cast<decltype(FuncStorage<T>::func)>(src.address());
+            DetourAttach(reinterpret_cast<PVOID*>(&FuncStorage<T>::func), reinterpret_cast<PVOID>(T::JmpThunk));
+        }
 #else
-        write_jump_to_thunk<T>(src.address());
+        if constexpr (HasCallThunk<T>) {
+            WriteCallToThunk<T>(src.address());
+        } else {
+            WriteJumpToThunk<T>(src.address());
+        }
 #endif
 
 #ifndef NDEBUG
@@ -153,5 +187,5 @@ namespace rcs::hook
         logs::info(MakeHookMessage<Ts...>());
     }
 
-    void TryInstall();
+    void Install();
 }
