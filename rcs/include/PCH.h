@@ -7,7 +7,7 @@
 #include <SKSE/SKSE.h>
 
 #ifdef NDEBUG
-#include <spdlog/spdlog.h>
+#    include <spdlog/spdlog.h>
 namespace logs = spdlog;
 #else
 namespace logs = SKSE::log;
@@ -20,7 +20,7 @@ namespace stl
 {
     // godbolt: https://godbolt.org/z/vc8hnjcrb
     template <typename T>
-    consteval auto get_signature()
+    consteval auto GetSignature()
     {
 #if defined(_MSC_VER)
         return std::string_view(__FUNCSIG__);
@@ -31,11 +31,11 @@ namespace stl
 
     // get struct name with scope, but without anonymous namespace (if any)
     template <typename T>
-    consteval auto struct_name()
+    consteval auto GetStructName()
     {
         constexpr auto sig = []() {
-            constexpr auto probe = get_signature<int>();
-            constexpr auto sig_raw = get_signature<T>();
+            constexpr auto probe = GetSignature<int>();
+            constexpr auto sig_raw = GetSignature<T>();
 
             constexpr auto pre_size = probe.find("int"sv);
             constexpr auto suf_size = probe.size() - pre_size - "int"sv.size();
@@ -54,9 +54,9 @@ namespace stl
             std::array<char, len + 1> value{};    // +1 for null terminator
             size_t                    count = 0;  // actual length without anonymous namespace parts
         } constexpr name_buffer = [&]() {
-            NameBuffer                buffer{};
-            auto                      it = buffer.value.begin();
-            size_t                    pos = 0;
+            NameBuffer buffer{};
+            auto       it = buffer.value.begin();
+            size_t     pos = 0;
             while (pos < len) {
                 auto next_op = sig.find("::"sv, pos);
                 auto part = (next_op == std::string_view::npos) ? sig.substr(pos) : sig.substr(pos, next_op - pos);
@@ -81,5 +81,5 @@ namespace stl
 
     // for assisting, not direct use
     template <typename T>
-    inline constexpr auto struct_name_for = struct_name<T>();
+    inline constexpr auto struct_name_for = GetStructName<T>();
 }  // namespace stl

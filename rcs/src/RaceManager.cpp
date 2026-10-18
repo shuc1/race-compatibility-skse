@@ -3,6 +3,13 @@
 
 namespace rcs::manager
 {
+    namespace
+    {
+        std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
+        std::unordered_map<const RE::TESRace*, std::bitset<13>>        headPartMap{};
+        std::vector<const RE::TESRace*>                                alternateForms{};
+    }
+
     void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept
     {
         if (race && vampire_race) {
@@ -10,10 +17,10 @@ namespace rcs::manager
         }
     }
 
-    void EmplaceRaceProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept
+    void EmplaceRaceProxy(const RE::TESRace* race, const RE::TESRace* proxy) noexcept
     {
-        if (race && !proxies.empty()) {
-            raceProxies.try_emplace(race, std::move(proxies));
+        if (race && proxy) {
+            raceProxies.try_emplace(race, proxy);
         }
     }
 
@@ -24,11 +31,20 @@ namespace rcs::manager
         }
     }
 
-    void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
+    void AddHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
     {
         if (race) {
             headPartMap[race].set(std::to_underlying(type));
         }
+    }
+
+    bool AddAlternateForm(const RE::TESRace* race)
+    {
+        if (!race || IsAlternateForm(race)) {
+            return false;
+        }
+        alternateForms.push_back(race);
+        return true;
     }
 
     auto GetVampireRaceByRace(const RE::TESRace* race) noexcept
@@ -56,11 +72,10 @@ namespace rcs::manager
         if (!source_race || !target_race) {
             return false;
         }
-        const auto it = raceProxies.find(source_race);
-        return it != raceProxies.end() && std::ranges::contains(it->second, target_race);
+        return GetRaceProxy(source_race) == target_race;
     }
 
-    auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept
+    auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept
         -> const RE::TESRace*
     {
         if (const auto it = armorRaceProxies.find(race);
@@ -75,14 +90,7 @@ namespace rcs::manager
         return race->armorParentRace;
     }
 
-    // auto GetHeadPartType(const RE::TESRace* race) noexcept
-    //     -> HeadPartType
-    // {
-    //     const auto it = headPartMap.find(race);
-    //     return it != headPartMap.end() && !it->second.empty() ? *it->second.begin() : kNone;
-    // }
-
-    auto GetIsHeadPartTypeByRace(const RE::TESRace* race, HeadPartType type) noexcept
+    auto HasHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
         -> bool
     {
         const auto it = headPartMap.find(race);
@@ -92,7 +100,72 @@ namespace rcs::manager
         return it->second.test(std::to_underlying(type));
     }
 
-    void Summary()
+    auto IsAlternateForm(const RE::TESRace* race) noexcept
+        -> bool
+    {
+        return race && std::ranges::contains(alternateForms, race);
+    }
+
+    auto GetRaceProxy(const RE::TESRace* race) noexcept
+        -> const RE::TESRace*
+    {
+        const auto it = raceProxies.find(race);
+        return it != raceProxies.end() ? it->second : nullptr;
+    }
+
+    auto GetRaceOrProxy(const RE::TESRace* race) noexcept
+        -> const RE::TESRace*
+    {
+        const auto* proxy = GetRaceProxy(race);
+        return proxy ? proxy : race;
+    }
+
+    auto ResolveTargetRace(const RE::TESRace* origin, const RE::TESRace* target) noexcept
+        -> const RE::TESRace*
+    {
+        if (!origin || !target || target == origin) {
+            return target;
+        }
+        // actually proxied race
+        if (target == GetRaceProxy(origin)) {
+            return origin;
+        }
+        if (const auto* vampireRace = GetVampireRaceByRace(origin);
+            vampireRace && target == GetRaceProxy(vampireRace)) {
+            return vampireRace;
+        }
+        if (const auto* race = GetRaceByVampireRace(origin);
+            race && target == GetRaceProxy(race)) {
+            return race;
+        }
+        return target;
+    }
+
+    auto GetOriginRace(const RE::FormID actor_id) noexcept
+        -> const RE::TESRace*
+    {
+        const auto it = originRaces.find(actor_id);
+        return it != originRaces.end() ? it->second : nullptr;
+    }
+
+    void UpdateOriginRace(RE::FormID actor_id, const RE::TESRace* previous, const RE::TESRace* current, bool had_origin)
+    {
+        if (!IsAlternateForm(current)) {
+            if (had_origin) {
+                originRaces.erase(actor_id);
+            }
+            return;
+        }
+        if (had_origin || IsAlternateForm(previous)) {
+            return;
+        }
+        if (const auto* proxy = GetRaceProxy(previous);
+            proxy && proxy != previous) {
+            originRaces.try_emplace(actor_id, previous);
+        }
+    }
+
+    void LogSummary()
     {
         logs::info("{:*^30}"sv, "SUMMARY"sv);
         logs::info("Vanilla vampirism race pairs recorded: 10"sv);
@@ -100,6 +173,7 @@ namespace rcs::manager
         logs::info("Custom races with head part types: {}"sv, headPartMap.size() - 20);
         logs::info("Race proxies created: {}"sv, raceProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
+        logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
     }
 
     namespace headpart
@@ -154,8 +228,8 @@ namespace rcs::manager
                 HEAD_PART_TYPES
 #undef X
             }
-            EmplaceHeadPartType(race, type);
-            EmplaceHeadPartType(vampire_race, type);
+            AddHeadPartType(race, type);
+            AddHeadPartType(vampire_race, type);
         }
 
 // race lists

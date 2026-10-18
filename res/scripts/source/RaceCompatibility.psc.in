@@ -1,21 +1,7 @@
 Scriptname ${PAPYRUS_NAME} Hidden
 
-; return: if akRace is managed by RCS as a vampire race, return its corresponding normal race; otherwise, return None
-Race Function GetRaceByVampireRace(Race akRace) global native
-
-; return: if akRace is managed by RCS as a normal race, return its corresponding vampire race; otherwise, return None
-Race Function GetVampireRaceByRace(Race akRace) global native
-
-; return: if akSourceRace equals akTargetRace, or akTargetRace is included in the proxies of akSourceRace, return true; otherwise, return false
-Bool Function GetIsRaceByProxy(Race akSourceRace, Race akTargetRace) global native
-
-; ** DEPRECATED **
-; A race may have multiple head part types.
-; This function returns only the first type in the ordered set and should not be used
-; to determine whether a race belongs to a specific head part type.
-; Use GetIsHeadPartTypeByRace() instead.
-; Int Function GetHeadPartTypeByRace(Race akRace) global native
-; ** DEPRECATED **
+; return: the actor's current race without proxy substitution, including any active transformation; None if akActor is None
+Race Function GetActualRace(Actor akActor) global native
 
 ; Head part type IDs are as follows (from 0 to 12):
 ; - None: 0

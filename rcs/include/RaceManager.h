@@ -69,25 +69,32 @@ namespace rcs::manager
         RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
     };
 
-    inline std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>>          vampirismPairs{};
-    inline std::unordered_map<const RE::TESRace*, std::vector<const RE::TESRace*>> raceProxies{};
-    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorProxyEntry>>    armorRaceProxies{};
-    inline std::unordered_map<const RE::TESRace*, std::bitset<13>>                 headPartMap{};
+    inline std::unordered_map<const RE::TESRace*, const RE::TESRace*>           raceProxies{};
+    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorProxyEntry>> armorRaceProxies{};
+    inline std::unordered_map<RE::FormID, const RE::TESRace*>                   originRaces{};
 
     // emplace
-    void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
-    void EmplaceRaceProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept;
-    void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
-    void EmplaceHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept;
+    void               EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
+    void               EmplaceRaceProxy(const RE::TESRace* race, const RE::TESRace* proxy) noexcept;
+    void               EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
+    void               AddHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept;
+    [[nodiscard]] bool AddAlternateForm(const RE::TESRace* race);
     // judge
     [[nodiscard]] auto GetVampireRaceByRace(const RE::TESRace* race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept -> bool;
-    [[nodiscard]] auto GetArmorParentRaceProxy(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
-    // DEPRECATED // [[nodiscard]] auto GetHeadPartType(const RE::TESRace* race) noexcept -> HeadPartType;
-    [[nodiscard]] auto GetIsHeadPartTypeByRace(const RE::TESRace* race, HeadPartType type) noexcept -> bool;
+    [[nodiscard]] auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
+    [[nodiscard]] auto HasHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept -> bool;
+    [[nodiscard]] auto IsAlternateForm(const RE::TESRace* race) noexcept -> bool;
+    // get/set race
+    [[nodiscard]] auto GetRaceProxy(const RE::TESRace* race) noexcept -> const RE::TESRace*;
+    [[nodiscard]] auto GetRaceOrProxy(const RE::TESRace* race) noexcept -> const RE::TESRace*;
+    [[nodiscard]] auto ResolveTargetRace(const RE::TESRace* origin, const RE::TESRace* target) noexcept -> const RE::TESRace*;
+    [[nodiscard]] auto GetOriginRace(const RE::FormID actor_id) noexcept -> const RE::TESRace*;
+    // after successful switch; had_origin is from the pre-switch lookup
+    void UpdateOriginRace(RE::FormID actor_id, const RE::TESRace* previous, const RE::TESRace* current, bool had_origin);
     // summary
-    void Summary();
+    void LogSummary();
 
     namespace headpart
     {

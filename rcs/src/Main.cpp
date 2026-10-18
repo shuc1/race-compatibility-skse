@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "Hook.h"
 #include "Papyrus.h"
+#include "Serialization.h"
 
 namespace
 {
@@ -38,8 +39,8 @@ namespace
         case SKSE::MessagingInterface::kDataLoaded:
             {
                 logs::info("{:*^50}"sv, "DEPENDENCIES"sv);
-                if (rcs::config::TryProcessConfigs()) {
-                    rcs::hook::TryInstall();
+                if (rcs::config::ProcessConfigs()) {
+                    rcs::hook::Install();
                 }
                 spdlog::default_logger()->flush();
                 break;
@@ -125,10 +126,12 @@ extern "C" __declspec(dllexport) bool __cdecl
 
     SKSE::GetMessagingInterface()->RegisterListener(MessageHandler);
     logs::info("Build: {}"sv, rcs::VERSION_BUILD);
-    logs::info("Game version : {}"sv, a_skse->RuntimeVersion().string());
+    logs::info("Game version: {}"sv, a_skse->RuntimeVersion().string());
 
     logs::info("{:*^50}"sv, "PAPYRUS"sv);
     SKSE::GetPapyrusInterface()->Register(rcs::papyrus::Bind);
+    logs::info("{:*^50}"sv, "SERIALIZATION"sv);
+    rcs::serialization::Bind(SKSE::GetSerializationInterface());
 
     return true;
 }

@@ -16,20 +16,6 @@ git clone --recurse-submodules https://github.com/shuc1/race-compatibility-skse.
 cd race-compatibility-skse
 ```
 
-To compile Papyrus scripts, set the `SKYRIM_HOME` environment variable to your Skyrim game folder and ensure the folder structure matches the following (SKSE must be installed):
-```text
-└─SKYRIM_HOME
-    ├─Papyrus Compiler
-    │   ├─PapyrusCompiler.exe
-    │   └─...
-    └─Data
-        └─Scripts
-            └─Source
-                ├─TESV_Papyrus_Flags.flg
-                ├─abForswornBriarheartScript.psc
-                └─...
-```
-
 ### Build
 For the project `release` build, run the following command:
 ```bash
@@ -41,11 +27,6 @@ For `releasedebug` build, run:
 ```bash
 xmake f -m releasedbg
 xmake
-```
-
-To compile Papyrus scripts, run:
-```bash
-xmake -b papyrus
 ```
 
 > ***Note:*** *This will generate a `build/` directory in the **project's root directory** with the build output.*

@@ -51,19 +51,36 @@
             "required": [
                 "form"
             ],
+            "oneOf": [
+                {
+                    "required": [
+                        "proxy"
+                    ]
+                },
+                {
+                    "required": [
+                        "proxies"
+                    ]
+                }
+            ],
             "additionalProperties": false,
             "properties": {
                 "form": {
                     "$ref": "#/$defs/form",
                     "description": "The form of mortal race"
                 },
+                "proxy": {
+                    "$ref": "#/$defs/form",
+                    "description": "The single proxy race used in dialogue, magic effects and Papyrus GetRace. Mutually exclusive with proxies."
+                },
                 "proxies": {
+                    "deprecated": true,
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "$ref": "#/$defs/form"
                     },
-                    "description": "The forms of proxy races, used in dialogue, magic effects, etc."
+                    "description": "Legacy proxy list. Only the first item is used, even if it cannot be resolved; remaining items are ignored. Emits a deprecation warning. Use proxy instead."
                 },
                 "armor": {
                     "$ref": "#/$defs/armor"
@@ -90,9 +107,6 @@
         }
     },
     "type": "object",
-    "required": [
-        "RCS"
-    ],
     "properties": {
         "RCS": {
             "type": "array",
@@ -132,6 +146,27 @@
                     }
                 }
             }
+        },
+        "AlternateForms": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "$ref": "#/$defs/form"
+            },
+            "description": "Additional alternate-form races whose original race is retained for restoration. Werewolf, vampire lord and werebear races are included by default. Lists from separate files are merged."
         }
-    }
+    },
+    "oneOf": [
+        {
+            "required": [
+                "RCS"
+            ]
+        },
+        {
+            "required": [
+                "AlternateForms"
+            ]
+        }
+    ]
 }
