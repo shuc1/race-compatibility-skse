@@ -13,6 +13,12 @@ namespace rcs
             return a_actor ? a_actor->GetRace() : nullptr;
         }
 
+        [[nodiscard]] static auto GetOriginRace(STATIC_ARGS, const RE::Actor* a_actor)
+            -> const RE::TESRace*
+        {
+            return a_actor ? manager::GetOriginRace(a_actor->GetFormID()) : nullptr;
+        }
+
         [[nodiscard]] static auto GetIsHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race, int a_type_id)
             -> bool
         {
@@ -44,6 +50,7 @@ namespace rcs
 
 #define BIND(METHOD) a_vm->RegisterFunction(#METHOD##sv, rcs::PAPYRUS_NAME, METHOD)
             BIND(GetActualRace);
+            BIND(GetOriginRace);
             BIND(GetIsHeadPartTypeByRace);
 #undef BIND
             a_vm->RegisterFunction("GetRace"sv, "Actor"sv, GetRace);
