@@ -80,8 +80,6 @@ namespace rcs::manager
     void               AddHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept;
     [[nodiscard]] bool AddAlternateForm(const RE::TESRace* race);
     // judge
-    [[nodiscard]] auto GetVampireRaceByRace(const RE::TESRace* race) noexcept -> const RE::TESRace*;
-    [[nodiscard]] auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept -> bool;
     [[nodiscard]] auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto HasHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept -> bool;
