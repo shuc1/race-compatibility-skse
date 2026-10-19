@@ -32,13 +32,13 @@ namespace rcs
         [[nodiscard]] static auto GetRace(const RE::Actor* a_actor)
             -> const RE::TESRace*
         {
-            return manager::GetRaceOrProxy(a_actor ? a_actor->race : nullptr);
+            return manager::GetProxyOrRace(a_actor ? a_actor->GetRace() : nullptr);
         }
 
         [[nodiscard]] static auto GetActorBaseRace(const RE::TESNPC* a_actor_base)
             -> const RE::TESRace*
         {
-            return manager::GetRaceOrProxy(a_actor_base ? a_actor_base->race : nullptr);
+            return manager::GetProxyOrRace(a_actor_base ? a_actor_base->race : nullptr);
         }
 
         static inline bool Bind(RE::BSScript::Internal::VirtualMachine* a_vm)

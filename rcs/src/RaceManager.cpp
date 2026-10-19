@@ -113,7 +113,7 @@ namespace rcs::manager
         return it != raceProxies.end() ? it->second : nullptr;
     }
 
-    auto GetRaceOrProxy(const RE::TESRace* race) noexcept
+    auto GetProxyOrRace(const RE::TESRace* race) noexcept
         -> const RE::TESRace*
     {
         const auto* proxy = GetRaceProxy(race);

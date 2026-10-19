@@ -88,7 +88,7 @@ namespace rcs::manager
     [[nodiscard]] auto IsAlternateForm(const RE::TESRace* race) noexcept -> bool;
     // get/set race
     [[nodiscard]] auto GetRaceProxy(const RE::TESRace* race) noexcept -> const RE::TESRace*;
-    [[nodiscard]] auto GetRaceOrProxy(const RE::TESRace* race) noexcept -> const RE::TESRace*;
+    [[nodiscard]] auto GetProxyOrRace(const RE::TESRace* race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto ResolveTargetRace(const RE::TESRace* origin, const RE::TESRace* target) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto GetOriginRace(const RE::FormID actor_id) noexcept -> const RE::TESRace*;
     // after successful switch; had_origin is from the pre-switch lookup
