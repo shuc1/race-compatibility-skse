@@ -8,6 +8,20 @@ namespace rcs::manager
         std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
         std::unordered_map<const RE::TESRace*, std::bitset<13>>        headPartMap{};
         std::vector<const RE::TESRace*>                                alternateForms{};
+
+        auto GetPairedRace(const RE::TESRace* race) noexcept
+            -> const RE::TESRace*
+        {
+            for (const auto& [mortal, vampire] : vampirismPairs) {
+                if (race == mortal) {
+                    return vampire;
+                }
+                if (race == vampire) {
+                    return mortal;
+                }
+            }
+            return nullptr;
+        }
     }
 
     void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept
@@ -45,22 +59,6 @@ namespace rcs::manager
         }
         alternateForms.push_back(race);
         return true;
-    }
-
-    auto GetVampireRaceByRace(const RE::TESRace* race) noexcept
-        -> const RE::TESRace*
-    {
-        const auto it = std::ranges::find_if(vampirismPairs,
-            [&](auto& pair) { return pair.first == race; });
-        return (it == vampirismPairs.end()) ? nullptr : it->second;
-    }
-
-    auto GetRaceByVampireRace(const RE::TESRace* vampire_race) noexcept
-        -> const RE::TESRace*
-    {
-        const auto it = std::ranges::find_if(vampirismPairs,
-            [&](auto& pair) { return pair.second == vampire_race; });
-        return (it == vampirismPairs.end()) ? nullptr : it->first;
     }
 
     auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept
@@ -130,13 +128,9 @@ namespace rcs::manager
         if (target == GetRaceProxy(origin)) {
             return origin;
         }
-        if (const auto* vampireRace = GetVampireRaceByRace(origin);
-            vampireRace && target == GetRaceProxy(vampireRace)) {
-            return vampireRace;
-        }
-        if (const auto* race = GetRaceByVampireRace(origin);
-            race && target == GetRaceProxy(race)) {
-            return race;
+        if (const auto* paired = GetPairedRace(origin);
+            paired && target == GetRaceProxy(paired)) {
+            return paired;
         }
         return target;
     }
