@@ -3,6 +3,8 @@
 #include "Form.h"
 #include "RaceManager.h"
 #include <glaze/glaze.hpp>
+#include <string>
+#include <string_view>
 
 namespace rcs::config
 {
@@ -33,13 +35,29 @@ namespace rcs::config
         std::variant<std::string_view, std::vector<std::string_view>> headPart;
     };
 
-    struct RawConfigFileContent
+    struct RawRaceConfigFileContent
     {
-        using RaceEntries = std::vector<RawConfigEntry>;
-        using AlternateForms = std::vector<std::string_view>;
+        std::string_view            schema;
+        std::vector<RawConfigEntry> entries;
+    };
 
-        std::string_view                          schema;
-        std::variant<RaceEntries, AlternateForms> entries;
+    struct RaceProxyExclusion
+    {
+        std::string_view script;
+        std::string_view function;
+        std::string_view state;
+    };
+
+    struct RawPluginConfigFileContent
+    {
+        struct Settings
+        {
+            std::vector<std::string_view>   alternateForms;
+            std::vector<RaceProxyExclusion> raceProxyExclusions;
+        };
+
+        std::string_view schema;
+        Settings         settings;
     };
 
     struct ConfigEntry
@@ -76,10 +94,12 @@ namespace rcs::config
 
     private:
         // process
-        [[nodiscard]] std::vector<std::filesystem::path> ListConfigFiles() const;
-        void                                             ProcessConfigFile(const std::filesystem::path& path);
-        void                                             ProcessFileEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries);
-        void                                             ProcessAlternateForms(const std::vector<std::string_view>& forms);
+        [[nodiscard]] static std::vector<std::filesystem::path> ListConfigFiles(const std::filesystem::path& directory);
+        void                                                    ProcessPluginConfigFile(const std::filesystem::path& path);
+        void                                                    ProcessAlternateForms(const std::vector<std::string_view>& forms);
+        void                                                    ProcessRaceProxyExclusions(const std::vector<RaceProxyExclusion>& exclusions);
+        void                                                    ProcessRaceConfigFile(const std::filesystem::path& path);
+        void                                                    ProcessRaceConfigEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries);
         // parse
         RaceProxy    ParseRaceProxy(const RawRaceProxy& raw);
         RE::TESRace* LookupRace(std::string_view form);
@@ -115,17 +135,21 @@ struct glz::meta<rcs::config::RawConfigEntry::RaceProxy>
 };
 
 template <>
-struct glz::meta<rcs::config::RawConfigFileContent>
+struct glz::meta<rcs::config::RawRaceConfigFileContent>
 {
-    using T = rcs::config::RawConfigFileContent;
-
-    template <typename Entries>
-    static constexpr auto ReadEntries = [](T& config, Entries entries) {
-        config.entries = std::move(entries);
-    };
+    using T = rcs::config::RawRaceConfigFileContent;
 
     static constexpr auto value = glz::object(
         "$schema", &T::schema,
-        rcs::CONFIG_KEY, glz::custom<ReadEntries<T::RaceEntries>, glz::skip{}>,
-        "AlternateForms", glz::custom<ReadEntries<T::AlternateForms>, glz::skip{}>);
+        rcs::CONFIG_KEY, &T::entries);
+};
+
+template <>
+struct glz::meta<rcs::config::RawPluginConfigFileContent>
+{
+    using T = rcs::config::RawPluginConfigFileContent;
+
+    static constexpr auto value = glz::object(
+        "$schema", &T::schema,
+        rcs::CONFIG_KEY, &T::settings);
 };

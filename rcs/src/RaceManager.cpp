@@ -6,7 +6,6 @@ namespace rcs::manager
     namespace
     {
         std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
-        std::unordered_map<const RE::TESRace*, std::bitset<13>>        headPartMap{};
         std::vector<const RE::TESRace*>                                alternateForms{};
 
         auto GetPairedRace(const RE::TESRace* race) noexcept
@@ -42,13 +41,6 @@ namespace rcs::manager
     {
         if (race && !proxies.empty()) {
             armorRaceProxies.try_emplace(race, std::move(proxies));
-        }
-    }
-
-    void AddHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
-    {
-        if (race) {
-            headPartMap[race].set(std::to_underlying(type));
         }
     }
 
@@ -88,16 +80,6 @@ namespace rcs::manager
         return race->armorParentRace;
     }
 
-    auto HasHeadPartType(const RE::TESRace* race, HeadPartType type) noexcept
-        -> bool
-    {
-        const auto it = headPartMap.find(race);
-        if (it == headPartMap.end()) {
-            return false;
-        }
-        return it->second.test(std::to_underlying(type));
-    }
-
     auto IsAlternateForm(const RE::TESRace* race) noexcept
         -> bool
     {
@@ -109,13 +91,6 @@ namespace rcs::manager
     {
         const auto it = raceProxies.find(race);
         return it != raceProxies.end() ? it->second : nullptr;
-    }
-
-    auto GetProxyOrRace(const RE::TESRace* race) noexcept
-        -> const RE::TESRace*
-    {
-        const auto* proxy = GetRaceProxy(race);
-        return proxy ? proxy : race;
     }
 
     auto ResolveTargetRace(const RE::TESRace* origin, const RE::TESRace* target) noexcept
@@ -164,7 +139,6 @@ namespace rcs::manager
         logs::info("{:*^30}"sv, "SUMMARY"sv);
         logs::info("Vanilla vampirism race pairs recorded: 10"sv);
         logs::info("Custom vampirism race pairs added: {}"sv, vampirismPairs.size() - 10);
-        logs::info("Custom races with head part types: {}"sv, headPartMap.size() - 20);
         logs::info("Race proxies created: {}"sv, raceProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
         logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
@@ -222,8 +196,6 @@ namespace rcs::manager
                 HEAD_PART_TYPES
 #undef X
             }
-            AddHeadPartType(race, type);
-            AddHeadPartType(vampire_race, type);
         }
 
 // race lists

@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema-config",
+    "RCS": {
+        "alternateForms": [
+            "MyWerewolfMod.esp|0x800"
+        ],
+        "raceProxyExclusions": [
+            {
+                "script": "MyScript",
+                "function": "MyFunction"
+            }
+        ]
+    }
+}

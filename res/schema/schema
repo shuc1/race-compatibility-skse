@@ -107,7 +107,14 @@
         }
     },
     "type": "object",
+    "required": [
+        "RCS"
+    ],
+    "additionalProperties": false,
     "properties": {
+        "$schema": {
+            "type": "string"
+        },
         "RCS": {
             "type": "array",
             "minItems": 1,
@@ -146,27 +153,6 @@
                     }
                 }
             }
-        },
-        "AlternateForms": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "$ref": "#/$defs/form"
-            },
-            "description": "Additional alternate-form races whose original race is retained for restoration. Werewolf, vampire lord and werebear races are included by default. Lists from separate files are merged."
         }
-    },
-    "oneOf": [
-        {
-            "required": [
-                "RCS"
-            ]
-        },
-        {
-            "required": [
-                "AlternateForms"
-            ]
-        }
-    ]
+    }
 }

@@ -1,6 +1,0 @@
-{
-    "$schema": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema",
-    "AlternateForms": [
-        "MyWerewolfMod.esp|0x800"
-    ]
-}
