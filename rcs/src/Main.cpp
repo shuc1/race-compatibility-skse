@@ -128,9 +128,8 @@ extern "C" __declspec(dllexport) bool __cdecl
     logs::info("Build: {}"sv, rcs::VERSION_BUILD);
     logs::info("Game version: {}"sv, a_skse->RuntimeVersion().string());
 
-    logs::info("{:*^50}"sv, "PAPYRUS"sv);
+    logs::info("{:*^50}"sv, "BINDING"sv);
     SKSE::GetPapyrusInterface()->Register(rcs::papyrus::Bind);
-    logs::info("{:*^50}"sv, "SERIALIZATION"sv);
     rcs::serialization::Bind(SKSE::GetSerializationInterface());
 
     return true;

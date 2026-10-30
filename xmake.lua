@@ -10,7 +10,7 @@ projectabbr = "RCS"
 papyrusname = "RaceCompatibility" -- for potential overridden by papyrus implementation
 
 set_project(projectname)
-set_version("3.0.0-preview.1", {build = "%Y-%m-%d"})
+set_version("3.0.0-preview.2", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 set_policy("package.requires_lock", true)

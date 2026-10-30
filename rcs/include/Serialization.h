@@ -64,6 +64,7 @@ namespace rcs::serialization
 
     inline void Bind(const SKSE::SerializationInterface* a_interface)
     {
+        logs::info("{:*^30}"sv, "SERIALIZATION"sv);
         a_interface->SetUniqueID(PLUGIN_ID);
         a_interface->SetSaveCallback(SaveOriginRaces);
         a_interface->SetLoadCallback(LoadOriginRaces);

@@ -6,39 +6,35 @@ namespace rcs
 {
     namespace papyrus
     {
-#define STATIC_ARGS [[maybe_unused]] RE::BSScript::Internal::VirtualMachine *a_vm, [[maybe_unused]] RE::VMStackID a_stackID, RE::StaticFunctionTag *
-        [[nodiscard]] static auto GetActualRace(STATIC_ARGS, const RE::Actor* a_actor)
-            -> const RE::TESRace*
+        namespace
         {
-            return a_actor ? a_actor->GetRace() : nullptr;
-        }
+            template <class T>
+            [[nodiscard]] static auto GetRace(RE::BSScript::Internal::VirtualMachine* a_vm, RE::VMStackID a_stackID, const T* a_object)
+                -> const RE::TESRace*
+            {
+                if (!a_object) {
+                    return nullptr;
+                }
 
-        [[nodiscard]] static auto GetOriginRace(STATIC_ARGS, const RE::Actor* a_actor)
-            -> const RE::TESRace*
-        {
-            return a_actor ? manager::GetOriginRace(a_actor->GetFormID()) : nullptr;
-        }
+                const auto* race = a_object->race;
+                const auto* proxy = manager::GetRaceProxy(race);
+                if (!proxy) {
+                    return race;
+                }
 
-        [[nodiscard]] static auto GetIsHeadPartTypeByRace(STATIC_ARGS, const RE::TESRace* a_race, int a_type_id)
-            -> bool
-        {
-            if (!a_race || a_type_id < 0 || a_type_id > 12) {
-                return false;
+                if (manager::raceProxyExclusions.empty()) {
+                    return proxy;
+                }
+                RE::BSScript::Stack* stack{};
+                if (a_vm && a_vm->GetStackByID(a_stackID, &stack) && stack && stack->top) {
+                    const auto* frame = stack->top->previousFrame;
+                    if (frame && std::ranges::contains(manager::raceProxyExclusions, frame->owningFunction.get())) {
+                        // excluded
+                        return race;
+                    }
+                }
+                return proxy;
             }
-            return manager::HasHeadPartType(a_race, static_cast<manager::HeadPartType>(a_type_id));
-        }
-#undef STATIC_ARGS
-
-        [[nodiscard]] static auto GetRace(const RE::Actor* a_actor)
-            -> const RE::TESRace*
-        {
-            return manager::GetProxyOrRace(a_actor ? a_actor->race : nullptr);
-        }
-
-        [[nodiscard]] static auto GetActorBaseRace(const RE::TESNPC* a_actor_base)
-            -> const RE::TESRace*
-        {
-            return manager::GetProxyOrRace(a_actor_base ? a_actor_base->race : nullptr);
         }
 
         static inline bool Bind(RE::BSScript::Internal::VirtualMachine* a_vm)
@@ -47,15 +43,10 @@ namespace rcs
                 logs::error("Can't get VM state"sv);
                 return false;
             }
-
-#define BIND(METHOD) a_vm->RegisterFunction(#METHOD##sv, rcs::PAPYRUS_NAME, METHOD)
-            BIND(GetActualRace);
-            BIND(GetOriginRace);
-            BIND(GetIsHeadPartTypeByRace);
-#undef BIND
-            a_vm->RegisterFunction("GetRace"sv, "Actor"sv, GetRace);
-            a_vm->RegisterFunction("GetRace"sv, "ActorBase"sv, GetActorBaseRace);
-            logs::info("Registered papyrus functions"sv);
+            logs::info("{:*^30}"sv, "PAPYRUS"sv);
+            a_vm->RegisterFunction("GetRace"sv, "Actor"sv, GetRace<RE::Actor>);
+            a_vm->RegisterFunction("GetRace"sv, "ActorBase"sv, GetRace<RE::TESNPC>);
+            logs::info("Registered papyrus functions Actor.GetRace and ActorBase.GetRace"sv);
             return true;
         }
     }

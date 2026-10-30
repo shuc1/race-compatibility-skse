@@ -2,9 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
     <moduleName>${PROJECT_TITLE}</moduleName>
-    <requiredInstallFiles>
+    <!-- <requiredInstallFiles>
         <folder source="scripts/" destination="scripts/" />
-    </requiredInstallFiles>
+    </requiredInstallFiles> -->
     <installSteps order="Explicit">
         <installStep name="Main">
             <optionalFileGroups order="Explicit">

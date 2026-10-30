@@ -8,8 +8,6 @@ set_configvar("FOMOD_PLUGIN_DIR", plugindir)
 add_configfiles("(fomod/**.in)", {prefixdir = prefixdir})
 -- papyrus
 set_configvar("PAPYRUS_NAME", papyrusname)
-add_configfiles("(scripts/source/RaceCompatibility.psc.in)", {prefixdir = prefixdir})
-
 
 rule("papyrus", function()
     set_extensions(".psc")

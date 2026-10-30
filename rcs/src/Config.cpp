@@ -37,18 +37,19 @@ namespace rcs::config
             return false;
         }
         // list and process config files
-        auto files = ListConfigFiles();
+        auto files = ListConfigFiles(configDir);
         if (files.empty()) {
             logs::warn("{} does not exist or contains no config files"sv, configDir.string());
         }
-        // sort files in descending order to have higher priority files processed first
-        std::ranges::sort(files, std::ranges::greater{});
         for (const auto& path : files) {
-            ProcessConfigFile(path);
+            ProcessRaceConfigFile(path);
+        }
+        for (const auto& path : ListConfigFiles(configDir / "config")) {
+            ProcessPluginConfigFile(path);
         }
         // vanilla game config entries
         logs::info("default:"sv);
-        ProcessFileEntries("default"sv,
+        ProcessRaceConfigEntries("default"sv,
             {
 #define X(NAME)                                             \
     RawConfigEntry{                                         \
@@ -67,15 +68,15 @@ namespace rcs::config
         return true;
     }
 
-    std::vector<std::filesystem::path> ConfigProcessor::ListConfigFiles() const
+    std::vector<std::filesystem::path> ConfigProcessor::ListConfigFiles(const std::filesystem::path& directory)
     {
         std::vector<std::filesystem::path> result{};
-        if (!std::filesystem::exists(configDir)) {
+        if (!std::filesystem::exists(directory)) {
             return result;
         }
         // there should not be that many config files
         result.reserve(4);
-        for (const auto& entry : std::filesystem::directory_iterator(configDir)) {
+        for (const auto& entry : std::filesystem::directory_iterator(directory)) {
             if (!entry.is_regular_file()) {
                 continue;
             }
@@ -90,28 +91,28 @@ namespace rcs::config
                 result.emplace_back(entry.path());
             }
         }
+        // sort files in descending order to have higher priority files processed first
+        std::ranges::sort(result, std::ranges::greater{});
         return result;
     }
 
-    void ConfigProcessor::ProcessConfigFile(const std::filesystem::path& path)
+    void ConfigProcessor::ProcessPluginConfigFile(const std::filesystem::path& path)
     {
         const auto filename{ path.filename().string() };
-        logs::info("{}:"sv, filename);
-        auto       buffer = glz::file_to_buffer(path.string());
-        const auto content = glz::read_json<RawConfigFileContent>(buffer);
+        logs::info("config/{}:"sv, filename);
+        auto buffer = glz::file_to_buffer(path.string());
+        auto content = glz::read_json<RawPluginConfigFileContent>(buffer);
         if (!content) {
-            logs::error("Failed to read {} for \"{}\""sv, filename, glz::format_error(content));
+            logs::error("Failed to read config/{} for \"{}\""sv, filename, glz::format_error(content));
             return;
         }
-        std::visit([&](const auto& entries) {
-            using T = std::decay_t<decltype(entries)>;
-            if constexpr (std::is_same_v<T, RawConfigFileContent::RaceEntries>) {
-                ProcessFileEntries(filename, entries);
-            } else {
-                ProcessAlternateForms(entries);
-            }
-        },
-            content.value().entries);
+        auto& settings = content.value().settings;
+        if (!settings.alternateForms.empty()) {
+            ProcessAlternateForms(settings.alternateForms);
+        }
+        if (!settings.raceProxyExclusions.empty()) {
+            ProcessRaceProxyExclusions(settings.raceProxyExclusions);
+        }
     }
 
     void ConfigProcessor::ProcessAlternateForms(const std::vector<std::string_view>& forms)
@@ -129,7 +130,65 @@ namespace rcs::config
         }
     }
 
-    void ConfigProcessor::ProcessFileEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries)
+    void ConfigProcessor::ProcessRaceProxyExclusions(const std::vector<RaceProxyExclusion>& exclusions)
+    {
+        auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+        if (!vm) {
+            logs::error("\t[SKIP] Race proxy exclusions: VM not available"sv);
+            return;
+        }
+
+        logs::info("\tRace proxy exclusions:"sv);
+        for (const auto& exclusion : exclusions) {
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> out{};
+            if (!vm->GetScriptObjectType(std::string{ exclusion.script }, out) || !out) {
+                logs::warn("\t\t[SKIP] {}: script not available"sv, exclusion.script);
+                continue;
+            }
+
+            const auto add = [&](auto* funcs, std::uint32_t count, std::string_view state = {}) {
+                for (const auto& entry : std::span{ funcs, count }) {
+                    const auto* func = entry.func.get();
+                    if (func && func->GetName() == exclusion.function) {
+                        manager::raceProxyExclusions.push_back(func);
+                        if (state.empty()) {
+                            logs::info("\t\t{}::{}"sv, exclusion.script, exclusion.function);
+                        } else {
+                            logs::info("\t\t{}::{} [{}]"sv, exclusion.script, exclusion.function, state);
+                        }
+                        break;
+                    }
+                }
+            };
+
+            if (exclusion.state.empty()) {
+                add(out->GetMemberFuncIter(), out->GetNumMemberFuncs());
+                add(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs(), "global"sv);
+            } else {
+                for (const auto& state : std::span{ out->GetNamedStateIter(), out->GetNumNamedStates() }) {
+                    if (state.name == exclusion.state) {
+                        add(state.GetFuncIter(), state.GetNumFuncs(), exclusion.state);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void ConfigProcessor::ProcessRaceConfigFile(const std::filesystem::path& path)
+    {
+        const auto filename{ path.filename().string() };
+        logs::info("{}:"sv, filename);
+        auto       buffer = glz::file_to_buffer(path.string());
+        const auto content = glz::read_json<RawRaceConfigFileContent>(buffer);
+        if (!content) {
+            logs::error("Failed to read {} for \"{}\""sv, filename, glz::format_error(content));
+            return;
+        }
+        ProcessRaceConfigEntries(filename, content.value().entries);
+    }
+
+    void ConfigProcessor::ProcessRaceConfigEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries)
     {
         for (const auto& [entryName, raceString, vampireRaceString, headPartVariant] :
             entries | std::views::reverse) {

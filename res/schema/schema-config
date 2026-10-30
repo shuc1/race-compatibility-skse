@@ -1,0 +1,62 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema-config",
+    "title": "Race Compatibility SKSE Plugin Configuration Schema",
+    "description": "Plugin settings loaded from Data/SKSE/Plugins/rcs/config/*.json",
+    "$defs": {
+        "form": {
+            "type": "string",
+            "pattern": "^[\\w\\-\\. ]+\\.es[lmp]\\|(0[xX])?[\\da-fA-F]{1,8}$|^[\\w ]+$"
+        }
+    },
+    "type": "object",
+    "required": [
+        "RCS"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "RCS": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "alternateForms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/$defs/form"
+                    },
+                    "description": "Additional alternate-form races whose original race is retained for restoration. Werewolf, vampire lord and werebear races are included by default. Lists from separate files are merged."
+                },
+                "raceProxyExclusions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "script",
+                            "function"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "script": {
+                                "type": "string"
+                            },
+                            "function": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string",
+                                "default": "",
+                                "description": "Only the specified state is matched. Omission selects the empty (default) state."
+                            }
+                        }
+                    },
+                    "description": "Papyrus caller functions that should receive the actual race instead of its proxy. Rules from separate files are combined."
+                }
+            }
+        }
+    }
+}
