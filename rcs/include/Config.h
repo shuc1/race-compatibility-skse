@@ -112,6 +112,7 @@ namespace rcs::config
         RaceFormCache                                            formCache;
         std::deque<std::string>                                  entryInfoPool{};  // make sure alive during processing
         std::unordered_map<const RE::TESRace*, std::string_view> visitedMap{};
+        RE::BSScript::Internal::VirtualMachine*                  vm{ RE::BSScript::Internal::VirtualMachine::GetSingleton() };
     };
 
     bool ProcessConfigs();
@@ -123,7 +124,7 @@ struct glz::meta<rcs::config::RawConfigEntry::RaceProxy>
     using T = rcs::config::RawConfigEntry::RaceProxy;
 
     static constexpr auto ReadProxies = [](T& config, const std::vector<std::string_view>& proxies) {
-        logs::warn("\tproxies is deprecated; only the first item is used. Use proxy instead"sv);
+        // logs::warn("\tproxies is deprecated; only the first item is used. Use proxy instead"sv);
         config.proxy = proxies.front();
     };
 

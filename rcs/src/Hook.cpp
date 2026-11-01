@@ -5,6 +5,59 @@ namespace
 {
     using namespace rcs;
 
+    template <class Hook, class T>
+    struct GetRaceHook
+    {
+        static RE::TESRace* JmpThunk(
+            RE::BSScript::Internal::VirtualMachine* a_vm,
+            RE::VMStackID                           a_stackID,
+            const T*                                a_object)
+        {
+            if (!a_object) {
+                return nullptr;
+            }
+
+            const auto* race = a_object->race;
+            const auto* proxy = manager::GetRaceProxy(race);
+
+            if (proxy && !manager::raceProxyExclusions.empty() && a_vm) {
+                RE::BSScript::Stack* stack{};
+                if (a_vm->GetStackByID(a_stackID, &stack) && stack && stack->top) {
+                    const auto* frame = stack->top->previousFrame;
+                    if (frame && std::ranges::contains(manager::raceProxyExclusions, frame->owningFunction.get())) {
+                        // excluded
+                        proxy = nullptr;
+                    }
+                }
+            }
+
+            if (proxy) {
+                return const_cast<RE::TESRace*>(proxy);
+            }
+#ifdef DETOURS
+            return hook::FuncStorage<Hook>::func(a_vm, a_stackID, a_object);
+#else
+            return const_cast<RE::TESRace*>(race);
+#endif
+        }
+    };
+
+    namespace Actor
+    {
+        struct GetRace : GetRaceHook<GetRace, RE::Actor>
+        {
+            static constexpr auto id = RELOCATION_ID(54134, 54930);
+        };
+    }
+
+    namespace ActorBase
+    {
+        struct GetRace : GetRaceHook<GetRace, RE::TESNPC>
+        {
+            static constexpr auto id = RELOCATION_ID(55449, 56004);
+        };
+    }
+
     struct SetRace
     {
         static constexpr auto           id = RELOCATION_ID(53934, 54758);
@@ -34,187 +87,180 @@ namespace
         }
     };
 
-    namespace
-    {
 #define LOG_TO_CONSOLE(a_name)                                               \
     if (RE::GetStaticTLSData()->consoleMode) {                               \
         RE::ConsoleLog::GetSingleton()->Print(#a_name " >> %0.2lf", result); \
     }
 
-        // thunk for GetIsRace
-        struct GetIsRace
+    // thunk for GetIsRace
+    struct GetIsRace
+    {
+        // VR shared GetIsRace/IsValidRace ids with SE
+        static constexpr auto id = RELOCATION_ID(21028, 21478);
+
+        static bool JmpThunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
         {
-            // VR shared GetIsRace/IsValidRace ids with SE
-            static constexpr auto id = RELOCATION_ID(21028, 21478);
-
-            static bool JmpThunk(const RE::TESObjectREFR* obj, const RE::TESForm* race_form, [[maybe_unused]] void* unused, double& result)
-            {
-                result = 0.0;
-                // check if obj is an NPC and has the same race
-                if (obj && race_form) {
-                    const auto npc = obj->data.objectReference->As<RE::TESNPC>();
-                    const auto race = race_form->As<RE::TESRace>();
-                    if (npc && race && manager::GetIsRaceByProxy(npc->race, race)) {
-                        result = 1.0;
-                    }
+            result = 0.0;
+            // check if obj is an NPC and has the same race
+            if (obj && race_form) {
+                const auto npc = obj->data.objectReference->As<RE::TESNPC>();
+                const auto race = race_form->As<RE::TESRace>();
+                if (npc && race && manager::GetIsRaceByProxy(npc->race, race)) {
+                    result = 1.0;
                 }
-#ifdef DETOURS
-                if (result == 0.0) {
-                    return hook::FuncStorage<GetIsRace>::func(obj, race_form, unused, result);
-                }
-#endif
-                LOG_TO_CONSOLE(GetIsRace)
-                return true;
             }
-        };
+#ifdef DETOURS
+            if (result == 0.0) {
+                return hook::FuncStorage<GetIsRace>::func(obj, race_form, unused, result);
+            }
+#endif
+            LOG_TO_CONSOLE(GetIsRace)
+            return true;
+        }
+    };
 
-        // thunk for SameRace
-        struct SameRace
+    // thunk for SameRace
+    struct SameRace
+    {
+        static constexpr auto id = RELOCATION_ID(20978, 21428);
+
+        static bool JmpThunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
         {
-            static constexpr auto id = RELOCATION_ID(20978, 21428);
-
-            static bool JmpThunk(const RE::TESObjectREFR* obj1, const RE::TESObjectREFR* obj2, [[maybe_unused]] void* unused, double& result)
-            {
-                result = 0.0;
-                if (obj1 && obj2) {
-                    // check if obj1 and obj2 are NPC
-                    const auto npc1 = obj1->data.objectReference->As<RE::TESNPC>();
-                    const auto npc2 = obj2->data.objectReference->As<RE::TESNPC>();
-                    if (npc1 && npc2 &&
-                        (manager::GetIsRaceByProxy(npc1->race, npc2->race) ||
-                            manager::GetIsRaceByProxy(npc2->race, npc1->race))) {
-                        result = 1.0;
-                    }
+            result = 0.0;
+            if (obj1 && obj2) {
+                // check if obj1 and obj2 are NPC
+                const auto npc1 = obj1->data.objectReference->As<RE::TESNPC>();
+                const auto npc2 = obj2->data.objectReference->As<RE::TESNPC>();
+                if (npc1 && npc2 &&
+                    (manager::GetIsRaceByProxy(npc1->race, npc2->race) ||
+                        manager::GetIsRaceByProxy(npc2->race, npc1->race))) {
+                    result = 1.0;
                 }
-#ifdef DETOURS
-                if (result == 0.0) {
-                    return hook::FuncStorage<SameRace>::func(obj1, obj2, unused, result);
-                }
-#endif
-                LOG_TO_CONSOLE(SameRace)
-                return true;
             }
-        };
+#ifdef DETOURS
+            if (result == 0.0) {
+                return hook::FuncStorage<SameRace>::func(obj1, obj2, unused, result);
+            }
+#endif
+            LOG_TO_CONSOLE(SameRace)
+            return true;
+        }
+    };
 
 #ifdef SKYRIM_SUPPORT_AE
 #    ifndef DETOURS
 #        pragma pack(push, 1)
-        // custom assembly to get PlayerCharacter*
-        struct Assembly
-        {
-            // mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
-            // 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
-            // r8 is unused for GetPCIsRace and SameRaceAsPC
-            std::uint8_t rex{ 0x4c };    // 0x0
-            std::uint8_t mov{ 0x8b };    // 0x1
-            std::uint8_t modrm{ 0x05 };  // 0x2, r8
-            std::int32_t disp;           // 0x3
-        };
-        static_assert(offsetof(Assembly, rex) == 0x0);
-        static_assert(offsetof(Assembly, mov) == 0x1);
-        static_assert(offsetof(Assembly, modrm) == 0x2);
-        static_assert(offsetof(Assembly, disp) == 0x3);
-        static_assert(sizeof(Assembly) == 0x7);
+    // custom assembly to get PlayerCharacter*
+    struct Assembly
+    {
+        // mov r8,QWORD PTR [rip + (disp)] # address of PlayerCharacter*
+        // 4c 8b 05 c1 9f e5 02, for example in 1.6.1170
+        // r8 is unused for GetPCIsRace and SameRaceAsPC
+        std::uint8_t rex{ 0x4c };    // 0x0
+        std::uint8_t mov{ 0x8b };    // 0x1
+        std::uint8_t modrm{ 0x05 };  // 0x2, r8
+        std::int32_t disp;           // 0x3
+    };
+    static_assert(offsetof(Assembly, rex) == 0x0);
+    static_assert(offsetof(Assembly, mov) == 0x1);
+    static_assert(offsetof(Assembly, modrm) == 0x2);
+    static_assert(offsetof(Assembly, disp) == 0x3);
+    static_assert(sizeof(Assembly) == 0x7);
 #        pragma pack(pop)
 #    endif
 
-        // thunk for GetPCIsRace
-        struct GetPCIsRace
-        {
-            static constexpr auto id = REL::ID(21484);
+    // thunk for GetPCIsRace
+    struct GetPCIsRace
+    {
+        static constexpr auto id = REL::ID(21484);
 #    ifndef DETOURS
-            static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
+        static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
 
-            static void PreInstall()
-            {
-                const auto src = REL::Relocation{ id, 0 }.address();
-                const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
-                const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
-#        ifdef SKYRIMVR
-#            define WriteSafe safe_write
-#        endif
-                REL::WriteSafe(src, &assembly, sizeof(assembly));
-#        ifdef SKYRIMVR
-#            undef WriteSafe
-#        endif
-            }
-#    endif
-
-            static bool JmpThunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
-            {
-                result = 0.0;
-
-#    ifdef DETOURS
-                const auto pc = RE::PlayerCharacter::GetSingleton();
-#    else
-                // used custom assembly to get PlayerCharacter*
-                const auto pc = static_cast<const RE::PlayerCharacter*>(unused2);
-#    endif
-                if (pc && race_form) {
-                    if (const auto race = race_form->As<RE::TESRace>();
-                        race && manager::GetIsRaceByProxy(pc->race, race)) {
-                        result = 1.0;
-                    }
-                }
-#    ifdef DETOURS
-                if (result == 0.0) {
-                    return hook::FuncStorage<GetPCIsRace>::func(unused1, race_form, unused2, result);
-                }
-#    endif
-                LOG_TO_CONSOLE(GetIsRace)
-                return true;
-            }
-        };
-
-        struct SameRaceAsPC
+        static void PreInstall()
         {
-            static constexpr auto id = REL::ID(21431);
-#    ifndef DETOURS
-            static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
-
-            static void PreInstall()
-            {
-                const auto src = REL::Relocation{ id, 0 }.address();
-                const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
-                const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
+            const auto src = REL::Relocation{ id, 0 }.address();
+            const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
+            const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
 #        ifdef SKYRIMVR
-#            define WriteSafe safe_write
+            REL::safe_write(src, &assembly, sizeof(assembly));
+#        else
+            REL::WriteSafe(src, &assembly, sizeof(assembly));
 #        endif
-                REL::WriteSafe(src, &assembly, sizeof(assembly));
-#        ifdef SKYRIMVR
-#            undef WriteSafe
-#        endif
-            }
+        }
 #    endif
 
-            static bool JmpThunk(const RE::TESObjectREFR* obj, [[maybe_unused]] const RE::TESObjectREFR* unused1, [[maybe_unused]] void* unused2, double& result)
-            {
-                result = 0.0;
+        static bool JmpThunk([[maybe_unused]] const RE::TESObjectREFR* unused1, const RE::TESForm* race_form, [[maybe_unused]] void* unused2, double& result)
+        {
+            result = 0.0;
+
 #    ifdef DETOURS
-                const auto pc = RE::PlayerCharacter::GetSingleton();
+            const auto pc = RE::PlayerCharacter::GetSingleton();
 #    else
-                // used custom assembly to get PlayerCharacter*
-                const auto pc = static_cast<const RE::PlayerCharacter*>(unused2);
+            // used custom assembly to get PlayerCharacter*
+            const auto pc = static_cast<const RE::PlayerCharacter*>(unused2);
 #    endif
-                if (pc && obj) {
-                    const auto npc = obj->data.objectReference->As<RE::TESNPC>();
-                    if (npc && (manager::GetIsRaceByProxy(pc->race, npc->race) ||
-                                   manager::GetIsRaceByProxy(npc->race, pc->race))) {
-                        result = 1.0;
-                    }
+            if (pc && race_form) {
+                if (const auto race = race_form->As<RE::TESRace>();
+                    race && manager::GetIsRaceByProxy(pc->race, race)) {
+                    result = 1.0;
                 }
-#    ifdef DETOURS
-                if (result == 0.0) {
-                    return hook::FuncStorage<SameRaceAsPC>::func(obj, unused1, unused2, result);
-                }
-#    endif
-                LOG_TO_CONSOLE(SameRace)
-                return true;
             }
-        };
+#    ifdef DETOURS
+            if (result == 0.0) {
+                return hook::FuncStorage<GetPCIsRace>::func(unused1, race_form, unused2, result);
+            }
+#    endif
+            LOG_TO_CONSOLE(GetIsRace)
+            return true;
+        }
+    };
+
+    struct SameRaceAsPC
+    {
+        static constexpr auto id = REL::ID(21431);
+#    ifndef DETOURS
+        static constexpr std::ptrdiff_t offset = sizeof(Assembly);  // after loading player character into register
+
+        static void PreInstall()
+        {
+            const auto src = REL::Relocation{ id, 0 }.address();
+            const auto pc = REL::Relocation{ REL::ID(403521), 0 }.address();
+            const auto assembly = Assembly{ .disp = static_cast<std::int32_t>(pc - (src + sizeof(Assembly))) };
+#        ifdef SKYRIMVR
+            REL::safe_write(src, &assembly, sizeof(assembly));
+#        else
+            REL::WriteSafe(src, &assembly, sizeof(assembly));
+#        endif
+        }
+#    endif
+
+        static bool JmpThunk(const RE::TESObjectREFR* obj, [[maybe_unused]] const RE::TESObjectREFR* unused1, [[maybe_unused]] void* unused2, double& result)
+        {
+            result = 0.0;
+#    ifdef DETOURS
+            const auto pc = RE::PlayerCharacter::GetSingleton();
+#    else
+            // used custom assembly to get PlayerCharacter*
+            const auto pc = static_cast<const RE::PlayerCharacter*>(unused2);
+#    endif
+            if (pc && obj) {
+                const auto npc = obj->data.objectReference->As<RE::TESNPC>();
+                if (npc && (manager::GetIsRaceByProxy(pc->race, npc->race) ||
+                               manager::GetIsRaceByProxy(npc->race, pc->race))) {
+                    result = 1.0;
+                }
+            }
+#    ifdef DETOURS
+            if (result == 0.0) {
+                return hook::FuncStorage<SameRaceAsPC>::func(obj, unused1, unused2, result);
+            }
+#    endif
+            LOG_TO_CONSOLE(SameRace)
+            return true;
+        }
+    };
 #endif
 #undef LOG_TO_CONSOLE
-    }
 
     // thunk for TESObjectARMA::IsValidRace
     namespace TESObjectARMA
@@ -260,9 +306,11 @@ namespace rcs::hook
 
         if (!manager::raceProxies.empty()) {
 #ifdef SKYRIM_SUPPORT_AE
-            InstallHooks<SetRace, GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
+            InstallHooks<Actor::GetRace, ActorBase::GetRace, SetRace,
+                GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
 #else
-            InstallHooks<SetRace, GetIsRace, SameRace>();
+            InstallHooks<Actor::GetRace, ActorBase::GetRace, SetRace,
+                GetIsRace, SameRace>();
 #endif
         }
 
