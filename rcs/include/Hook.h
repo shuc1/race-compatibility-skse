@@ -36,7 +36,7 @@ namespace rcs::hook
     };
 
     template <typename T>
-    concept Hookable = (HasJmpThunk<T> || HasCallThunk<T>) && HasID<T>;
+    concept Hookable = (HasJmpThunk<T> != HasCallThunk<T>) && HasID<T>;
 
     // Incompatible with hooks at the same position
     template <HasJmpThunk T>
@@ -60,11 +60,9 @@ namespace rcs::hook
 #pragma pack(pop)
 
 #ifdef SKYRIMVR
-#    define WriteSafe safe_write
-#endif
+        REL::safe_write(a_src, &assembly, sizeof(assembly));
+#else
         REL::WriteSafe(a_src, &assembly, sizeof(assembly));
-#ifdef SKYRIMVR
-#    undef WriteSafe
 #endif
     }
 

@@ -36,6 +36,9 @@ namespace rcs::config
             logs::error("Data handler is not initialized"sv);
             return false;
         }
+        if (!vm) {
+            logs::error("VM not available"sv);
+        }
         // list and process config files
         auto files = ListConfigFiles(configDir);
         if (files.empty()) {
@@ -99,7 +102,7 @@ namespace rcs::config
     void ConfigProcessor::ProcessPluginConfigFile(const std::filesystem::path& path)
     {
         const auto filename{ path.filename().string() };
-        logs::info("config/{}:"sv, filename);
+        logs::info("{} (plugin config):"sv, filename);
         auto buffer = glz::file_to_buffer(path.string());
         auto content = glz::read_json<RawPluginConfigFileContent>(buffer);
         if (!content) {
@@ -110,66 +113,70 @@ namespace rcs::config
         if (!settings.alternateForms.empty()) {
             ProcessAlternateForms(settings.alternateForms);
         }
-        if (!settings.raceProxyExclusions.empty()) {
+        if (vm && !settings.raceProxyExclusions.empty()) {
             ProcessRaceProxyExclusions(settings.raceProxyExclusions);
         }
     }
 
     void ConfigProcessor::ProcessAlternateForms(const std::vector<std::string_view>& forms)
     {
-        logs::info("\tAlternate forms:"sv);
         for (const auto& form : forms) {
             const auto* race = LookupRace(form);
+            logs::info("\t[Alternate Form]: {}"sv, form);
             if (!race) {
-                logs::warn("\t\t[SKIP] Alternate form {} not found"sv, form);
+                logs::warn("\t\t[SKIP] Form {} not found"sv, form);
                 continue;
             }
-            if (manager::AddAlternateForm(race)) {
-                logs::info("\t\t{}"sv, form);
-            }
+            manager::AddAlternateForm(race);
         }
     }
 
     void ConfigProcessor::ProcessRaceProxyExclusions(const std::vector<RaceProxyExclusion>& exclusions)
     {
-        auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
-        if (!vm) {
-            logs::error("\t[SKIP] Race proxy exclusions: VM not available"sv);
-            return;
-        }
-
-        logs::info("\tRace proxy exclusions:"sv);
         for (const auto& exclusion : exclusions) {
+            if (exclusion.state.empty()) {
+                logs::info("\t[Race Proxy Exclusion]: {}::{}"sv,
+                    exclusion.script, exclusion.function);
+            } else {
+                logs::info("\t[Race Proxy Exclusion]: {}::{} [{}]"sv,
+                    exclusion.script, exclusion.function, exclusion.state);
+            }
+
             RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> out{};
             if (!vm->GetScriptObjectType(std::string{ exclusion.script }, out) || !out) {
-                logs::warn("\t\t[SKIP] {}: script not available"sv, exclusion.script);
+                logs::warn("\t\t[SKIP] Script not available"sv);
                 continue;
             }
 
-            const auto add = [&](auto* funcs, std::uint32_t count, std::string_view state = {}) {
+            const auto add = [&](auto* funcs, std::uint32_t count) {
                 for (const auto& entry : std::span{ funcs, count }) {
                     const auto* func = entry.func.get();
                     if (func && func->GetName() == exclusion.function) {
                         manager::raceProxyExclusions.push_back(func);
-                        if (state.empty()) {
-                            logs::info("\t\t{}::{}"sv, exclusion.script, exclusion.function);
-                        } else {
-                            logs::info("\t\t{}::{} [{}]"sv, exclusion.script, exclusion.function, state);
-                        }
-                        break;
+                        return true;
                     }
                 }
+                return false;
             };
 
             if (exclusion.state.empty()) {
-                add(out->GetMemberFuncIter(), out->GetNumMemberFuncs());
-                add(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs(), "global"sv);
+                if (!add(out->GetMemberFuncIter(), out->GetNumMemberFuncs()) &&
+                    !add(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs())) {
+                    logs::warn("\t\t[SKIP] Function not available"sv);
+                }
+
             } else {
+                auto found = false;
                 for (const auto& state : std::span{ out->GetNamedStateIter(), out->GetNumNamedStates() }) {
                     if (state.name == exclusion.state) {
-                        add(state.GetFuncIter(), state.GetNumFuncs(), exclusion.state);
-                        break;
+                        if (add(state.GetFuncIter(), state.GetNumFuncs())) {
+                            found = true;
+                            break;
+                        }
                     }
+                }
+                if (!found) {
+                    logs::warn("\t\t[SKIP] Function of state not available"sv);
                 }
             }
         }
@@ -192,7 +199,7 @@ namespace rcs::config
     {
         for (const auto& [entryName, raceString, vampireRaceString, headPartVariant] :
             entries | std::views::reverse) {
-            logs::info("\t{}: {}, {}"sv, entryName, raceString.form,
+            logs::info("\t[Race] {}: {}, {}"sv, entryName, raceString.form,
                 vampireRaceString.form.empty() ? "N/A"sv : vampireRaceString.form);
 
             // Resolve races and reject duplicates.
@@ -221,10 +228,10 @@ namespace rcs::config
             ApplyConfigEntry(entry);
 
             // add to visited map
-            std::string_view info{ entryInfoPool.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
-            visitedMap.emplace(race, info);
+            std::string_view loc{ entryInfoPool.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
+            visitedMap.emplace(race, loc);
             if (vampireRace) {
-                visitedMap.emplace(vampireRace, info);
+                visitedMap.emplace(vampireRace, loc);
             }
         }
     }

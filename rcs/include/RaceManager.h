@@ -75,10 +75,10 @@ namespace rcs::manager
     inline std::vector<const RE::BSScript::IFunction*>                          raceProxyExclusions{};
 
     // emplace
-    void               EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
-    void               EmplaceRaceProxy(const RE::TESRace* race, const RE::TESRace* proxy) noexcept;
-    void               EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
-    [[nodiscard]] bool AddAlternateForm(const RE::TESRace* race);
+    void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept;
+    void EmplaceRaceProxy(const RE::TESRace* race, const RE::TESRace* proxy) noexcept;
+    void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept;
+    void AddAlternateForm(const RE::TESRace* race);
     // judge
     [[nodiscard]] auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept -> bool;
     [[nodiscard]] auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;

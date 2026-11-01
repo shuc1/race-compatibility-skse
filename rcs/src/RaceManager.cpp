@@ -44,13 +44,12 @@ namespace rcs::manager
         }
     }
 
-    bool AddAlternateForm(const RE::TESRace* race)
+    void AddAlternateForm(const RE::TESRace* race)
     {
         if (!race || IsAlternateForm(race)) {
-            return false;
+            return;
         }
         alternateForms.push_back(race);
-        return true;
     }
 
     auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept
