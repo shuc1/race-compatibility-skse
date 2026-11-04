@@ -24,7 +24,7 @@ namespace rcs::form
                 // "OhmesRaht.esp|800" or "OhmesRaht.esp|0x800"
                 const auto namePart = form.substr(0, splitLoc);
                 auto       idPart = form.substr(splitLoc + 1);
-                if (idPart[0] == '0' && (idPart[1] == 'x' || idPart[1] == 'X')) {
+                if (idPart.starts_with("0x") || idPart.starts_with("0X")) {
                     idPart = idPart.substr(2);
                 }
                 RE::FormID id{};
