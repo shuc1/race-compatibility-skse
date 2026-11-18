@@ -6,7 +6,7 @@
     "$defs": {
         "form": {
             "type": "string",
-            "description": "Enter the race's EditorID (such as MyCustomRace) or plugin name and local hexadecimal FormID (such as MyRace.esp|800). The 0x prefix is optional; omit the load-order prefix.",
+            "description": "Enter the race's EditorID (such as MyCustomRace), or its plugin name and a hexadecimal number separated by | (such as MyRace.esp|800). The 0x prefix is optional. Do not include the load-order prefix.",
             "pattern": "^[\\w\\-\\. ]+\\.es[lmp]\\|(0[xX])?[\\da-fA-F]{1,8}$|^[\\w ]+$"
         },
         "armor": {
@@ -78,7 +78,7 @@
             "properties": {
                 "form": {
                     "$ref": "#/$defs/form",
-                    "description": "Enter the race's EditorID (such as MyCustomRace) or plugin name and hexadecimal number (such as MyRace.esp|800) to refer to FormID."
+                    "description": "Enter the race's EditorID (such as MyCustomRace), or its plugin name and a hexadecimal number separated by | (such as MyRace.esp|800)."
                 },
                 "proxy": {
                     "$ref": "#/$defs/form",
