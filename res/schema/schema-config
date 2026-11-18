@@ -2,10 +2,11 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema-config",
     "title": "Race Compatibility SKSE Plugin Configuration Schema",
-    "description": "Plugin settings loaded from Data/SKSE/Plugins/rcs/config/*.json",
+    "description": "Provides definitions for Race Compatibility SKSE(RCS) plugin configuration(Data/SKSE/Plugins/rcs/config/*.json)",
     "$defs": {
         "form": {
             "type": "string",
+            "description": "Enter the race's EditorID (such as MyCustomRace) or plugin name and local hexadecimal FormID (such as MyRace.esp|800). The 0x prefix is optional; omit the load-order prefix.",
             "pattern": "^[\\w\\-\\. ]+\\.es[lmp]\\|(0[xX])?[\\da-fA-F]{1,8}$|^[\\w ]+$"
         }
     },
@@ -29,34 +30,61 @@
                     "items": {
                         "$ref": "#/$defs/form"
                     },
-                    "description": "Additional alternate-form races whose original race is retained for restoration. Werewolf, vampire lord and werebear races are included by default. Lists from separate files are merged."
+                    "description": "List transformations, such as a custom werewolf form, that should remember the character's original race."
                 },
-                "raceProxyExclusions": {
+                "getRaceExclusions": {
                     "type": "array",
                     "items": {
                         "type": "object",
                         "required": [
-                            "script",
-                            "function"
+                            "functions"
                         ],
                         "additionalProperties": false,
                         "properties": {
-                            "script": {
-                                "type": "string"
+                            "functions": {
+                                "type": "array",
+                                "uniqueItems": true,
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "script",
+                                        "function"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "script": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "description": "Name the Papyrus script that contains the function."
+                                        },
+                                        "function": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "description": "Name the Papyrus function whose GetRace calls this rule applies to."
+                                        },
+                                        "state": {
+                                            "type": "string",
+                                            "default": "",
+                                            "description": "Name the script state where this exception applies."
+                                        }
+                                    }
+                                }
                             },
-                            "function": {
-                                "type": "string"
-                            },
-                            "state": {
-                                "type": "string",
-                                "default": "",
-                                "description": "Only the specified state is matched. Omission selects the empty (default) state."
+                            "unlessProxyMatches": {
+                                "type": "array",
+                                "uniqueItems": true,
+                                "items": {
+                                    "$ref": "#/$defs/form"
+                                },
+                                "description": "Keep normal GetRace proxying if the proxy of the base race or any variant in the current race configuration entry matches a race in this list. Otherwise, return the actual race. If omitted or empty, always return the actual race."
                             }
                         }
                     },
-                    "description": "Papyrus caller functions that should receive the actual race instead of its proxy. Rules from separate files are combined."
+                    "description": "Return the actual race in the listed functions, unless the condition in unlessProxyMatches is met."
                 }
-            }
+            },
+            "description": "Settings for transformations and scripts that check a character's race."
         }
     }
 }

@@ -5,28 +5,14 @@ namespace rcs::manager
 {
     namespace
     {
-        std::vector<std::pair<const RE::TESRace*, const RE::TESRace*>> vampirismPairs{};
-        std::vector<const RE::TESRace*>                                alternateForms{};
-
-        auto GetPairedRace(const RE::TESRace* race) noexcept
-            -> const RE::TESRace*
-        {
-            for (const auto& [mortal, vampire] : vampirismPairs) {
-                if (race == mortal) {
-                    return vampire;
-                }
-                if (race == vampire) {
-                    return mortal;
-                }
-            }
-            return nullptr;
-        }
+        std::vector<std::vector<const RE::TESRace*>> raceGroups{};
+        std::vector<const RE::TESRace*>              alternateForms{};
     }
 
-    void EmplaceVampirismRacePair(const RE::TESRace* race, const RE::TESRace* vampire_race) noexcept
+    void EmplaceRaceGroup(std::vector<const RE::TESRace*>&& races)
     {
-        if (race && vampire_race) {
-            vampirismPairs.emplace_back(std::make_pair(race, vampire_race));
+        if (!races.empty()) {
+            raceGroups.emplace_back(std::move(races));
         }
     }
 
@@ -37,7 +23,7 @@ namespace rcs::manager
         }
     }
 
-    void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorProxyEntry>&& proxies) noexcept
+    void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorOverride>&& proxies) noexcept
     {
         if (race && !proxies.empty()) {
             armorRaceProxies.try_emplace(race, std::move(proxies));
@@ -49,7 +35,7 @@ namespace rcs::manager
         if (!race || IsAlternateForm(race)) {
             return;
         }
-        alternateForms.push_back(race);
+        alternateForms.emplace_back(race);
     }
 
     auto GetIsRaceByProxy(const RE::TESRace* source_race, const RE::TESRace* target_race) noexcept
@@ -85,6 +71,27 @@ namespace rcs::manager
         return race && std::ranges::contains(alternateForms, race);
     }
 
+    bool IsGetRaceExcluded(const RE::BSScript::IFunction* function, const RE::TESRace* current) noexcept
+    {
+        for (const auto& rule : getRaceExclusions) {
+            if (!std::ranges::contains(rule.functions, function)) {
+                continue;
+            }
+            if (rule.unlessProxyMatches.empty()) {
+                return true;
+            }
+
+            const auto group = std::ranges::find_if(raceGroups, [&](const auto& group) {
+                return std::ranges::contains(group, current);
+            });
+            return group == raceGroups.end() ||
+                   std::ranges::none_of(*group, [&](const auto* race) {
+                       return std::ranges::contains(rule.unlessProxyMatches, GetRaceProxy(race));
+                   });
+        }
+        return false;
+    }
+
     auto GetRaceProxy(const RE::TESRace* race) noexcept
         -> const RE::TESRace*
     {
@@ -102,9 +109,17 @@ namespace rcs::manager
         if (target == GetRaceProxy(origin)) {
             return origin;
         }
-        if (const auto* paired = GetPairedRace(origin);
-            paired && target == GetRaceProxy(paired)) {
-            return paired;
+        for (const auto& group : raceGroups) {
+            if (!std::ranges::contains(group, origin)) {
+                continue;
+            }
+            for (const auto* member : group) {
+                if (member != origin && target == GetRaceProxy(member)) {
+                    return member;
+                }
+            }
+            // Each race belongs to at most one group.
+            return target;
         }
         return target;
     }
@@ -136,8 +151,7 @@ namespace rcs::manager
     void LogSummary()
     {
         logs::info("{:*^30}"sv, "SUMMARY"sv);
-        logs::info("Vanilla vampirism race pairs recorded: 10"sv);
-        logs::info("Custom vampirism race pairs added: {}"sv, vampirismPairs.size() - 10);
+        logs::info("Race groups recorded: {}"sv, raceGroups.size());
         logs::info("Race proxies created: {}"sv, raceProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
         logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
@@ -156,19 +170,6 @@ namespace rcs::manager
             }
         }
 
-        auto StringToHeadPartType(const std::string_view head_part_str)
-            -> HeadPartType
-        {
-            // for small number of comparisons(12), this is faster than loop, similar to hash-switch
-            // refer to: https://godbolt.org/z/MT96Msnqr
-#define X(TYPE)                     \
-    if (head_part_str == #TYPE##sv) \
-        return k##TYPE;
-            HEAD_PART_TYPES
-#undef X
-            return kNone;
-        }
-
         HeadPartFormIdListAdder::HeadPartFormIdListAdder()
         {
 #define X(LIST) LIST = RE::TESForm::LookupByEditorID<RE::BGSListForm>("HeadParts" #LIST##sv);
@@ -183,18 +184,19 @@ namespace rcs::manager
 #undef X
         }
 
-        void HeadPartFormIdListAdder::AddRacePair(ADD_RACE_ARGS, HeadPartType type) const
+        void HeadPartFormIdListAdder::AddRace(RE::TESRace* race, std::string_view type) const
         {
-            switch (type) {
-            case kNone:
-                return;
-#define X(TYPE)                        \
-    case k##TYPE:                      \
-        Add##TYPE(race, vampire_race); \
-        break;
-                HEAD_PART_TYPES
+#define X(TYPE)                      \
+    if (type == #TYPE##sv) {         \
+        Add##TYPE(race);             \
+        return;                      \
+    }                                \
+    if (type == #TYPE "Vampire"sv) { \
+        Add##TYPE##Vampire(race);    \
+        return;                      \
+    }
+            HEAD_PART_TYPES
 #undef X
-            }
         }
 
 // race lists
@@ -210,57 +212,41 @@ namespace rcs::manager
 #define HUMAN_RACES NON_BEAST_RACES, Human, HumansandVampires, HumansOrcsandVampires
 #define HUMAN_VAMPIRE_RACES NON_BEAST_VAMPIRE_RACES, HumanVampires, HumanoidVampire, HumansandVampires, HumansOrcsandVampires
 
-        void HeadPartFormIdListAdder::AddArgonian(ADD_RACE_ARGS) const
-        {
-            AddRaceTo(race, Argonian, ArgonianandVampire);
-            AddRaceTo(vampire_race, ArgonianVampire, ArgonianandVampire);
-        }
-
-        void HeadPartFormIdListAdder::AddElf(ADD_RACE_ARGS) const
-        {
-            AddRaceTo(race, ELF_RACES);
-            AddRaceTo(vampire_race, ELF_VAMPIRE_RACES);
-        }
-
-#define ADD_ELF_FUNCTION(ELF)                                        \
-    void HeadPartFormIdListAdder::Add##ELF(ADD_RACE_ARGS) const      \
+#define ADD_HEAD_PART_FUNCTION(TYPE, RACE, ...)                      \
+    void HeadPartFormIdListAdder::Add##TYPE(RE::TESRace* RACE) const \
     {                                                                \
-        AddRaceTo(race, ELF_RACES, ELF, ELF##andVampire);            \
-        AddRaceTo(vampire_race, ELF_VAMPIRE_RACES, ELF##andVampire); \
+        AddRaceTo(RACE, __VA_ARGS__);                                \
     }
+
+        ADD_HEAD_PART_FUNCTION(Argonian, race, Argonian, ArgonianandVampire)
+        ADD_HEAD_PART_FUNCTION(ArgonianVampire, vampire_race, ArgonianVampire, ArgonianandVampire)
+        ADD_HEAD_PART_FUNCTION(Elf, race, ELF_RACES)
+        ADD_HEAD_PART_FUNCTION(ElfVampire, vampire_race, ELF_VAMPIRE_RACES)
+
+#define ADD_ELF_FUNCTION(ELF)                                          \
+    ADD_HEAD_PART_FUNCTION(ELF, race, ELF_RACES, ELF, ELF##andVampire) \
+    ADD_HEAD_PART_FUNCTION(ELF##Vampire, vampire_race, ELF_VAMPIRE_RACES, ELF##andVampire)
         ADD_ELF_FUNCTION(DarkElf)
         ADD_ELF_FUNCTION(HighElf)
         ADD_ELF_FUNCTION(WoodElf)
 #undef ADD_ELF_FUNCTION
 
-        void HeadPartFormIdListAdder::AddHuman(ADD_RACE_ARGS) const
-        {
-            AddRaceTo(race, HUMAN_RACES);
-            AddRaceTo(vampire_race, HUMAN_VAMPIRE_RACES);
-        }
+        ADD_HEAD_PART_FUNCTION(Human, race, HUMAN_RACES)
+        ADD_HEAD_PART_FUNCTION(HumanVampire, vampire_race, HUMAN_VAMPIRE_RACES)
 
-#define ADD_HUMAN_FUNCTION(HUMAN)                                        \
-    void HeadPartFormIdListAdder::Add##HUMAN(ADD_RACE_ARGS) const        \
-    {                                                                    \
-        AddRaceTo(race, HUMAN_RACES, HUMAN, HUMAN##andVampire);          \
-        AddRaceTo(vampire_race, HUMAN_VAMPIRE_RACES, HUMAN##andVampire); \
-    }
+#define ADD_HUMAN_FUNCTION(HUMAN)                                              \
+    ADD_HEAD_PART_FUNCTION(HUMAN, race, HUMAN_RACES, HUMAN, HUMAN##andVampire) \
+    ADD_HEAD_PART_FUNCTION(HUMAN##Vampire, vampire_race, HUMAN_VAMPIRE_RACES, HUMAN##andVampire)
         ADD_HUMAN_FUNCTION(Breton)
         ADD_HUMAN_FUNCTION(Imperial)
         ADD_HUMAN_FUNCTION(Nord)
         ADD_HUMAN_FUNCTION(Redguard)
 #undef ADD_HUMAN_FUNCTION
 
-        void HeadPartFormIdListAdder::AddKhajiit(ADD_RACE_ARGS) const
-        {
-            AddRaceTo(race, Khajiit, KhajiitandVampire);
-            AddRaceTo(vampire_race, KhajiitVampire, KhajiitandVampire);
-        }
-
-        void HeadPartFormIdListAdder::AddOrc(ADD_RACE_ARGS) const
-        {
-            AddRaceTo(race, NON_BEAST_RACES, Orc, OrcandVampire, HumansOrcsandVampires);
-            AddRaceTo(vampire_race, NON_BEAST_VAMPIRE_RACES, HumanoidVampire, OrcandVampire, HumansOrcsandVampires);
-        }
+        ADD_HEAD_PART_FUNCTION(Khajiit, race, Khajiit, KhajiitandVampire)
+        ADD_HEAD_PART_FUNCTION(KhajiitVampire, vampire_race, KhajiitVampire, KhajiitandVampire)
+        ADD_HEAD_PART_FUNCTION(Orc, race, NON_BEAST_RACES, Orc, OrcandVampire, HumansOrcsandVampires)
+        ADD_HEAD_PART_FUNCTION(OrcVampire, vampire_race, NON_BEAST_VAMPIRE_RACES, HumanoidVampire, OrcandVampire, HumansOrcsandVampires)
+#undef ADD_HEAD_PART_FUNCTION
     }  // namespace headpart
 }  // namespace rcs::manager

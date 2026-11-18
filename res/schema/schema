@@ -2,21 +2,30 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/shuc1/race-compatibility-skse/main/res/schema/schema",
     "title": "Race Compatibility SKSE Configuration Schema",
-    "description": "Provides definitions for Race Compatibility SKSE(RCS) configuration",
+    "description": "Provides definitions for Race Compatibility SKSE(RCS) race configuration.",
     "$defs": {
         "form": {
             "type": "string",
+            "description": "Enter the race's EditorID (such as MyCustomRace) or plugin name and local hexadecimal FormID (such as MyRace.esp|800). The 0x prefix is optional; omit the load-order prefix.",
             "pattern": "^[\\w\\-\\. ]+\\.es[lmp]\\|(0[xX])?[\\da-fA-F]{1,8}$|^[\\w ]+$"
         },
         "armor": {
             "type": "object",
             "additionalProperties": false,
+            "not": {
+                "required": ["overrides", "variants"]
+            },
             "properties": {
                 "race": {
                     "$ref": "#/$defs/form",
-                    "description": "The form of default race for armor addon"
+                    "description": "Choose which race supplies the default armor models for your race."
                 },
                 "variants": {
+                    "$ref": "#/$defs/armor/properties/overrides",
+                    "deprecated": true,
+                    "description": "Legacy name for armor overrides. Use overrides in new configs."
+                },
+                "overrides": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -29,20 +38,22 @@
                         "properties": {
                             "slots": {
                                 "type": "array",
+                                "uniqueItems": true,
                                 "minItems": 1,
                                 "items": {
                                     "type": "integer",
                                     "minimum": 30,
                                     "maximum": 61
                                 },
-                                "description": "The specific armor slots used for armor addon variant"
+                                "description": "Match armor that uses any of these slots, such as 30 for head or 42 for circlet."
                             },
                             "proxy": {
                                 "$ref": "#/$defs/form",
-                                "description": "The form of proxy race for specific slot"
+                                "description": "Choose which race supplies the armor models for these slots."
                             }
                         }
-                    }
+                    },
+                    "description": "Use different armor models for specific slots. If several rules match, the first rule in this list takes priority."
                 }
             }
         },
@@ -67,11 +78,11 @@
             "properties": {
                 "form": {
                     "$ref": "#/$defs/form",
-                    "description": "The form of mortal race"
+                    "description": "Enter the race's EditorID (such as MyCustomRace) or plugin name and hexadecimal number (such as MyRace.esp|800) to refer to FormID."
                 },
                 "proxy": {
                     "$ref": "#/$defs/form",
-                    "description": "The single proxy race used in dialogue, magic effects and Papyrus GetRace. Mutually exclusive with proxies."
+                    "description": "Choose which race yours counts as in dialogue, quests, magic effects, and scripts."
                 },
                 "proxies": {
                     "deprecated": true,
@@ -80,16 +91,20 @@
                     "items": {
                         "$ref": "#/$defs/form"
                     },
-                    "description": "Legacy proxy list. Only the first item is used, even if it cannot be resolved; remaining items are ignored. Emits a deprecation warning. Use proxy instead."
+                    "description": "Only the first race in this list is used. Set \"proxy\" to that race instead."
                 },
                 "armor": {
-                    "$ref": "#/$defs/armor"
+                    "$ref": "#/$defs/armor",
+                    "description": "Choose which armor models your race can wear."
+                },
+                "headPart": {
+                    "$ref": "#/$defs/headPart"
                 }
             }
         },
-        "headPartType": {
+        "legacyHeadPartType": {
             "type": "string",
-            "description": "The head part preset for injecting race into FormID lists",
+            "description": "A preset such as Human or Khajiit that identifies a group of head part FormLists.",
             "enum": [
                 "Elf",
                 "Human",
@@ -103,6 +118,46 @@
                 "DarkElf",
                 "HighElf",
                 "WoodElf"
+            ]
+        },
+        "headPartType": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/legacyHeadPartType"
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "ElfVampire",
+                        "HumanVampire",
+                        "OrcVampire",
+                        "ArgonianVampire",
+                        "KhajiitVampire",
+                        "BretonVampire",
+                        "ImperialVampire",
+                        "NordVampire",
+                        "RedguardVampire",
+                        "DarkElfVampire",
+                        "HighElfVampire",
+                        "WoodElfVampire"
+                    ]
+                }
+            ]
+        },
+        "headPart": {
+            "description": "Adds this race to the FormLists of one or more presets. Head parts such as hair and eyes use these lists to determine which races can use them.",
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/headPartType"
+                },
+                {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/headPartType"
+                    }
+                }
             ]
         }
     },
@@ -128,31 +183,82 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "The name of the config entry",
+                        "description": "Give this race config entry a name.",
                         "pattern": "^[^<>:\"/\\\\|?*]{1,255}$"
                     },
                     "race": {
-                        "$ref": "#/$defs/race"
+                        "$ref": "#/$defs/race",
+                        "description": "Set up the base race for this entry."
                     },
                     "vampireRace": {
-                        "$ref": "#/$defs/race"
+                        "$ref": "#/$defs/race",
+                        "deprecated": true,
+                        "description": "Sets up the vampire form. For new configs, use \"variants\"."
+                    },
+                    "variants": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/race"
+                        },
+                        "description": "List other forms of the base race, such as its vampire or lich form."
                     },
                     "headPart": {
-                        "description": "The head part preset(s) for injecting race into FormID lists",
+                        "deprecated": true,
+                        "description": "Adds the base race to the preset's FormLists and its vampire form to the matching vampire lists. In new configs, set \"headPart\" on each race separately.",
                         "oneOf": [
                             {
-                                "$ref": "#/$defs/headPartType"
+                                "$ref": "#/$defs/legacyHeadPartType"
                             },
                             {
                                 "type": "array",
+                                "uniqueItems": true,
+                                "minItems": 1,
                                 "items": {
-                                    "$ref": "#/$defs/headPartType"
+                                    "$ref": "#/$defs/legacyHeadPartType"
                                 }
                             }
                         ]
                     }
+                },
+                "if": {
+                    "anyOf": [
+                        {
+                            "required": [
+                                "vampireRace"
+                            ]
+                        },
+                        {
+                            "required": [
+                                "headPart"
+                            ]
+                        }
+                    ]
+                },
+                "then": {
+                    "not": {
+                        "required": [
+                            "variants"
+                        ]
+                    },
+                    "properties": {
+                        "race": {
+                            "not": {
+                                "required": [
+                                    "headPart"
+                                ]
+                            }
+                        },
+                        "vampireRace": {
+                            "not": {
+                                "required": [
+                                    "headPart"
+                                ]
+                            }
+                        }
+                    }
                 }
-            }
+            },
+            "description": "List the races you want to set up, along with any forms they can change into."
         }
     }
 }

@@ -6,9 +6,10 @@
             "race": {
                 "form": "OhmesRahtRace",
                 "proxy": "KhajiitRace",
+                "headPart": "Human",
                 "armor": {
                     "race": "KhajiitRace",
-                    "variants": [
+                    "overrides": [
                         {
                             "slots": [
                                 30,
@@ -20,24 +21,26 @@
                     ]
                 }
             },
-            "vampireRace": {
-                "form": "OhmesRahtRaceVampire",
-                "proxy": "KhajiitRaceVampire",
-                "armor": {
-                    "race": "KhajiitRaceVampire",
-                    "variants": [
-                        {
-                            "slots": [
-                                30,
-                                31,
-                                42
-                            ],
-                            "proxy": "DefaultRace"
-                        }
-                    ]
+            "variants": [
+                {
+                    "form": "OhmesRahtRaceVampire",
+                    "proxy": "KhajiitRaceVampire",
+                    "headPart": "HumanVampire",
+                    "armor": {
+                        "race": "KhajiitRaceVampire",
+                        "overrides": [
+                            {
+                                "slots": [
+                                    30,
+                                    31,
+                                    42
+                                ],
+                                "proxy": "DefaultRace"
+                            }
+                        ]
+                    }
                 }
-            },
-            "headPart": "Human"
+            ]
         }
     ]
 }

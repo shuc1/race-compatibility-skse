@@ -20,11 +20,11 @@ namespace
             const auto* race = a_object->race;
             const auto* proxy = manager::GetRaceProxy(race);
 
-            if (proxy && !manager::raceProxyExclusions.empty() && a_vm) {
+            if (proxy && !manager::getRaceExclusions.empty() && a_vm) {
                 RE::BSScript::Stack* stack{};
                 if (a_vm->GetStackByID(a_stackID, &stack) && stack && stack->top) {
                     const auto* frame = stack->top->previousFrame;
-                    if (frame && std::ranges::contains(manager::raceProxyExclusions, frame->owningFunction.get())) {
+                    if (frame && manager::IsGetRaceExcluded(frame->owningFunction.get(), race)) {
                         // excluded
                         proxy = nullptr;
                     }
@@ -70,20 +70,20 @@ namespace
             }
 
             const auto  actorID = actor->GetFormID();
-            const auto* currentRace = actor->race;
-            const auto* originRace = manager::GetOriginRace(actorID);
-            const auto* targetRace = manager::ResolveTargetRace(originRace ? originRace : currentRace, race);
+            const auto* current = actor->race;
+            const auto* origin = manager::GetOriginRace(actorID);
+            const auto* target = manager::ResolveTargetRace(origin ? origin : current, race);
 
 #ifdef DETOURS
-            hook::FuncStorage<SetRace>::func(actor, const_cast<RE::TESRace*>(targetRace), is_player);
+            hook::FuncStorage<SetRace>::func(actor, const_cast<RE::TESRace*>(target), is_player);
 #else
-            actor->SwitchRace(const_cast<RE::TESRace*>(targetRace), is_player);
+            actor->SwitchRace(const_cast<RE::TESRace*>(target), is_player);
 #endif
             // SwitchRace can return without changing the actor's race.
-            if (actor->race != targetRace) {
+            if (actor->race != target) {
                 return;
             }
-            manager::UpdateOriginRace(actorID, currentRace, targetRace, originRace != nullptr);
+            manager::UpdateOriginRace(actorID, current, target, origin != nullptr);
         }
     };
 

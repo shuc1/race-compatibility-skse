@@ -1,28 +1,5 @@
 #include "Config.h"
 
-namespace
-{
-    using namespace rcs::config;
-    auto ParseHeadPartTypes(const std::variant<std::string_view, std::vector<std::string_view>>& raw)
-        -> std::vector<ConfigEntry::HeadPartType>
-    {
-        std::vector<ConfigEntry::HeadPartType> result{};
-        std::visit([&]<typename T>(const T& t) {
-            using namespace rcs::manager;
-            using u = std::remove_cvref_t<T>;
-            if constexpr (std::is_same_v<u, std::string_view>) {
-                result.emplace_back(headpart::StringToHeadPartType(t));
-            } else if constexpr (std::is_same_v<u, std::vector<std::string_view>>) {
-                for (const auto& _ : t) {
-                    result.emplace_back(headpart::StringToHeadPartType(_));
-                }
-            }
-        },
-            raw);
-        return result;
-    }
-}  // namespace anonymous
-
 namespace rcs::config
 {
     bool ConfigProcessor::Run()
@@ -58,8 +35,7 @@ namespace rcs::config
     RawConfigEntry{                                         \
         .name = #NAME##sv,                                  \
         .race = { .form = (#NAME "Race"sv) },               \
-        .vampireRace = { .form = (#NAME "RaceVampire"sv) }, \
-        .headPart = #NAME##sv                               \
+        .variants = { { .form = (#NAME "RaceVampire"sv) } } \
     },
                 VANILLA_RACES
 #undef X
@@ -102,7 +78,7 @@ namespace rcs::config
     void ConfigProcessor::ProcessPluginConfigFile(const std::filesystem::path& path)
     {
         const auto filename{ path.filename().string() };
-        logs::info("{} (plugin config):"sv, filename);
+        logs::info("{}:"sv, filename);
         auto buffer = glz::file_to_buffer(path.string());
         auto content = glz::read_json<RawPluginConfigFileContent>(buffer);
         if (!content) {
@@ -113,8 +89,8 @@ namespace rcs::config
         if (!settings.alternateForms.empty()) {
             ProcessAlternateForms(settings.alternateForms);
         }
-        if (vm && !settings.raceProxyExclusions.empty()) {
-            ProcessRaceProxyExclusions(settings.raceProxyExclusions);
+        if (vm && !settings.getRaceExclusions.empty()) {
+            ProcessGetRaceExclusions(filename, settings.getRaceExclusions);
         }
     }
 
@@ -131,54 +107,43 @@ namespace rcs::config
         }
     }
 
-    void ConfigProcessor::ProcessRaceProxyExclusions(const std::vector<RaceProxyExclusion>& exclusions)
+    void ConfigProcessor::ProcessGetRaceExclusions(std::string_view filename, const std::vector<GetRaceExclusion>& exclusions)
     {
-        for (const auto& exclusion : exclusions) {
-            if (exclusion.state.empty()) {
-                logs::info("\t[Race Proxy Exclusion]: {}::{}"sv,
-                    exclusion.script, exclusion.function);
-            } else {
-                logs::info("\t[Race Proxy Exclusion]: {}::{} [{}]"sv,
-                    exclusion.script, exclusion.function, exclusion.state);
-            }
+        std::string_view loc{ entryInfoPool.emplace_back(filename) };
+        for (const auto& raw : exclusions | std::views::reverse) {
+            manager::GetRaceExclusion rule;
+            for (const auto& exclusion : raw.functions) {
+                if (exclusion.state.empty()) {
+                    logs::info("\t[GetRace Exclusion]: {}::{}"sv,
+                        exclusion.script, exclusion.function);
+                } else {
+                    logs::info("\t[GetRace Exclusion]: {}::{} [{}]"sv,
+                        exclusion.script, exclusion.function, exclusion.state);
+                }
 
-            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> out{};
-            if (!vm->GetScriptObjectType(std::string{ exclusion.script }, out) || !out) {
-                logs::warn("\t\t[SKIP] Script not available"sv);
+                const auto* function = LookupFunction(exclusion);
+                if (!function) {
+                    continue;
+                }
+                if (const auto [it, inserted] = visitedFunctions.try_emplace(function, loc); !inserted) {
+                    logs::warn("\t\t[SKIP] Function already excluded in {}"sv, it->second);
+                    continue;
+                }
+                rule.functions.emplace_back(function);
+            }
+            if (rule.functions.empty()) {
                 continue;
             }
-
-            const auto add = [&](auto* funcs, std::uint32_t count) {
-                for (const auto& entry : std::span{ funcs, count }) {
-                    const auto* func = entry.func.get();
-                    if (func && func->GetName() == exclusion.function) {
-                        manager::raceProxyExclusions.push_back(func);
-                        return true;
-                    }
+            rule.unlessProxyMatches.reserve(raw.unlessProxyMatches.size());
+            for (const auto& form : raw.unlessProxyMatches) {
+                const auto* race = LookupRace(form);
+                if (!race) {
+                    logs::warn("\t[GetRace Exclusion] Proxy race {} not found"sv, form);
+                    continue;
                 }
-                return false;
-            };
-
-            if (exclusion.state.empty()) {
-                if (!add(out->GetMemberFuncIter(), out->GetNumMemberFuncs()) &&
-                    !add(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs())) {
-                    logs::warn("\t\t[SKIP] Function not available"sv);
-                }
-
-            } else {
-                auto found = false;
-                for (const auto& state : std::span{ out->GetNamedStateIter(), out->GetNumNamedStates() }) {
-                    if (state.name == exclusion.state) {
-                        if (add(state.GetFuncIter(), state.GetNumFuncs())) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found) {
-                    logs::warn("\t\t[SKIP] Function of state not available"sv);
-                }
+                rule.unlessProxyMatches.emplace_back(race);
             }
+            manager::getRaceExclusions.emplace_back(std::move(rule));
         }
     }
 
@@ -197,67 +162,75 @@ namespace rcs::config
 
     void ConfigProcessor::ProcessRaceConfigEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries)
     {
-        for (const auto& [entryName, raceString, vampireRaceString, headPartVariant] :
+        for (const auto& [entryName, raceString, variantStrings] :
             entries | std::views::reverse) {
-            logs::info("\t[Race] {}: {}, {}"sv, entryName, raceString.form,
-                vampireRaceString.form.empty() ? "N/A"sv : vampireRaceString.form);
+            logs::info("\t[{}]: {} "sv, entryName, raceString.form);
 
             // Resolve races and reject duplicates.
-            const auto* race = LookupRace(raceString.form);
+            auto* race = LookupRace(raceString.form);
             if (!race) {
                 logs::warn("\t\t[SKIP] Race not found"sv);
                 continue;
             }
-            if (auto itRace = visitedMap.find(race); itRace != visitedMap.end()) {
-                logs::warn("\t\t[SKIP] Race already used in {}"sv, itRace->second);
+            if (const auto it = visitedRaces.find(race); it != visitedRaces.end()) {
+                logs::warn("\t\t[SKIP] Race already used in {}"sv, it->second);
                 continue;
             }
-            const auto* vampireRace = LookupRace(vampireRaceString.form);
-            if (vampireRace) {
-                if (auto itRaceVamp = visitedMap.find(vampireRace); itRaceVamp != visitedMap.end()) {
-                    logs::warn("\t\t[SKIP] Vampire race already used in {}"sv, itRaceVamp->second);
-                    continue;
-                }
-            }
+            std::string_view loc{ entryInfoPool.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
+            visitedRaces.emplace(race, loc);
 
             auto entry = ConfigEntry{
-                .race = ParseRaceProxy(raceString),
-                .vampireRace = ParseRaceProxy(vampireRaceString),
-                .headPartTypes = ParseHeadPartTypes(headPartVariant)
+                .race = ParseRaceProxy(raceString, race),
+                .variants = {}
             };
-            ApplyConfigEntry(entry);
 
-            // add to visited map
-            std::string_view loc{ entryInfoPool.emplace_back(std::format("{}:{}"sv, filename, entryName)) };
-            visitedMap.emplace(race, loc);
-            if (vampireRace) {
-                visitedMap.emplace(vampireRace, loc);
+            std::vector<const RE::TESRace*> races;
+            races.reserve(1 + variantStrings.size());
+            races.emplace_back(race);
+            entry.variants.reserve(variantStrings.size());
+            for (const auto& raw : variantStrings) {
+                logs::info("\t\t[Variant] {}"sv, raw.form);
+                auto* variantRace = LookupRace(raw.form);
+                if (!variantRace) {
+                    logs::warn("\t\t\t[SKIP] Variant race not found"sv);
+                    continue;
+                }
+                if (const auto [it, inserted] = visitedRaces.try_emplace(variantRace, loc); !inserted) {
+                    logs::warn("\t\t\t[SKIP] Variant race already used in {}"sv, it->second);
+                    continue;
+                }
+                races.emplace_back(variantRace);
+                entry.variants.emplace_back(ParseRaceProxy(raw, variantRace));
             }
+
+            // apply
+            ApplyRaceProxy(std::move(entry.race));
+            for (auto& variant : entry.variants) {
+                ApplyRaceProxy(std::move(variant));
+            }
+            manager::EmplaceRaceGroup(std::move(races));
         }
     }
 
-    auto ConfigProcessor::ParseRaceProxy(const RawRaceProxy& raw) -> RaceProxy
+    auto ConfigProcessor::ParseRaceProxy(const RawRaceProxy& raw, RE::TESRace* race) -> RaceProxy
     {
         RaceProxy result{
-            .form = LookupRace(raw.form),
+            .form = race,
             .proxy{},
             .armor = {
                 .race = LookupRace(raw.armor.race),
-                .variants{} },
+                .overrides{} },
+            .headPart = raw.headPart,
         };
-        // race not found, no need to parse further
-        if (!result.form) {
-            return result;
-        }
         // race proxy
         result.proxy = LookupRace(raw.proxy);
         // race armor proxy
-        if (!raw.armor.variants.empty()) {
-            auto& variants = result.armor.variants;
+        if (!raw.armor.overrides.empty()) {
+            auto& overrides = result.armor.overrides;
             // reserve space to avoid multiple allocations; similar to allocating all at once and then resizing
             // refer to: https://godbolt.org/z/T9za7v1cb
-            variants.reserve(raw.armor.variants.size());
-            for (const auto& [slots, form] : raw.armor.variants) {
+            overrides.reserve(raw.armor.overrides.size());
+            for (const auto& [slots, form] : raw.armor.overrides) {
                 if (slots.empty()) {
                     continue;
                 }
@@ -279,7 +252,7 @@ namespace rcs::config
                     }
                 }
                 if (slotSet.underlying()) {
-                    variants.emplace_back(varProxy, slotSet.get());
+                    overrides.emplace_back(varProxy, slotSet.get());
                 }
             }
         }
@@ -291,27 +264,57 @@ namespace rcs::config
         return form.empty() ? nullptr : form::LookupCachedForm(form, formCache);
     }
 
-    void ConfigProcessor::ApplyConfigEntry(ConfigEntry& entry) const
+    const RE::BSScript::IFunction* ConfigProcessor::LookupFunction(const FunctionID& id) const
     {
-        auto *race = entry.race.form, *vampireRace = entry.vampireRace.form;
-        ApplyRaceProxy(entry.race);
-        if (vampireRace) {
-            ApplyRaceProxy(entry.vampireRace);
-            manager::EmplaceVampirismRacePair(race, vampireRace);
+        RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> out{};
+        if (!vm->GetScriptObjectType(std::string{ id.script }, out) || !out) {
+            logs::warn("\t\t[SKIP] Script not available"sv);
+            return nullptr;
         }
-        for (const auto& type : entry.headPartTypes) {
-            adder.AddRacePair(race, vampireRace, type);
+
+        const auto find = [&](auto* funcs, std::uint32_t count) -> const RE::BSScript::IFunction* {
+            for (const auto& entry : std::span{ funcs, count }) {
+                const auto* func = entry.func.get();
+                if (func && func->GetName() == id.function) {
+                    return func;
+                }
+            }
+            return nullptr;
+        };
+
+        if (id.state.empty()) {
+            if (const auto* function = find(out->GetMemberFuncIter(), out->GetNumMemberFuncs())) {
+                return function;
+            }
+            if (const auto* function = find(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs())) {
+                return function;
+            }
+        } else {
+            for (const auto& state : std::span{ out->GetNamedStateIter(), out->GetNumNamedStates() }) {
+                if (state.name == id.state) {
+                    if (const auto* function = find(state.GetFuncIter(), state.GetNumFuncs())) {
+                        return function;
+                    }
+                }
+            }
         }
+        logs::warn("\t\t[SKIP] Function not available"sv);
+        return nullptr;
     }
 
-    void ConfigProcessor::ApplyRaceProxy(RaceProxy& proxy)
+    void ConfigProcessor::ApplyRaceProxy(RaceProxy&& proxy) const
     {
+        // proxy
         manager::EmplaceRaceProxy(proxy.form, proxy.proxy);
+        // armor
         if (auto* armorRace = proxy.armor.race) {
             proxy.form->armorParentRace = armorRace;
         }
-
-        manager::EmplaceArmorRaceProxies(proxy.form, std::move(proxy.armor.variants));
+        manager::EmplaceArmorRaceProxies(proxy.form, std::move(proxy.armor.overrides));
+        // headpart
+        for (const auto& type : proxy.headPart) {
+            adder.AddRace(proxy.form, type);
+        }
     }
 
     bool ProcessConfigs()

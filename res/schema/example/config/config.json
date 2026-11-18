@@ -4,10 +4,35 @@
         "alternateForms": [
             "MyWerewolfMod.esp|0x800"
         ],
-        "raceProxyExclusions": [
+        "getRaceExclusions": [
             {
-                "script": "MyScript",
-                "function": "MyFunction"
+                "functions": [
+                    {
+                        "script": "MyScript",
+                        "function": "MyFunction1"
+                    },
+                    {
+                        "script": "MyScript",
+                        "function": "MyFunction2",
+                        "state": "MyState"
+                    }
+                ]
+            },
+            {
+                "functions": [
+                    {
+                        "script": "MyVampireVariantTransformationScript",
+                        "function": "TransformToVampireVariant"
+                    },
+                    {
+                        "script": "MyVampireVariantTransformationScript",
+                        "function": "TransformBack"
+                    }
+                ],
+                "unlessProxyMatches": [
+                    "NordRaceVampireVariant",
+                    "KhajiitRaceVampireVariant"
+                ]
             }
         ]
     }
