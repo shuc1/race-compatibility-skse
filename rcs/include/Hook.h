@@ -118,7 +118,6 @@ namespace rcs::hook
         return std::string_view{ MESSAGE.data(), MESSAGE.size() - 1 };
     }
 
-#ifdef DETOURS
     template <Hookable T>
     struct FuncStorage
     {
@@ -130,7 +129,6 @@ namespace rcs::hook
             }
         }();
     };
-#endif
 
     template <Hookable T>
     void InstallHook()
@@ -146,20 +144,16 @@ namespace rcs::hook
             }
         }();
         const REL::Relocation src{ T::id, offset };
-#ifdef DETOURS
         if constexpr (HasCallThunk<T>) {
             FuncStorage<T>::func = reinterpret_cast<decltype(FuncStorage<T>::func)>(WriteCallToThunk<T>(src.address()));
         } else {
+#ifdef DETOURS
             FuncStorage<T>::func = reinterpret_cast<decltype(FuncStorage<T>::func)>(src.address());
             DetourAttach(reinterpret_cast<PVOID*>(&FuncStorage<T>::func), reinterpret_cast<PVOID>(T::JmpThunk));
-        }
 #else
-        if constexpr (HasCallThunk<T>) {
-            WriteCallToThunk<T>(src.address());
-        } else {
             WriteJumpToThunk<T>(src.address());
-        }
 #endif
+        }
 
 #ifndef NDEBUG
         logs::info("Installed hook for {} at address: 0x{:X}",

@@ -293,6 +293,59 @@ namespace
             }
         };
     }
+
+    namespace papyrus
+    {
+        struct Finish
+        {
+            static constexpr auto           id = RELOCATION_ID(97539, 104324);
+            static constexpr std::ptrdiff_t offset = OFFSET(0x4CB, 0x57E);
+
+            static void CallThunk(RE::BSScript::ObjectTypeInfo* type, void* ctx, void* logger)
+            {
+                hook::FuncStorage<Finish>::func(type, ctx, logger);
+
+                if (!type || type->linkedValid != RE::BSScript::ObjectTypeInfo::LinkValidState::kLinkedValid) {
+                    return;
+                }
+
+                // not exclusion script, skip
+                const auto script = std::ranges::find(manager::scriptBindings, type->name, &manager::ScriptBinding::name);
+                if (script == manager::scriptBindings.end()) {
+                    return;
+                }
+
+                // renew IFunction*
+                for (const auto& function : script->functions) {
+                    const auto find = [&](const auto* table, std::uint32_t count) -> const RE::BSScript::IFunction* {
+                        for (const auto& entry : std::span{ table, count }) {
+                            const auto* func = entry.func.get();
+                            if (func && !func->GetIsNative() && func->GetName() == function.name) {
+                                return func;
+                            }
+                        }
+                        // A miss clears the previous version's pointer.
+                        return nullptr;
+                    };
+
+                    manager::getRaceExclusions[function.ruleIndex].functions[function.functionIndex] = [&]() -> const RE::BSScript::IFunction* {
+                        if (function.state.empty()) {
+                            if (const auto* func = find(type->GetMemberFuncIter(), type->GetNumMemberFuncs())) {
+                                return func;
+                            }
+                            return find(type->GetGlobalFuncIter(), type->GetNumGlobalFuncs());
+                        }
+                        for (const auto& state : std::span{ type->GetNamedStateIter(), type->GetNumNamedStates() }) {
+                            if (state.name == function.state) {
+                                return find(state.GetFuncIter(), state.GetNumFuncs());
+                            }
+                        }
+                        return nullptr;
+                    }();
+                }
+            }
+        };
+    }
 }
 
 namespace rcs::hook
@@ -305,13 +358,17 @@ namespace rcs::hook
 #endif
 
         if (!manager::raceProxies.empty()) {
+#define SHARED_RACE_HOOKS Actor::GetRace, ActorBase::GetRace, SetRace, GetIsRace, SameRace
 #ifdef SKYRIM_SUPPORT_AE
-            InstallHooks<Actor::GetRace, ActorBase::GetRace, SetRace,
-                GetIsRace, SameRace, GetPCIsRace, SameRaceAsPC>();
+            InstallHooks<SHARED_RACE_HOOKS, GetPCIsRace, SameRaceAsPC>();
 #else
-            InstallHooks<Actor::GetRace, ActorBase::GetRace, SetRace,
-                GetIsRace, SameRace>();
+            InstallHooks<SHARED_RACE_HOOKS>();
 #endif
+#undef SHARED_RACE_HOOKS
+        }
+
+        if (!manager::scriptBindings.empty()) {
+            InstallHooks<papyrus::Finish>();
         }
 
         if (!manager::armorRaceProxies.empty()) {

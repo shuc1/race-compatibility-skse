@@ -13,9 +13,6 @@ namespace rcs::config
             logs::error("Data handler is not initialized"sv);
             return false;
         }
-        if (!vm) {
-            logs::error("VM not available"sv);
-        }
         // list and process config files
         auto files = ListConfigFiles(configDir);
         if (files.empty()) {
@@ -89,8 +86,8 @@ namespace rcs::config
         if (!settings.alternateForms.empty()) {
             ProcessAlternateForms(settings.alternateForms);
         }
-        if (vm && !settings.getRaceExclusions.empty()) {
-            ProcessGetRaceExclusions(filename, settings.getRaceExclusions);
+        if (!settings.getRaceExclusions.empty()) {
+            ProcessGetRaceExclusions(settings.getRaceExclusions);
         }
     }
 
@@ -107,11 +104,11 @@ namespace rcs::config
         }
     }
 
-    void ConfigProcessor::ProcessGetRaceExclusions(std::string_view filename, const std::vector<GetRaceExclusion>& exclusions)
+    void ConfigProcessor::ProcessGetRaceExclusions(const std::vector<GetRaceExclusion>& exclusions)
     {
-        std::string_view loc{ entryInfoPool.emplace_back(filename) };
         for (const auto& raw : exclusions | std::views::reverse) {
             manager::GetRaceExclusion rule;
+            const auto                ruleIndex = manager::getRaceExclusions.size();
             for (const auto& exclusion : raw.functions) {
                 if (exclusion.state.empty()) {
                     logs::info("\t[GetRace Exclusion]: {}::{}"sv,
@@ -121,15 +118,26 @@ namespace rcs::config
                         exclusion.script, exclusion.function, exclusion.state);
                 }
 
-                const auto* function = LookupFunction(exclusion);
-                if (!function) {
+                const RE::BSFixedString  scriptName{ std::string{ exclusion.script } };
+                auto                     it = std::ranges::find(manager::scriptBindings, scriptName, &manager::ScriptBinding::name);
+                auto&                    entry = it == manager::scriptBindings.end() ?
+                                                     manager::scriptBindings.emplace_back(scriptName) :
+                                                     *it;
+                manager::FunctionBinding binding{
+                    .state = std::string{ exclusion.state },
+                    .name = std::string{ exclusion.function },
+                    .ruleIndex = ruleIndex,
+                    .functionIndex = rule.functions.size()
+                };
+                if (std::ranges::any_of(entry.functions, [&](const auto& existing) {
+                        return existing.state == binding.state && existing.name == binding.name;
+                    })) {
+                    logs::warn("\t\t[SKIP] Function already excluded by another config"sv);
                     continue;
                 }
-                if (const auto [it, inserted] = visitedFunctions.try_emplace(function, loc); !inserted) {
-                    logs::warn("\t\t[SKIP] Function already excluded in {}"sv, it->second);
-                    continue;
-                }
-                rule.functions.emplace_back(function);
+
+                entry.functions.emplace_back(std::move(binding));
+                rule.functions.emplace_back(nullptr);
             }
             if (rule.functions.empty()) {
                 continue;
@@ -262,44 +270,6 @@ namespace rcs::config
     RE::TESRace* ConfigProcessor::LookupRace(const std::string_view form)
     {
         return form.empty() ? nullptr : form::LookupCachedForm(form, formCache);
-    }
-
-    const RE::BSScript::IFunction* ConfigProcessor::LookupFunction(const FunctionID& id) const
-    {
-        RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> out{};
-        if (!vm->GetScriptObjectType(std::string{ id.script }, out) || !out) {
-            logs::warn("\t\t[SKIP] Script not available"sv);
-            return nullptr;
-        }
-
-        const auto find = [&](auto* funcs, std::uint32_t count) -> const RE::BSScript::IFunction* {
-            for (const auto& entry : std::span{ funcs, count }) {
-                const auto* func = entry.func.get();
-                if (func && func->GetName() == id.function) {
-                    return func;
-                }
-            }
-            return nullptr;
-        };
-
-        if (id.state.empty()) {
-            if (const auto* function = find(out->GetMemberFuncIter(), out->GetNumMemberFuncs())) {
-                return function;
-            }
-            if (const auto* function = find(out->GetGlobalFuncIter(), out->GetNumGlobalFuncs())) {
-                return function;
-            }
-        } else {
-            for (const auto& state : std::span{ out->GetNamedStateIter(), out->GetNumNamedStates() }) {
-                if (state.name == id.state) {
-                    if (const auto* function = find(state.GetFuncIter(), state.GetNumFuncs())) {
-                        return function;
-                    }
-                }
-            }
-        }
-        logs::warn("\t\t[SKIP] Function not available"sv);
-        return nullptr;
     }
 
     void ConfigProcessor::ApplyRaceProxy(RaceProxy&& proxy) const

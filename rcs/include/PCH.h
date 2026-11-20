@@ -83,3 +83,9 @@ namespace stl
     template <typename T>
     inline constexpr auto struct_name_for = GetStructName<T>();
 }  // namespace stl
+
+#ifdef SKYRIM_SUPPORT_AE
+#    define OFFSET(se, ae) ae
+#else
+#    define OFFSET(se, ae) se
+#endif

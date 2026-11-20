@@ -96,23 +96,20 @@ namespace rcs::config
         [[nodiscard]] static std::vector<std::filesystem::path> ListConfigFiles(const std::filesystem::path& directory);
         void                                                    ProcessPluginConfigFile(const std::filesystem::path& path);
         void                                                    ProcessAlternateForms(const std::vector<std::string_view>& forms);
-        void                                                    ProcessGetRaceExclusions(std::string_view filename, const std::vector<GetRaceExclusion>& exclusions);
+        void                                                    ProcessGetRaceExclusions(const std::vector<GetRaceExclusion>& exclusions);
         void                                                    ProcessRaceConfigFile(const std::filesystem::path& path);
         void                                                    ProcessRaceConfigEntries(std::string_view filename, const std::vector<RawConfigEntry>& entries);
         // parse
-        RaceProxy                      ParseRaceProxy(const RawRaceProxy& raw, RE::TESRace* race);
-        RE::TESRace*                   LookupRace(std::string_view form);
-        const RE::BSScript::IFunction* LookupFunction(const FunctionID& id) const;
+        RaceProxy    ParseRaceProxy(const RawRaceProxy& raw, RE::TESRace* race);
+        RE::TESRace* LookupRace(std::string_view form);
         // apply
         void ApplyRaceProxy(RaceProxy&& proxy) const;
 
-        std::filesystem::path                                                configDir{ CONFIG_DIR };
-        manager::headpart::HeadPartFormIdListAdder                           adder;
-        RaceFormCache                                                        formCache;
-        std::deque<std::string>                                              entryInfoPool{};  // make sure alive during processing
-        std::unordered_map<const RE::TESRace*, std::string_view>             visitedRaces{};
-        std::unordered_map<const RE::BSScript::IFunction*, std::string_view> visitedFunctions{};
-        RE::BSScript::Internal::VirtualMachine*                              vm{ RE::BSScript::Internal::VirtualMachine::GetSingleton() };
+        std::filesystem::path                                    configDir{ CONFIG_DIR };
+        manager::headpart::HeadPartFormIdListAdder               adder;
+        RaceFormCache                                            formCache;
+        std::deque<std::string>                                  entryInfoPool{};  // make sure alive during processing
+        std::unordered_map<const RE::TESRace*, std::string_view> visitedRaces{};
     };
 
     bool ProcessConfigs();

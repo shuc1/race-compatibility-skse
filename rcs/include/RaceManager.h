@@ -61,6 +61,20 @@ namespace rcs::manager
         RE::BGSBipedObjectForm::BipedObjectSlot slotMask;
     };
 
+    struct FunctionBinding
+    {
+        RE::BSFixedString state;
+        RE::BSFixedString name;
+        std::size_t       ruleIndex;
+        std::size_t       functionIndex;
+    };
+
+    struct ScriptBinding
+    {
+        RE::BSFixedString            name;
+        std::vector<FunctionBinding> functions;
+    };
+
     struct GetRaceExclusion
     {
         std::vector<const RE::BSScript::IFunction*> functions;
@@ -70,6 +84,7 @@ namespace rcs::manager
     inline std::unordered_map<const RE::TESRace*, const RE::TESRace*>         raceProxies{};
     inline std::unordered_map<const RE::TESRace*, std::vector<ArmorOverride>> armorRaceProxies{};
     inline std::unordered_map<RE::FormID, const RE::TESRace*>                 originRaces{};
+    inline std::vector<ScriptBinding>                                         scriptBindings{};
     inline std::vector<GetRaceExclusion>                                      getRaceExclusions{};
 
     // emplace

@@ -73,6 +73,9 @@ namespace rcs::manager
 
     bool IsGetRaceExcluded(const RE::BSScript::IFunction* function, const RE::TESRace* current) noexcept
     {
+        if (!function) {
+            return false;
+        }
         for (const auto& rule : getRaceExclusions) {
             if (!std::ranges::contains(rule.functions, function)) {
                 continue;
