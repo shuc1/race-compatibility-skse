@@ -50,8 +50,13 @@
                             </typeDescriptor>
                         </plugin>
 
-                        <plugin name="SSE v1.6.1170/1.6.1179(GOG) (&quot;Anniversary Edition&quot;)">
-                            <description>Select this if you are using Skyrim Anniversary Edition v1.6.1170(Steam) or v1.6.1179(GOG).</description>
+                        <plugin
+                            name="SSE v1.6.1170/1.6.1179(GOG) (&quot;Anniversary Edition&quot;)">
+                            <description>
+Select this if you are using Skyrim Anniversary Edition v1.6.1170(Steam) or v1.6.1179(GOG).
+
+Compatibility with v1.6.640-v1.6.1130 is untested.
+</description>
                             <image path="fomod/images/cover.png" />
                             <files>
                                 <folder source="ae1170/"
@@ -69,15 +74,9 @@
                                         </pattern>
                                         <pattern>
                                             <dependencies>
-                                                <gameDependency version="1.6.1170" />
-                                            </dependencies>
-                                            <type name="Recommended" />
-                                        </pattern>
-                                        <pattern>
-                                            <dependencies>
                                                 <gameDependency version="1.6" />
                                             </dependencies>
-                                            <type name="Optional" />
+                                            <type name="Recommended" />
                                         </pattern>
                                         <pattern>
                                             <dependencies>

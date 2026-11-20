@@ -62,10 +62,11 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = [] {
     v.UsesAddressLibrary();
     v.UsesUpdatedStructs();
     v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
-    if constexpr (SKSE::RUNTIME_SSE_LATEST < MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5) {
-        v.MinimumRequiredXSEVersion(REL::Version{ 2, 2, 5 });
-    } else {
+    if constexpr (SKSE::RUNTIME_SSE_LATEST >= MIN_RUNTIME_FOR_ADDRESS_LIBRARY_V5) {
         v.MinimumRequiredXSEVersion(REL::Version{ 2, 3, 0 });
+    } else {
+        // compatibility with Skyrim 1.6.640–1.6.1130 is untested
+        v.MinimumRequiredXSEVersion(REL::Version{ 2, 2, 1 });
     }
     return v;
 }();
