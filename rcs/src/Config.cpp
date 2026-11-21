@@ -107,7 +107,7 @@ namespace rcs::config
     void ConfigProcessor::ProcessGetRaceExclusions(const std::vector<GetRaceExclusion>& exclusions)
     {
         for (const auto& raw : exclusions | std::views::reverse) {
-            manager::GetRaceExclusion rule;
+            manager::GetRaceExclusion rule{};
             const auto                ruleIndex = manager::getRaceExclusions.size();
             for (const auto& exclusion : raw.functions) {
                 if (exclusion.state.empty()) {
@@ -120,23 +120,23 @@ namespace rcs::config
 
                 const RE::BSFixedString  scriptName{ std::string{ exclusion.script } };
                 auto                     it = std::ranges::find(manager::scriptBindings, scriptName, &manager::ScriptBinding::name);
-                auto&                    entry = it == manager::scriptBindings.end() ?
-                                                     manager::scriptBindings.emplace_back(scriptName) :
-                                                     *it;
-                manager::FunctionBinding binding{
+                auto&                    script = it == manager::scriptBindings.end() ?
+                                                      manager::scriptBindings.emplace_back(scriptName) :
+                                                      *it;
+                manager::FunctionBinding function{
                     .state = std::string{ exclusion.state },
                     .name = std::string{ exclusion.function },
                     .ruleIndex = ruleIndex,
                     .functionIndex = rule.functions.size()
                 };
-                if (std::ranges::any_of(entry.functions, [&](const auto& existing) {
-                        return existing.state == binding.state && existing.name == binding.name;
+                if (std::ranges::any_of(script.functions, [&](const auto& existing) {
+                        return existing.state == function.state && existing.name == function.name;
                     })) {
                     logs::warn("\t\t[SKIP] Function already excluded by another config"sv);
                     continue;
                 }
 
-                entry.functions.emplace_back(std::move(binding));
+                script.functions.emplace_back(std::move(function));
                 rule.functions.emplace_back(nullptr);
             }
             if (rule.functions.empty()) {
