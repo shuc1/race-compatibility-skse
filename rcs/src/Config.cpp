@@ -108,7 +108,8 @@ namespace rcs::config
     {
         for (const auto& raw : exclusions | std::views::reverse) {
             manager::GetRaceExclusion rule{};
-            const auto                ruleIndex = manager::getRaceExclusions.size();
+            // keep slot addresses stable while appending function bindings
+            rule.functions.reserve(raw.functions.size());
             for (const auto& exclusion : raw.functions) {
                 if (exclusion.state.empty()) {
                     logs::info("\t[GetRace Exclusion]: {}::{}"sv,
@@ -118,26 +119,23 @@ namespace rcs::config
                         exclusion.script, exclusion.function, exclusion.state);
                 }
 
-                const RE::BSFixedString  scriptName{ std::string{ exclusion.script } };
-                auto                     it = std::ranges::find(manager::scriptBindings, scriptName, &manager::ScriptBinding::name);
-                auto&                    script = it == manager::scriptBindings.end() ?
-                                                      manager::scriptBindings.emplace_back(scriptName) :
-                                                      *it;
-                manager::FunctionBinding function{
-                    .state = std::string{ exclusion.state },
-                    .name = std::string{ exclusion.function },
-                    .ruleIndex = ruleIndex,
-                    .functionIndex = rule.functions.size()
-                };
+                const RE::BSFixedString scriptName{ std::string{ exclusion.script } };
+                auto                    it = std::ranges::find(manager::scriptBindings, scriptName, &manager::ScriptBinding::name);
+                auto&                   script = it == manager::scriptBindings.end() ?
+                                                     manager::scriptBindings.emplace_back(scriptName) :
+                                                     *it;
+
+                RE::BSFixedString state{ std::string{ exclusion.state } };
+                RE::BSFixedString name{ std::string{ exclusion.function } };
                 if (std::ranges::any_of(script.functions, [&](const auto& existing) {
-                        return existing.state == function.state && existing.name == function.name;
+                        return existing.state == state && existing.name == name;
                     })) {
                     logs::warn("\t\t[SKIP] Function already excluded by another config"sv);
                     continue;
                 }
 
-                script.functions.emplace_back(std::move(function));
-                rule.functions.emplace_back(nullptr);
+                auto& slot = rule.functions.emplace_back(nullptr);
+                script.functions.emplace_back(std::move(state), std::move(name), slot);
             }
             if (rule.functions.empty()) {
                 continue;

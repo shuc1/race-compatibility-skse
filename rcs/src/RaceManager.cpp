@@ -71,13 +71,75 @@ namespace rcs::manager
         return race && std::ranges::contains(alternateForms, race);
     }
 
+    void BindLoadedExclusionFunctions()
+    {
+        // Bind scripts already loaded before hook installation without loading new ones.
+        if (const auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
+            for (const auto& script : scriptBindings) {
+                RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> type{};
+                if (vm->GetScriptObjectTypeNoLoad(script.name, type) && type) {
+                    RefreshExclusionFunctions(type.get(), script);
+                }
+            }
+        }
+    }
+
+    void RefreshExclusionFunctions(const RE::BSScript::ObjectTypeInfo* type, const ScriptBinding& script)
+    {
+        using ScriptFunction = RE::BSScript::Internal::ScriptFunction;
+        static const auto scriptVtable = ScriptFunction::VTABLE[0].address();
+
+        for (const auto& function : script.functions) {
+            const auto find = [&](const auto* table, std::uint32_t count) -> const RE::BSScript::IFunction* {
+                for (const auto& entry : std::span{ table, count }) {
+                    const auto* binding = entry.func.get();
+                    if (!binding) {
+                        continue;
+                    }
+                    std::uintptr_t vtable;
+                    std::memcpy(&vtable, reinterpret_cast<const std::byte*>(binding), sizeof(vtable));
+                    if (vtable != scriptVtable) {
+                        continue;
+                    }
+                    const auto* scriptFunction = static_cast<const ScriptFunction*>(binding);
+                    if (scriptFunction->name == function.name) {
+                        return binding;
+                    }
+                }
+                // A miss clears the previous version's pointer.
+                return nullptr;
+            };
+
+            auto resolved = [&]() -> const RE::BSScript::IFunction* {
+                if (function.state.empty()) {
+                    if (const auto* binding = find(type->GetMemberFuncIter(), type->GetNumMemberFuncs())) {
+                        return binding;
+                    }
+                    return find(type->GetGlobalFuncIter(), type->GetNumGlobalFuncs());
+                }
+                for (const auto& state : std::span{ type->GetNamedStateIter(), type->GetNumNamedStates() }) {
+                    if (state.name == function.state) {
+                        return find(state.GetFuncIter(), state.GetNumFuncs());
+                    }
+                }
+                return nullptr;
+            }();
+            // atomic write
+            std::atomic_ref{ function.slot }.store(resolved, std::memory_order_relaxed);
+        }
+    }
+
     bool IsGetRaceExcluded(const RE::BSScript::IFunction* function, const RE::TESRace* current) noexcept
     {
         if (!function) {
             return false;
         }
         for (const auto& rule : getRaceExclusions) {
-            if (!std::ranges::contains(rule.functions, function)) {
+            // atomic read
+            if (!std::ranges::any_of(rule.functions,
+                    [function](auto& slot) {
+                        return std::atomic_ref{ slot }.load(std::memory_order_relaxed) == function;
+                    })) {
                 continue;
             }
             if (rule.unlessProxyMatches.empty()) {

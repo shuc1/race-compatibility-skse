@@ -63,10 +63,9 @@ namespace rcs::manager
 
     struct FunctionBinding
     {
-        RE::BSFixedString state;
-        RE::BSFixedString name;
-        std::size_t       ruleIndex;
-        std::size_t       functionIndex;
+        RE::BSFixedString               state;
+        RE::BSFixedString               name;
+        const RE::BSScript::IFunction*& slot;
     };
 
     struct ScriptBinding
@@ -97,6 +96,8 @@ namespace rcs::manager
     [[nodiscard]] auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto IsAlternateForm(const RE::TESRace* race) noexcept -> bool;
     // get/set race
+    void               BindLoadedExclusionFunctions();
+    void               RefreshExclusionFunctions(const RE::BSScript::ObjectTypeInfo* type, const ScriptBinding& script);
     [[nodiscard]] auto IsGetRaceExcluded(const RE::BSScript::IFunction* function, const RE::TESRace* current) noexcept -> bool;
     [[nodiscard]] auto GetRaceProxy(const RE::TESRace* race) noexcept -> const RE::TESRace*;
     [[nodiscard]] auto ResolveTargetRace(const RE::TESRace* origin, const RE::TESRace* target) noexcept -> const RE::TESRace*;

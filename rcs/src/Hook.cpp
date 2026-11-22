@@ -294,56 +294,25 @@ namespace
         };
     }
 
-    namespace papyrus
+    namespace BSScript::ObjectTypeInfo
     {
-        struct Finish
+        struct FinishLinking
         {
             static constexpr auto           id = RELOCATION_ID(98719, 105382);
             static constexpr std::ptrdiff_t offset = OFFSET(0x4CB, 0x57E);
 
             static bool CallThunk(RE::BSScript::ObjectTypeInfo* type, void* ctx, RE::BSScript::ErrorLogger* logger)
             {
-                const auto result = hook::FuncStorage<Finish>::func(type, ctx, logger);
+                const auto result = hook::FuncStorage<FinishLinking>::func(type, ctx, logger);
 
                 if (type && type->linkedValid == RE::BSScript::ObjectTypeInfo::LinkValidState::kLinkedValid) {
                     const auto it = std::ranges::find(manager::scriptBindings, type->name, &manager::ScriptBinding::name);
                     if (it != manager::scriptBindings.end()) {
-                        RefreshExclusionFunctions(type, *it);
+                        manager::RefreshExclusionFunctions(type, *it);
                     }
                 }
 
                 return result;
-            }
-
-            static void RefreshExclusionFunctions(const RE::BSScript::ObjectTypeInfo* type, const manager::ScriptBinding& script)
-            {
-                for (const auto& function : script.functions) {
-                    const auto find = [&](const auto* table, std::uint32_t count) -> const RE::BSScript::IFunction* {
-                        for (const auto& entry : std::span{ table, count }) {
-                            const auto* binding = entry.func.get();
-                            if (binding && !binding->GetIsNative() && binding->GetName() == function.name) {
-                                return binding;
-                            }
-                        }
-                        // A miss clears the previous version's pointer.
-                        return nullptr;
-                    };
-
-                    manager::getRaceExclusions[function.ruleIndex].functions[function.functionIndex] = [&]() -> const RE::BSScript::IFunction* {
-                        if (function.state.empty()) {
-                            if (const auto* binding = find(type->GetMemberFuncIter(), type->GetNumMemberFuncs())) {
-                                return binding;
-                            }
-                            return find(type->GetGlobalFuncIter(), type->GetNumGlobalFuncs());
-                        }
-                        for (const auto& state : std::span{ type->GetNamedStateIter(), type->GetNumNamedStates() }) {
-                            if (state.name == function.state) {
-                                return find(state.GetFuncIter(), state.GetNumFuncs());
-                            }
-                        }
-                        return nullptr;
-                    }();
-                }
             }
         };
     }
@@ -369,17 +338,8 @@ namespace rcs::hook
         }
 
         if (!manager::scriptBindings.empty()) {
-            InstallHooks<papyrus::Finish>();
-
-            // Bind functions from scripts already loaded before hook installation.
-            if (const auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
-                for (const auto& script : manager::scriptBindings) {
-                    RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> type{};
-                    if (vm->GetScriptObjectTypeNoLoad(script.name, type) && type) {
-                        papyrus::Finish::RefreshExclusionFunctions(type.get(), script);
-                    }
-                }
-            }
+            InstallHooks<BSScript::ObjectTypeInfo::FinishLinking>();
+            manager::BindLoadedExclusionFunctions();
         }
 
         if (!manager::armorRaceProxies.empty()) {
