@@ -14,6 +14,7 @@ set_version("3.0.0-preview.7", {build = "%Y-%m-%d"})
 set_license("GPL-3.0")
 
 set_policy("package.requires_lock", true)
+set_policy("build.always_update_configfiles", true)
 add_rules("plugin.vsxmake.autoupdate")
 set_configdir("./")
 

@@ -6,7 +6,7 @@
         ["cmake#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "4.3.4"
@@ -14,7 +14,7 @@
         ["glaze#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v9.1.0"
@@ -22,7 +22,7 @@
         ["microsoft-detours#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "2023.6.8"
@@ -30,7 +30,7 @@
         ["ninja#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.13.2"
@@ -38,7 +38,7 @@
         ["rsm-binary-io#f56260b5"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "2.0.6"
@@ -46,7 +46,7 @@
         ["spdlog#09c8c173"] = {
             repo = {
                 branch = "master",
-                commit = "e3180f3c56182ce55e1f90082a653d3a2474fef1",
+                commit = "23cb7e43f7c0e5fa30b638a96f02b94e62660604",
                 url = "https://github.com/xmake-io/xmake-repo.git"
             },
             version = "v1.17.0"

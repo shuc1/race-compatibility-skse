@@ -8,7 +8,8 @@
 	shallow = true
 [submodule "extern/commonlib-shared"]
 	path = extern/commonlib-shared
-	url = https://github.com/powerof3/commonlib-shared.git
+	url = https://github.com/libxse/commonlib-shared.git
+	branch = main
 [submodule "extern/commonlibsse-1170"]
 	path = extern/commonlibsse-1170
 	url = https://github.com/powerof3/CommonLibSSE.git
