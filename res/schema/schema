@@ -13,7 +13,10 @@
             "type": "object",
             "additionalProperties": false,
             "not": {
-                "required": ["overrides", "variants"]
+                "required": [
+                    "overrides",
+                    "variants"
+                ]
             },
             "properties": {
                 "race": {
@@ -62,18 +65,12 @@
             "required": [
                 "form"
             ],
-            "oneOf": [
-                {
-                    "required": [
-                        "proxy"
-                    ]
-                },
-                {
-                    "required": [
-                        "proxies"
-                    ]
-                }
-            ],
+            "not": {
+                "required": [
+                    "proxy",
+                    "proxies"
+                ]
+            },
             "additionalProperties": false,
             "properties": {
                 "form": {
@@ -83,6 +80,15 @@
                 "proxy": {
                     "$ref": "#/$defs/form",
                     "description": "Choose which race yours counts as in dialogue, quests, magic effects, and scripts."
+                },
+                "conditionProxies": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/$defs/form"
+                    },
+                    "description": "Choose which additional races yours counts as in dialogue, quests, and magic effects, without affecting race checks in Papyrus scripts."
                 },
                 "proxies": {
                     "deprecated": true,

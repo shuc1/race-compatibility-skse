@@ -23,6 +23,13 @@ namespace rcs::manager
         }
     }
 
+    void EmplaceConditionProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept
+    {
+        if (race && !proxies.empty()) {
+            conditionProxies.try_emplace(race, std::move(proxies));
+        }
+    }
+
     void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorOverride>&& proxies) noexcept
     {
         if (race && !proxies.empty()) {
@@ -47,7 +54,11 @@ namespace rcs::manager
         if (!source_race || !target_race) {
             return false;
         }
-        return GetRaceProxy(source_race) == target_race;
+        if (GetRaceProxy(source_race) == target_race) {
+            return true;
+        }
+        const auto it = conditionProxies.find(source_race);
+        return it != conditionProxies.end() && std::ranges::contains(it->second, target_race);
     }
 
     auto ResolveArmorParentRace(const RE::TESObjectARMA* armor_addon, const RE::TESRace* race) noexcept
@@ -218,8 +229,10 @@ namespace rcs::manager
         logs::info("{:*^30}"sv, "SUMMARY"sv);
         logs::info("Race groups recorded: {}"sv, raceGroups.size());
         logs::info("Race proxies created: {}"sv, raceProxies.size());
+        logs::info("Race extra condition proxies created: {}"sv, conditionProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
         logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
+        logs::info("GetRace script exclusions recorded: {}"sv, getRaceExclusions.size());
     }
 
     namespace headpart

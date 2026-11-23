@@ -80,15 +80,17 @@ namespace rcs::manager
         std::vector<const RE::TESRace*>             unlessProxyMatches;
     };
 
-    inline std::unordered_map<const RE::TESRace*, const RE::TESRace*>         raceProxies{};
-    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorOverride>> armorRaceProxies{};
-    inline std::unordered_map<RE::FormID, const RE::TESRace*>                 originRaces{};
-    inline std::vector<ScriptBinding>                                         scriptBindings{};
-    inline std::vector<GetRaceExclusion>                                      getRaceExclusions{};
+    inline std::unordered_map<const RE::TESRace*, const RE::TESRace*>              raceProxies{};
+    inline std::unordered_map<const RE::TESRace*, std::vector<const RE::TESRace*>> conditionProxies{};
+    inline std::unordered_map<const RE::TESRace*, std::vector<ArmorOverride>>      armorRaceProxies{};
+    inline std::unordered_map<RE::FormID, const RE::TESRace*>                      originRaces{};
+    inline std::vector<ScriptBinding>                                              scriptBindings{};
+    inline std::vector<GetRaceExclusion>                                           getRaceExclusions{};
 
     // emplace
     void EmplaceRaceGroup(std::vector<const RE::TESRace*>&& races);
     void EmplaceRaceProxy(const RE::TESRace* race, const RE::TESRace* proxy) noexcept;
+    void EmplaceConditionProxies(const RE::TESRace* race, std::vector<const RE::TESRace*>&& proxies) noexcept;
     void EmplaceArmorRaceProxies(const RE::TESRace* race, std::vector<ArmorOverride>&& proxies) noexcept;
     void AddAlternateForm(const RE::TESRace* race);
     // judge

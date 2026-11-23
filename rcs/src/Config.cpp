@@ -25,18 +25,7 @@ namespace rcs::config
             ProcessPluginConfigFile(path);
         }
         // vanilla game config entries
-        logs::info("default:"sv);
-        ProcessRaceConfigEntries("default"sv,
-            {
-#define X(NAME)                                             \
-    RawConfigEntry{                                         \
-        .name = #NAME##sv,                                  \
-        .race = { .form = (#NAME "Race"sv) },               \
-        .variants = { { .form = (#NAME "RaceVampire"sv) } } \
-    },
-                VANILLA_RACES
-#undef X
-            });
+        logs::info("DEFAULT:"sv);
         ProcessAlternateForms(
             { "WerewolfBeastRace"sv,
                 "DLC1VampireBeastRace"sv,
@@ -108,6 +97,21 @@ namespace rcs::config
     {
         for (const auto& raw : exclusions | std::views::reverse) {
             manager::GetRaceExclusion rule{};
+            if (!raw.unlessProxyMatches.empty()) {
+                rule.unlessProxyMatches.reserve(raw.unlessProxyMatches.size());
+                for (const auto& form : raw.unlessProxyMatches) {
+                    const auto* race = LookupRace(form);
+                    if (!race) {
+                        logs::warn("\t[GetRace Exclusion] Proxy race {} not found"sv, form);
+                        continue;
+                    }
+                    rule.unlessProxyMatches.emplace_back(race);
+                }
+                // in case all races not resolved
+                if (rule.unlessProxyMatches.empty()) {
+                    continue;
+                }
+            }
             // keep slot addresses stable while appending function bindings
             rule.functions.reserve(raw.functions.size());
             for (const auto& exclusion : raw.functions) {
@@ -139,15 +143,6 @@ namespace rcs::config
             }
             if (rule.functions.empty()) {
                 continue;
-            }
-            rule.unlessProxyMatches.reserve(raw.unlessProxyMatches.size());
-            for (const auto& form : raw.unlessProxyMatches) {
-                const auto* race = LookupRace(form);
-                if (!race) {
-                    logs::warn("\t[GetRace Exclusion] Proxy race {} not found"sv, form);
-                    continue;
-                }
-                rule.unlessProxyMatches.emplace_back(race);
             }
             manager::getRaceExclusions.emplace_back(std::move(rule));
         }
@@ -223,6 +218,7 @@ namespace rcs::config
         RaceProxy result{
             .form = race,
             .proxy{},
+            .conditionProxies{},
             .armor = {
                 .race = LookupRace(raw.armor.race),
                 .overrides{} },
@@ -230,6 +226,12 @@ namespace rcs::config
         };
         // race proxy
         result.proxy = LookupRace(raw.proxy);
+        result.conditionProxies.reserve(raw.conditionProxies.size());
+        for (const auto& form : raw.conditionProxies) {
+            if (const auto* raceProxy = LookupRace(form)) {
+                result.conditionProxies.emplace_back(raceProxy);
+            }
+        }
         // race armor proxy
         if (!raw.armor.overrides.empty()) {
             auto& overrides = result.armor.overrides;
@@ -272,14 +274,12 @@ namespace rcs::config
 
     void ConfigProcessor::ApplyRaceProxy(RaceProxy&& proxy) const
     {
-        // proxy
         manager::EmplaceRaceProxy(proxy.form, proxy.proxy);
-        // armor
+        manager::EmplaceConditionProxies(proxy.form, std::move(proxy.conditionProxies));
         if (auto* armorRace = proxy.armor.race) {
             proxy.form->armorParentRace = armorRace;
         }
         manager::EmplaceArmorRaceProxies(proxy.form, std::move(proxy.armor.overrides));
-        // headpart
         for (const auto& type : proxy.headPart) {
             adder.AddRace(proxy.form, type);
         }

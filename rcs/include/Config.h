@@ -22,10 +22,11 @@ namespace rcs::config
                 std::vector<ArmorOverride> overrides;
             };
 
-            std::string_view         form;
-            std::string_view         proxy;
-            ArmorProxy               armor;
-            std::vector<std::string> headPart;
+            std::string_view              form;
+            std::string_view              proxy;
+            std::vector<std::string_view> conditionProxies;
+            ArmorProxy                    armor;
+            std::vector<std::string>      headPart;
         };
 
         std::string_view       name;
@@ -72,10 +73,11 @@ namespace rcs::config
                 std::vector<manager::ArmorOverride> overrides;
             };
 
-            RE::TESRace*                 form;
-            const RE::TESRace*           proxy;
-            ArmorProxy                   armor;
-            std::span<const std::string> headPart;
+            RE::TESRace*                    form;
+            const RE::TESRace*              proxy;
+            std::vector<const RE::TESRace*> conditionProxies;
+            ArmorProxy                      armor;
+            std::span<const std::string>    headPart;
         };
 
         RaceProxy              race;
@@ -152,6 +154,7 @@ struct glz::meta<rcs::config::RawConfigEntry::RaceProxy>
     static constexpr auto value = glz::object(
         "form", &T::form,
         "proxy", &T::proxy,
+        "conditionProxies", &T::conditionProxies,
         "proxies", glz::custom<ReadProxies, glz::skip{}>,
         "armor", &T::armor,
         "headPart", glz::custom<ReadHeadPart, glz::skip{}>);

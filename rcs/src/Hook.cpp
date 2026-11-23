@@ -301,7 +301,7 @@ namespace
             static constexpr auto           id = RELOCATION_ID(98719, 105382);
             static constexpr std::ptrdiff_t offset = OFFSET(0x4CB, 0x57E);
 
-            static bool CallThunk(RE::BSScript::ObjectTypeInfo* type, void* ctx, RE::BSScript::ErrorLogger* logger)
+            static bool CallThunk(RE::BSScript::ObjectTypeInfo* type, void* ctx, RE::SkyrimScript::Logger* logger)
             {
                 const auto result = hook::FuncStorage<FinishLinking>::func(type, ctx, logger);
 
@@ -327,7 +327,7 @@ namespace rcs::hook
         logs::info("Using Detours"sv);
 #endif
 
-        if (!manager::raceProxies.empty()) {
+        if (!manager::raceProxies.empty() || !manager::conditionProxies.empty()) {
 #define SHARED_RACE_HOOKS Actor::GetRace, ActorBase::GetRace, SetRace, GetIsRace, SameRace
 #ifdef SKYRIM_SUPPORT_AE
             InstallHooks<SHARED_RACE_HOOKS, GetPCIsRace, SameRaceAsPC>();
