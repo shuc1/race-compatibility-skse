@@ -232,7 +232,7 @@ namespace rcs::manager
         logs::info("Race extra condition proxies created: {}"sv, conditionProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
         logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
-        logs::info("GetRace script exclusions recorded: {}"sv, getRaceExclusions.size());
+        logs::info("GetRace related scripts recorded: {}"sv, getRaceExclusions.size());
     }
 
     namespace headpart
