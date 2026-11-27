@@ -225,10 +225,13 @@ namespace rcs::config
             .headPart = raw.headPart,
         };
         // race proxy
-        result.proxy = LookupRace(raw.proxy);
+        if (const auto* proxy = LookupRace(raw.proxy); proxy != race) {
+            result.proxy = proxy;
+        }
         result.conditionProxies.reserve(raw.conditionProxies.size());
         for (const auto& form : raw.conditionProxies) {
-            if (const auto* raceProxy = LookupRace(form)) {
+            if (const auto* raceProxy = LookupRace(form);
+                raceProxy && raceProxy != race) {
                 result.conditionProxies.emplace_back(raceProxy);
             }
         }

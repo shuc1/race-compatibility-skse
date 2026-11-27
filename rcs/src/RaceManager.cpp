@@ -162,7 +162,8 @@ namespace rcs::manager
             });
             return group == raceGroups.end() ||
                    std::ranges::none_of(*group, [&](const auto* race) {
-                       return std::ranges::contains(rule.unlessProxyMatches, GetRaceProxy(race));
+                       const auto* proxy = GetRaceProxy(race);
+                       return std::ranges::contains(rule.unlessProxyMatches, proxy ? proxy : race);
                    });
         }
         return false;
@@ -218,8 +219,8 @@ namespace rcs::manager
         if (had_origin || IsAlternateForm(previous)) {
             return;
         }
-        if (const auto* proxy = GetRaceProxy(previous);
-            proxy && proxy != previous) {
+        // only proxied race needs this
+        if (GetRaceProxy(previous)) {
             originRaces.try_emplace(actor_id, previous);
         }
     }
@@ -232,7 +233,7 @@ namespace rcs::manager
         logs::info("Race extra condition proxies created: {}"sv, conditionProxies.size());
         logs::info("ArmorRace proxies created: {}"sv, armorRaceProxies.size());
         logs::info("Alternate forms recorded: {}"sv, alternateForms.size());
-        logs::info("GetRace related scripts recorded: {}"sv, getRaceExclusions.size());
+        logs::info("GetRace related scripts recorded: {}"sv, scriptBindings.size());
     }
 
     namespace headpart

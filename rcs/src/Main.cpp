@@ -45,6 +45,12 @@ namespace
                 spdlog::default_logger()->flush();
                 break;
             }
+        case SKSE::MessagingInterface::kPreLoadGame:
+        case SKSE::MessagingInterface::kNewGame:
+            {
+                rcs::serialization::RevertOriginRaces();
+                break;
+            }
         default:
             break;
         }

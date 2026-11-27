@@ -77,7 +77,7 @@
                                 "items": {
                                     "$ref": "#/$defs/form"
                                 },
-                                "description": "Keep normal GetRace proxying if the proxy of the base race or any variant in the current race configuration entry matches a race in this list. Otherwise, return the actual race. If omitted or empty, always return the actual race."
+                                "description": "Keep normal GetRace proxying if the base race or any variant in the actor's race group matches this list, using each race's main proxy when available or its actual race otherwise. Otherwise, return the actual race. If omitted or empty, always return the actual race."
                             }
                         }
                     },

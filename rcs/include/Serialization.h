@@ -56,7 +56,7 @@ namespace rcs::serialization
         logs::info("Origin race records loaded: {}"sv, manager::originRaces.size());
     }
 
-    inline void RevertOriginRaces([[maybe_unused]] SKSE::SerializationInterface* a_interface)
+    inline void RevertOriginRaces()
     {
         manager::originRaces.clear();
         logs::info("Cleared origin race records"sv);
@@ -67,7 +67,6 @@ namespace rcs::serialization
         a_interface->SetUniqueID(PLUGIN_ID);
         a_interface->SetSaveCallback(SaveOriginRaces);
         a_interface->SetLoadCallback(LoadOriginRaces);
-        a_interface->SetRevertCallback(RevertOriginRaces);
         logs::info("Registered serialization callbacks"sv);
     }
 }
